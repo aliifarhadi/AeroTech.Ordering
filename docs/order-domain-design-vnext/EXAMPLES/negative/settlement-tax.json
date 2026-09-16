@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "2.0",
+  "source": {
+    "owner": "AirOffer",
+    "offerId": "REFERENCE-PRICED-OW-001",
+    "providerProfileId": "REFERENCE-OFFER-2.0",
+    "ownerBindingRef": "REFERENCE-BINDING-001",
+    "sourcePayloadHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "acceptanceAssurance": "OwnerBound",
+  "pricedAt": "2026-10-01T10:00:00Z",
+  "capturedAt": "2026-10-01T10:00:00Z",
+  "validity": {
+    "offer": {
+      "state": "Known",
+      "value": "2026-10-01T10:10:00Z",
+      "owner": "AirOffer",
+      "sourceRef": "REFERENCE-OFFER-001",
+      "reason": null
+    },
+    "price": {
+      "state": "Known",
+      "value": "2026-10-01T10:05:00Z",
+      "owner": "AirPrice",
+      "sourceRef": "REFERENCE-PRICE-001",
+      "reason": null
+    },
+    "ticketing": {
+      "state": "NotSupplied",
+      "value": null,
+      "owner": "Unresolved owner",
+      "sourceRef": null,
+      "reason": "Not supplied by source; no implied infinite validity"
+    }
+  },
+  "salesContext": {
+    "ownerAirlineId": "1",
+    "financialCustomerId": "100",
+    "channel": "Backoffice",
+    "sellingOfficeId": "10"
+  },
+  "travelers": [
+    {
+      "sourceTravellerRef": "PAX-A",
+      "passengerTypeCode": "ADT"
+    }
+  ],
+  "segments": [
+    {
+      "segmentRef": "SEG-A",
+      "kind": "ScheduledAir",
+      "originRef": "AIRPORT-A",
+      "destinationRef": "AIRPORT-B",
+      "soldDeparture": "2026-10-15T09:00:00Z",
+      "soldArrival": "2026-10-15T11:00:00Z",
+      "flightRef": "REFERENCE-FLIGHT-A",
+      "operationalLegRefs": [
+        "LEG-A"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "itemRef": "ITEM-A",
+      "itemKind": "OfferPackage",
+      "sourceOfferItemRef": null,
+      "serviceRefs": [
+        "SERVICE-A"
+      ],
+      "acceptedTotal": {
+        "amount": "120.00",
+        "currencyRef": "EUR"
+      }
+    }
+  ],
+  "services": [
+    {
+      "serviceRef": "SERVICE-A",
+      "type": "AirTransport",
+      "beneficiaryRefs": [
+        "PAX-A"
+      ],
+      "segmentRefs": [
+        "SEG-A"
+      ],
+      "quantity": "1",
+      "quantityUnit": "PassengerSegment",
+      "detailSchema": "AirTransport",
+      "detailSchemaVersion": 1,
+      "details": {
+        "cabinRef": "ECONOMY",
+        "bookingClass": "Y"
+      },
+      "fulfillmentProfile": {
+        "profileRef": "REFERENCE-AIR-ETKT",
+        "reservationRequirement": "FlightCapacity",
+        "documentKind": "ETKT",
+        "requiresFunding": true,
+        "capacityUnits": 1
+      }
+    }
+  ],
+  "pricingLines": [
+    {
+      "lineRef": "PRICE-FARE",
+      "itemRef": "ITEM-A",
+      "component": "Fare",
+      "effect": "CustomerBalance",
+      "direction": "Debit",
+      "lineRole": "Original",
+      "originalValue": {
+        "amount": "100.00",
+        "currencyRef": "EUR"
+      },
+      "saleValue": {
+        "amount": "100.00",
+        "currencyRef": "EUR"
+      },
+      "sourceLineRef": "tickets/0/coupons/0/pricings/0",
+      "basisType": "OrderService",
+      "basisRef": "SERVICE-A",
+      "sourceConversionRef": null
+    },
+    {
+      "lineRef": "PRICE-TAX",
+      "itemRef": "ITEM-A",
+      "component": "Tax",
+      "effect": "SettlementOnly",
+      "direction": "Debit",
+      "lineRole": "Original",
+      "originalValue": {
+        "amount": "20.00",
+        "currencyRef": "EUR"
+      },
+      "saleValue": {
+        "amount": "20.00",
+        "currencyRef": "EUR"
+      },
+      "sourceLineRef": "tickets/0/coupons/0/pricings/1",
+      "basisType": "OrderService",
+      "basisRef": "SERVICE-A",
+      "sourceConversionRef": null
+    }
+  ],
+  "customerTotal": {
+    "amount": "120.00",
+    "currencyRef": "EUR"
+  },
+  "fareConstruction": {
+    "assurance": "Opaque",
+    "sourceContextRef": "REFERENCE-CONTEXT-001",
+    "pricingUnits": []
+  }
+}

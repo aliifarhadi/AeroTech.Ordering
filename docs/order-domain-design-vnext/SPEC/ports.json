@@ -1,0 +1,852 @@
+[
+  {
+    "name": "IOfferSourcePort",
+    "owner": "AirOffer",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/02-AIROFFER.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "ResolveCandidate",
+        "semanticType": "Query",
+        "requestFields": [
+          "offerId",
+          "authorizedSalesContext",
+          "requestedSelection"
+        ],
+        "result": "CandidateResolution"
+      },
+      {
+        "name": "ReadBoundCandidate",
+        "semanticType": "Query",
+        "requestFields": [
+          "ownerBindingRef",
+          "expectedSourceDigest",
+          "authorizedSalesContext"
+        ],
+        "result": "BoundCandidateEvidence or UnsupportedCapability"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  },
+  {
+    "name": "IPricingDecisionPort",
+    "owner": "AirPrice",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/03-AIRPRICE.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "QuoteAncillary",
+        "semanticType": "Query",
+        "requestFields": [
+          "productSnapshot",
+          "beneficiaryCoverage",
+          "quantity",
+          "salesContext",
+          "originalOrderContext"
+        ],
+        "result": "PricedChangeDecision"
+      },
+      {
+        "name": "QuoteCancellation",
+        "semanticType": "Query",
+        "requestFields": [
+          "immutableOriginalPricingContext",
+          "targetScope",
+          "sourceFacts",
+          "reason"
+        ],
+        "result": "CancellationDecision"
+      },
+      {
+        "name": "QuoteRefund",
+        "semanticType": "Query",
+        "requestFields": [
+          "originalPricingAndDocumentFacts",
+          "targetScope",
+          "consumptionControlFacts",
+          "reason"
+        ],
+        "result": "RefundDecision"
+      },
+      {
+        "name": "QuoteExchange",
+        "semanticType": "Query",
+        "requestFields": [
+          "originalPricingContext",
+          "oldScope",
+          "newCandidate",
+          "relevantVersions",
+          "reasonOrWaiverAuthority"
+        ],
+        "result": "ExchangeDecision"
+      },
+      {
+        "name": "QuotePartition",
+        "semanticType": "Query",
+        "requestFields": [
+          "sourceOrderContext",
+          "travelerPartition",
+          "sharedServiceDisposition",
+          "relevantVersions"
+        ],
+        "result": "PartitionDecision"
+      },
+      {
+        "name": "ValidateTicketing",
+        "semanticType": "Query",
+        "requestFields": [
+          "acceptedPricingContext",
+          "targetScope",
+          "currentOwnerAuthorityFacts"
+        ],
+        "result": "TicketingDecision"
+      },
+      {
+        "name": "ReadDecision",
+        "semanticType": "Query",
+        "requestFields": [
+          "decisionRef",
+          "expectedVersion",
+          "expectedDigest"
+        ],
+        "result": "ImmutableDecisionEvidence"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  },
+  {
+    "name": "IReservationPort",
+    "owner": "FlightFlow",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/04-FLIGHTFLOW.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "Reserve",
+        "semanticType": "Command",
+        "requestFields": [
+          "members",
+          "couplingGroups",
+          "sourceCapacityRefs",
+          "requestedHoldPolicy",
+          "approvedRevenueFacts"
+        ],
+        "result": "CapacityEffectResult"
+      },
+      {
+        "name": "Commit",
+        "semanticType": "Command",
+        "requestFields": [
+          "reservationMemberRefs",
+          "expectedResourceVersions",
+          "issueOrExchangeOperationRef"
+        ],
+        "result": "CapacityEffectResult"
+      },
+      {
+        "name": "Release",
+        "semanticType": "Command",
+        "requestFields": [
+          "heldMemberRefs",
+          "expectedResourceVersions",
+          "reason"
+        ],
+        "result": "CapacityEffectResult"
+      },
+      {
+        "name": "CancelCommitted",
+        "semanticType": "Command",
+        "requestFields": [
+          "committedMemberRefs",
+          "expectedResourceVersions",
+          "reason",
+          "servicingAuthorityRef"
+        ],
+        "result": "CapacityEffectResult"
+      },
+      {
+        "name": "Divide",
+        "semanticType": "Command",
+        "requestFields": [
+          "originalReservationRefs",
+          "exactMemberPartition",
+          "stableTargetOrderRefs"
+        ],
+        "result": "CapacityPartitionResult"
+      },
+      {
+        "name": "AcquireGroupBlock",
+        "semanticType": "Command",
+        "requestFields": [
+          "contractRef",
+          "perFlightBlockRequests",
+          "requestedPolicy"
+        ],
+        "result": "CapacityBlockResult"
+      },
+      {
+        "name": "AllocateExistingBlock",
+        "semanticType": "Command",
+        "requestFields": [
+          "blockRefsAndVersions",
+          "namedMemberAssignments",
+          "materializationRef"
+        ],
+        "result": "CapacityAllocationResult"
+      },
+      {
+        "name": "ReleaseGroupBlock",
+        "semanticType": "Command",
+        "requestFields": [
+          "blockRef",
+          "expectedBlockVersion",
+          "exactUnusedQuantity",
+          "reason"
+        ],
+        "result": "CapacityBlockResult"
+      },
+      {
+        "name": "ReadOperation",
+        "semanticType": "Query",
+        "requestFields": [
+          "originalOperationKey",
+          "providerProfileId",
+          "originalScopeHash"
+        ],
+        "result": "OperationReadResult"
+      },
+      {
+        "name": "ReadResource",
+        "semanticType": "Query",
+        "requestFields": [
+          "canonicalResourceRefs",
+          "expectedNamespace"
+        ],
+        "result": "CapacityResourceReadResult"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  },
+  {
+    "name": "IFundingCoveragePort",
+    "owner": "JetPay",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/05-JETPAY.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "EstablishCoverage",
+        "semanticType": "Command",
+        "requestFields": [
+          "obligations",
+          "authorizedFundingIntentRef",
+          "exactRequestedValues"
+        ],
+        "result": "FundingEffectResult"
+      },
+      {
+        "name": "AcquireIssueAuthority",
+        "semanticType": "Command",
+        "requestFields": [
+          "coverageRefs",
+          "obligationVersions",
+          "documentPlanScope",
+          "issueOperationId"
+        ],
+        "result": "IssueAuthorityResult"
+      },
+      {
+        "name": "FinalizeIssueAuthority",
+        "semanticType": "Command",
+        "requestFields": [
+          "issueAuthorityRef",
+          "committedDocumentEvidence",
+          "appliedScope"
+        ],
+        "result": "FundingEffectResult"
+      },
+      {
+        "name": "AcquireExchangeFundingAuthority",
+        "semanticType": "Command",
+        "requestFields": [
+          "acceptedExchangePlan",
+          "oldApplicationRefs",
+          "oldNewObligationVersions",
+          "additionalCollection",
+          "residualDisposition",
+          "exchangeOperationId"
+        ],
+        "result": "ExchangeFundingAuthority"
+      },
+      {
+        "name": "RequestRelease",
+        "semanticType": "Command",
+        "requestFields": [
+          "coverageOrAuthorityRefs",
+          "exactUnconsumedScope",
+          "reason"
+        ],
+        "result": "FundingEffectResult"
+      },
+      {
+        "name": "AcquireRefundAuthority",
+        "semanticType": "Command",
+        "requestFields": [
+          "acceptedRefundPlan",
+          "originalTenderApplicationRefs",
+          "exactPayoutValues"
+        ],
+        "result": "RefundAuthorityResult"
+      },
+      {
+        "name": "ExecuteRefund",
+        "semanticType": "Command",
+        "requestFields": [
+          "refundAuthorityRef",
+          "commercialRefundPivotRef",
+          "payoutPlan"
+        ],
+        "result": "RefundPayoutResult"
+      },
+      {
+        "name": "AcquireApplicationTransfer",
+        "semanticType": "Command",
+        "requestFields": [
+          "sourceApplicationRefs",
+          "sourceTargetObligationScopes",
+          "balancedTransferPlan"
+        ],
+        "result": "TransferAuthorityResult"
+      },
+      {
+        "name": "FinalizeApplicationTransfer",
+        "semanticType": "Command",
+        "requestFields": [
+          "transferAuthorityRef",
+          "committedSplitOrExchangeRef"
+        ],
+        "result": "FundingTransferResult"
+      },
+      {
+        "name": "ReadOperation",
+        "semanticType": "Query",
+        "requestFields": [
+          "originalOperationKey",
+          "providerProfileId",
+          "originalScopeHash"
+        ],
+        "result": "OperationReadResult"
+      },
+      {
+        "name": "ReadCoverage",
+        "semanticType": "Query",
+        "requestFields": [
+          "coverageOrAuthorityRefs",
+          "obligationRefs"
+        ],
+        "result": "CoverageReadResult"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  },
+  {
+    "name": "IAncillaryCatalogPort",
+    "owner": "Ancillary",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/06-ANCILLARY-AND-SUPPLIERS.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "ReadProduct",
+        "semanticType": "Query",
+        "requestFields": [
+          "productRef",
+          "version"
+        ],
+        "result": "ProductDefinitionSnapshot"
+      },
+      {
+        "name": "EvaluateEligibility",
+        "semanticType": "Query",
+        "requestFields": [
+          "productVersion",
+          "beneficiaryCoverage",
+          "sourceServiceFacts"
+        ],
+        "result": "ProductEligibilityDecision"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  },
+  {
+    "name": "ISupplierFulfillmentPort",
+    "owner": "Non-flight supplier",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/06-ANCILLARY-AND-SUPPLIERS.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "Reserve",
+        "semanticType": "Command",
+        "requestFields": [
+          "productSnapshot",
+          "beneficiaries",
+          "quantity",
+          "coverage",
+          "acceptedSupplierTerms"
+        ],
+        "result": "SupplierResourceResult"
+      },
+      {
+        "name": "Confirm",
+        "semanticType": "Command",
+        "requestFields": [
+          "supplierReservationRef",
+          "expectedVersion",
+          "fulfillmentAuthority"
+        ],
+        "result": "SupplierResourceResult"
+      },
+      {
+        "name": "Cancel",
+        "semanticType": "Command",
+        "requestFields": [
+          "supplierResourceRef",
+          "acceptedCancellationRef",
+          "reason"
+        ],
+        "result": "SupplierResourceResult"
+      },
+      {
+        "name": "ReadOperation",
+        "semanticType": "Query",
+        "requestFields": [
+          "originalOperationKey",
+          "providerProfileId",
+          "scopeHash"
+        ],
+        "result": "OperationReadResult"
+      },
+      {
+        "name": "ReadResource",
+        "semanticType": "Query",
+        "requestFields": [
+          "supplierResourceRef"
+        ],
+        "result": "SupplierResourceReadResult"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  },
+  {
+    "name": "IDocumentIssuancePort",
+    "owner": "External ETKT issuer only",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/09-DOCUMENT-AUTHORITY.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "Issue",
+        "semanticType": "Command",
+        "requestFields": [
+          "frozenTicketPlan",
+          "stockAllocationWhenClientOwned",
+          "gateEvidenceRefs"
+        ],
+        "result": "ExternalTicketResult"
+      },
+      {
+        "name": "ReadOperation",
+        "semanticType": "Query",
+        "requestFields": [
+          "originalOperationKey",
+          "documentRole",
+          "assignedNumberWhenAny"
+        ],
+        "result": "OperationReadResult"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  },
+  {
+    "name": "IEmdIssuancePort",
+    "owner": "External EMD issuer only",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/09-DOCUMENT-AUTHORITY.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "Issue",
+        "semanticType": "Command",
+        "requestFields": [
+          "frozenEmdPlan",
+          "purposeReferences",
+          "couponAssociations",
+          "gateEvidenceRefs"
+        ],
+        "result": "ExternalEmdResult"
+      },
+      {
+        "name": "ReadOperation",
+        "semanticType": "Query",
+        "requestFields": [
+          "originalOperationKey",
+          "documentRole",
+          "assignedNumberWhenAny"
+        ],
+        "result": "OperationReadResult"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  },
+  {
+    "name": "IDocumentServicingPort",
+    "owner": "External document issuer",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/09-DOCUMENT-AUTHORITY.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "Void",
+        "semanticType": "Command",
+        "requestFields": [
+          "documentCouponRefs",
+          "approvedVoidPlan",
+          "controlEvidence"
+        ],
+        "result": "ExternalDocumentDispositionResult"
+      },
+      {
+        "name": "RedeemForRefund",
+        "semanticType": "Command",
+        "requestFields": [
+          "documentCouponRefs",
+          "acceptedRefundPlanRef",
+          "refundAuthorityRef",
+          "controlEvidence"
+        ],
+        "result": "ExternalDocumentDispositionResult"
+      },
+      {
+        "name": "Exchange",
+        "semanticType": "Command",
+        "requestFields": [
+          "oldNewDocumentPlan",
+          "acceptedExchangeRef",
+          "controlAndGateEvidence"
+        ],
+        "result": "ExternalExchangeResult"
+      },
+      {
+        "name": "Revalidate",
+        "semanticType": "Command",
+        "requestFields": [
+          "documentCouponRefs",
+          "approvedBindingChange",
+          "controlEvidence"
+        ],
+        "result": "ExternalDocumentBindingResult"
+      },
+      {
+        "name": "ReassociateEmd",
+        "semanticType": "Command",
+        "requestFields": [
+          "emdCouponRefs",
+          "oldNewTicketCouponRefs",
+          "acceptedAssociationPlan",
+          "expectedControlVersions"
+        ],
+        "result": "ExternalDocumentBindingResult"
+      },
+      {
+        "name": "ReadOperation",
+        "semanticType": "Query",
+        "requestFields": [
+          "originalOperationKey",
+          "documentRole",
+          "scopeHash"
+        ],
+        "result": "OperationReadResult"
+      },
+      {
+        "name": "ReadDocument",
+        "semanticType": "Query",
+        "requestFields": [
+          "documentNamespaceAndNumber",
+          "couponRefs"
+        ],
+        "result": "ExternalDocumentReadResult"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  },
+  {
+    "name": "ICouponControlPort",
+    "owner": "SkyDispatch / certified issuer profile",
+    "location": "AeroTech.Ordering.Application/Ports",
+    "contract": "CONTRACTS/07-SKYDISPATCH-DISRUPTION.md",
+    "authority": "TARGET_DECISION consumer requirements; OWNER_REQUIRED real capability binding",
+    "commonResponse": [
+      "outcome",
+      "effectRef",
+      "targetResults",
+      "sourceRevision",
+      "occurredAt",
+      "observedAt",
+      "evidenceRef",
+      "evidenceHash",
+      "reasons"
+    ],
+    "methods": [
+      {
+        "name": "RequestRelease",
+        "semanticType": "Command",
+        "requestFields": [
+          "couponRefs",
+          "expectedControlVersions",
+          "servicingOperationId"
+        ],
+        "result": "CouponControlResult"
+      },
+      {
+        "name": "ReadOperation",
+        "semanticType": "Query",
+        "requestFields": [
+          "originalOperationKey",
+          "couponScope"
+        ],
+        "result": "OperationReadResult"
+      },
+      {
+        "name": "ReadControl",
+        "semanticType": "Query",
+        "requestFields": [
+          "couponRefs"
+        ],
+        "result": "CouponControlReadResult"
+      }
+    ],
+    "rule": "Mutation result is per effect/member with exact observed evidence; reads never create the resource. CancellationToken cancels transport wait, not a persisted business effect.",
+    "commonMutationRequest": [
+      "contractVersion",
+      "ownerAirlineId",
+      "operationId",
+      "externalOperationId",
+      "providerProfileId",
+      "operationKey",
+      "requestHash",
+      "targetScope",
+      "expectedFacts",
+      "authorityRef"
+    ]
+  }
+]

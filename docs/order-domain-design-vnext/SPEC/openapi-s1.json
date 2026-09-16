@@ -1,0 +1,2914 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AeroTech.Ordering Day0 S1 target API",
+    "version": "2.0",
+    "description": "Target contract specification, not generated from a running host. Later typed detail views extend the documented schema; all semantics remain in Domain specs."
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "NormalizedCandidate": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": "2.0"
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "owner": {
+                "type": "string",
+                "minLength": 1
+              },
+              "offerId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "providerProfileId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "ownerBindingRef": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sourcePayloadHash": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "owner",
+              "offerId",
+              "providerProfileId",
+              "ownerBindingRef",
+              "sourcePayloadHash"
+            ],
+            "additionalProperties": false
+          },
+          "acceptanceAssurance": {
+            "enum": [
+              "OwnerBound",
+              "LocalCandidateOnly"
+            ]
+          },
+          "pricedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validity": {
+            "type": "object",
+            "properties": {
+              "offer": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "Known",
+                      "NotSupplied",
+                      "NotApplicable"
+                    ]
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "owner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceRef": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "state",
+                  "value",
+                  "owner",
+                  "sourceRef",
+                  "reason"
+                ],
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "state": {
+                          "const": "Known"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ]
+                    },
+                    "else": {
+                      "properties": {
+                        "value": {
+                          "type": "null"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "price": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "Known",
+                      "NotSupplied",
+                      "NotApplicable"
+                    ]
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "owner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceRef": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "state",
+                  "value",
+                  "owner",
+                  "sourceRef",
+                  "reason"
+                ],
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "state": {
+                          "const": "Known"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ]
+                    },
+                    "else": {
+                      "properties": {
+                        "value": {
+                          "type": "null"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "ticketing": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "Known",
+                      "NotSupplied",
+                      "NotApplicable"
+                    ]
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "owner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceRef": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "state",
+                  "value",
+                  "owner",
+                  "sourceRef",
+                  "reason"
+                ],
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "state": {
+                          "const": "Known"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ]
+                    },
+                    "else": {
+                      "properties": {
+                        "value": {
+                          "type": "null"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "offer",
+              "price",
+              "ticketing"
+            ],
+            "additionalProperties": false
+          },
+          "salesContext": {
+            "type": "object",
+            "properties": {
+              "ownerAirlineId": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              },
+              "financialCustomerId": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              },
+              "channel": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sellingOfficeId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[1-9][0-9]*$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "ownerAirlineId",
+              "financialCustomerId",
+              "channel",
+              "sellingOfficeId"
+            ],
+            "additionalProperties": false
+          },
+          "travelers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sourceTravellerRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "passengerTypeCode": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "sourceTravellerRef",
+                "passengerTypeCode"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "segmentRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "enum": [
+                    "ScheduledAir",
+                    "OpenAir",
+                    "Surface"
+                  ]
+                },
+                "originRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "destinationRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "soldDeparture": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "soldArrival": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "flightRef": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "operationalLegRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 0
+                }
+              },
+              "required": [
+                "segmentRef",
+                "kind",
+                "originRef",
+                "destinationRef",
+                "soldDeparture",
+                "soldArrival",
+                "flightRef",
+                "operationalLegRefs"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "itemKind": {
+                  "enum": [
+                    "OfferPackage",
+                    "Product",
+                    "MonetaryCharge"
+                  ]
+                },
+                "sourceOfferItemRef": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "serviceRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 0
+                },
+                "acceptedTotal": {
+                  "type": "object",
+                  "properties": {
+                    "amount": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+                    },
+                    "currencyRef": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "amount",
+                    "currencyRef"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "itemRef",
+                "itemKind",
+                "sourceOfferItemRef",
+                "serviceRefs",
+                "acceptedTotal"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "serviceRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "type": {
+                  "enum": [
+                    "AirTransport",
+                    "Seat",
+                    "Baggage",
+                    "Meal",
+                    "Lounge",
+                    "Hotel",
+                    "GroundTransport",
+                    "RegisteredExtension"
+                  ]
+                },
+                "beneficiaryRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1
+                },
+                "segmentRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 0
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+                },
+                "quantityUnit": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "detailSchema": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "detailSchemaVersion": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "details": {
+                  "type": "object"
+                },
+                "fulfillmentProfile": {
+                  "type": "object",
+                  "properties": {
+                    "profileRef": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "reservationRequirement": {
+                      "enum": [
+                        "None",
+                        "FlightCapacity",
+                        "Supplier"
+                      ]
+                    },
+                    "documentKind": {
+                      "enum": [
+                        "None",
+                        "ETKT",
+                        "EMDA",
+                        "EMDS"
+                      ]
+                    },
+                    "requiresFunding": {
+                      "type": "boolean"
+                    },
+                    "capacityUnits": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "profileRef",
+                    "reservationRequirement",
+                    "documentKind",
+                    "requiresFunding",
+                    "capacityUnits"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "serviceRef",
+                "type",
+                "beneficiaryRefs",
+                "segmentRefs",
+                "quantity",
+                "quantityUnit",
+                "detailSchema",
+                "detailSchemaVersion",
+                "details",
+                "fulfillmentProfile"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0
+          },
+          "pricingLines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "lineRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "itemRef": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "component": {
+                  "enum": [
+                    "Fare",
+                    "ProductCharge",
+                    "Tax",
+                    "CarrierSurcharge",
+                    "Fee",
+                    "Discount",
+                    "Markup",
+                    "Penalty",
+                    "Commission",
+                    "Adjustment",
+                    "Other"
+                  ]
+                },
+                "effect": {
+                  "enum": [
+                    "CustomerBalance",
+                    "SettlementOnly",
+                    "Informational"
+                  ]
+                },
+                "direction": {
+                  "enum": [
+                    "Debit",
+                    "Credit"
+                  ]
+                },
+                "lineRole": {
+                  "enum": [
+                    "Original",
+                    "Reversal",
+                    "Adjustment",
+                    "Transfer"
+                  ]
+                },
+                "originalValue": {
+                  "type": "object",
+                  "properties": {
+                    "amount": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+                    },
+                    "currencyRef": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "amount",
+                    "currencyRef"
+                  ],
+                  "additionalProperties": false
+                },
+                "saleValue": {
+                  "type": "object",
+                  "properties": {
+                    "amount": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+                    },
+                    "currencyRef": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "amount",
+                    "currencyRef"
+                  ],
+                  "additionalProperties": false
+                },
+                "sourceLineRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "basisType": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "basisRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sourceConversionRef": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "lineRef",
+                "itemRef",
+                "component",
+                "effect",
+                "direction",
+                "lineRole",
+                "originalValue",
+                "saleValue",
+                "sourceLineRef",
+                "basisType",
+                "basisRef",
+                "sourceConversionRef"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0
+          },
+          "customerTotal": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+              },
+              "currencyRef": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "amount",
+              "currencyRef"
+            ],
+            "additionalProperties": false
+          },
+          "fareConstruction": {
+            "type": "object",
+            "properties": {
+              "assurance": {
+                "enum": [
+                  "SourceProvided",
+                  "Opaque"
+                ]
+              },
+              "sourceContextRef": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pricingUnits": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "minItems": 0
+              }
+            },
+            "required": [
+              "assurance",
+              "sourceContextRef",
+              "pricingUnits"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "source",
+          "acceptanceAssurance",
+          "pricedAt",
+          "capturedAt",
+          "validity",
+          "salesContext",
+          "travelers",
+          "segments",
+          "items",
+          "services",
+          "pricingLines",
+          "customerTotal",
+          "fareConstruction"
+        ],
+        "additionalProperties": false
+      },
+      "CreateRequest": {
+        "type": "object",
+        "properties": {
+          "preparationId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "acceptedSnapshotDigest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "financialCustomerId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "travelerBindings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sourceTravellerRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "clientTravelerRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "givenName": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "surname": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "passengerTypeCode": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "dateOfBirth": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "guardianClientTravelerRef": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "sourceTravellerRef",
+                "clientTravelerRef",
+                "givenName",
+                "surname",
+                "passengerTypeCode",
+                "dateOfBirth",
+                "guardianClientTravelerRef"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "email": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "phone": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "role",
+                "email",
+                "phone"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0
+          },
+          "clientReference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "preparationId",
+          "acceptedSnapshotDigest",
+          "acceptedAt",
+          "travelerBindings",
+          "contacts"
+        ],
+        "additionalProperties": false
+      },
+      "PrepareRequest": {
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "clientReference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "offerId"
+        ],
+        "additionalProperties": false
+      },
+      "Preparation": {
+        "type": "object",
+        "properties": {
+          "preparationId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "sourceOfferId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acceptedSnapshotDigest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pricedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validity": {
+            "type": "object",
+            "properties": {
+              "offer": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "Known",
+                      "NotSupplied",
+                      "NotApplicable"
+                    ]
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "owner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceRef": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "state",
+                  "value",
+                  "owner",
+                  "sourceRef",
+                  "reason"
+                ],
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "state": {
+                          "const": "Known"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ]
+                    },
+                    "else": {
+                      "properties": {
+                        "value": {
+                          "type": "null"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "price": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "Known",
+                      "NotSupplied",
+                      "NotApplicable"
+                    ]
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "owner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceRef": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "state",
+                  "value",
+                  "owner",
+                  "sourceRef",
+                  "reason"
+                ],
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "state": {
+                          "const": "Known"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ]
+                    },
+                    "else": {
+                      "properties": {
+                        "value": {
+                          "type": "null"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "ticketing": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "Known",
+                      "NotSupplied",
+                      "NotApplicable"
+                    ]
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "owner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceRef": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "reason": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "state",
+                  "value",
+                  "owner",
+                  "sourceRef",
+                  "reason"
+                ],
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "state": {
+                          "const": "Known"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ]
+                    },
+                    "else": {
+                      "properties": {
+                        "value": {
+                          "type": "null"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "offer",
+              "price",
+              "ticketing"
+            ],
+            "additionalProperties": false
+          },
+          "acceptanceAssurance": {
+            "enum": [
+              "OwnerBound",
+              "LocalCandidateOnly"
+            ]
+          },
+          "permittedAcceptanceProfile": {
+            "type": "string",
+            "minLength": 1
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/NormalizedCandidate"
+          },
+          "blockingReasons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "preparationId",
+          "sourceOfferId",
+          "acceptedSnapshotDigest",
+          "capturedAt",
+          "pricedAt",
+          "validity",
+          "acceptanceAssurance",
+          "permittedAcceptanceProfile",
+          "candidate",
+          "blockingReasons"
+        ],
+        "additionalProperties": false
+      },
+      "CreatedOrder": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "orderReference": {
+            "type": "string",
+            "minLength": 1
+          },
+          "commercialVersionAtCommit": {
+            "const": 1
+          },
+          "orderRevisionAtCommit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "acceptedSourceDigest": {
+            "type": "string",
+            "minLength": 1
+          },
+          "orderUrl": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "orderId",
+          "orderReference",
+          "commercialVersionAtCommit",
+          "orderRevisionAtCommit",
+          "acceptedSourceDigest",
+          "orderUrl"
+        ],
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          },
+          "correlationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "correlationId",
+          "retryable",
+          "reasons"
+        ],
+        "additionalProperties": false
+      },
+      "OrderDetails": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "orderReference": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ownerAirlineId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "financialCustomerId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "commercialVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "financialSequence": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "orderRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "acceptedSourceDigest": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acceptanceAssurance": {
+            "type": "string",
+            "minLength": 1
+          },
+          "commercialSummary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "customerTotal": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+              },
+              "currencyRef": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "amount",
+              "currencyRef"
+            ],
+            "additionalProperties": false
+          },
+          "travelers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "minItems": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "minItems": 0
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "minItems": 0
+          },
+          "soldItinerary": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "minItems": 0
+          },
+          "operationalItinerary": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "minItems": 0
+          },
+          "facets": {
+            "type": "object"
+          },
+          "activeOperations": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "minItems": 0
+          },
+          "eligibility": {
+            "type": "object"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "orderId",
+          "orderReference",
+          "ownerAirlineId",
+          "financialCustomerId",
+          "commercialVersion",
+          "financialSequence",
+          "orderRevision",
+          "acceptedSourceDigest",
+          "acceptanceAssurance",
+          "commercialSummary",
+          "customerTotal",
+          "travelers",
+          "items",
+          "services",
+          "soldItinerary",
+          "operationalItinerary",
+          "facets",
+          "activeOperations",
+          "eligibility",
+          "asOf"
+        ],
+        "additionalProperties": false
+      },
+      "OperationDetails": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "orderId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "phase": {
+            "type": "string",
+            "minLength": 1
+          },
+          "outcome": {
+            "type": "string",
+            "minLength": 1
+          },
+          "targetEvidence": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "minItems": 0
+          },
+          "pendingActions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "reconciliationRequired": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "operationId",
+          "orderId",
+          "kind",
+          "phase",
+          "outcome",
+          "targetEvidence",
+          "pendingActions",
+          "reconciliationRequired"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "paths": {
+    "/service/v1/order-preparations": {
+      "post": {
+        "operationId": "servicePrepareOrderFromOffer",
+        "summary": "PrepareOrderFromOffer",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed local result; replay returns the same original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preparation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Key/version/preparation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Known invalidity or unsupported capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable before durable business effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/service/v1/orders/from-offer": {
+      "post": {
+        "operationId": "serviceCreateOrderFromOffer",
+        "summary": "CreateOrderFromOffer",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed local result; replay returns the same original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Key/version/preparation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Known invalidity or unsupported capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable before durable business effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/service/v1/orders/{orderId}": {
+      "get": {
+        "operationId": "serviceGetOrder",
+        "summary": "Local read only; no external fanout",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission-filtered local view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or intentionally undisclosed scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/service/v1/operations/{operationId}": {
+      "get": {
+        "operationId": "serviceGetOperation",
+        "summary": "Local read only; no external fanout",
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission-filtered local view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or intentionally undisclosed scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backoffice/v1/order-preparations": {
+      "post": {
+        "operationId": "backofficePrepareOrderFromOffer",
+        "summary": "PrepareOrderFromOffer",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed local result; replay returns the same original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preparation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Key/version/preparation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Known invalidity or unsupported capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable before durable business effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backoffice/v1/orders/from-offer": {
+      "post": {
+        "operationId": "backofficeCreateOrderFromOffer",
+        "summary": "CreateOrderFromOffer",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed local result; replay returns the same original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Key/version/preparation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Known invalidity or unsupported capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable before durable business effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backoffice/v1/orders/{orderId}": {
+      "get": {
+        "operationId": "backofficeGetOrder",
+        "summary": "Local read only; no external fanout",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission-filtered local view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or intentionally undisclosed scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backoffice/v1/operations/{operationId}": {
+      "get": {
+        "operationId": "backofficeGetOperation",
+        "summary": "Local read only; no external fanout",
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission-filtered local view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or intentionally undisclosed scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/otapanel/v1/order-preparations": {
+      "post": {
+        "operationId": "otapanelPrepareOrderFromOffer",
+        "summary": "PrepareOrderFromOffer",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed local result; replay returns the same original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preparation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Key/version/preparation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Known invalidity or unsupported capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable before durable business effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/otapanel/v1/orders/from-offer": {
+      "post": {
+        "operationId": "otapanelCreateOrderFromOffer",
+        "summary": "CreateOrderFromOffer",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed local result; replay returns the same original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Key/version/preparation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Known invalidity or unsupported capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable before durable business effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/otapanel/v1/orders/{orderId}": {
+      "get": {
+        "operationId": "otapanelGetOrder",
+        "summary": "Local read only; no external fanout",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission-filtered local view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or intentionally undisclosed scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/otapanel/v1/operations/{operationId}": {
+      "get": {
+        "operationId": "otapanelGetOperation",
+        "summary": "Local read only; no external fanout",
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission-filtered local view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or intentionally undisclosed scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ota/v1/order-preparations": {
+      "post": {
+        "operationId": "otaPrepareOrderFromOffer",
+        "summary": "PrepareOrderFromOffer",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed local result; replay returns the same original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preparation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Key/version/preparation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Known invalidity or unsupported capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable before durable business effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ota/v1/orders/from-offer": {
+      "post": {
+        "operationId": "otaCreateOrderFromOffer",
+        "summary": "CreateOrderFromOffer",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed local result; replay returns the same original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Key/version/preparation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Known invalidity or unsupported capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable before durable business effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ota/v1/orders/{orderId}": {
+      "get": {
+        "operationId": "otaGetOrder",
+        "summary": "Local read only; no external fanout",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission-filtered local view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or intentionally undisclosed scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ota/v1/operations/{operationId}": {
+      "get": {
+        "operationId": "otaGetOperation",
+        "summary": "Local read only; no external fanout",
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission-filtered local view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or intentionally undisclosed scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

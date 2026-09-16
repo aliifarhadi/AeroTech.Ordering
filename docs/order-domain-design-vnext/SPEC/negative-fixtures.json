@@ -1,0 +1,18 @@
+[
+  {
+    "file": "EXAMPLES/negative/incorrect-total.json",
+    "rule": "CustomerTotalMismatch"
+  },
+  {
+    "file": "EXAMPLES/negative/missing-beneficiary.json",
+    "rule": "UnknownBeneficiary"
+  },
+  {
+    "file": "EXAMPLES/negative/settlement-tax.json",
+    "rule": "TaxSettlementOnlyForbidden"
+  },
+  {
+    "file": "EXAMPLES/negative/confirmed-without-resource.json",
+    "rule": "SchemaConfirmedEvidence"
+  }
+]

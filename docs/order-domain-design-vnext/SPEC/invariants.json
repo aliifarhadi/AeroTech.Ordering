@@ -1,0 +1,362 @@
+[
+  {
+    "id": "INV-001",
+    "introducedBy": "D0",
+    "statement": "Identity of the working repository is AeroTech.Ordering; preserve worktree and inspect drift from reviewed bootstrap.",
+    "source": "START-HERE.md"
+  },
+  {
+    "id": "INV-002",
+    "introducedBy": "B0",
+    "statement": "Domain and Application dependencies conform to the physical layer contract; no transport/persistence business leakage.",
+    "source": "ARCHITECTURE/01-LAYERS.md"
+  },
+  {
+    "id": "INV-003",
+    "introducedBy": "B0",
+    "statement": "One scoped transaction/session and one canonical projection writer; no last-registration-wins duplicate rails.",
+    "source": "ARCHITECTURE/03-TRANSACTIONS-AND-PROJECTION.md"
+  },
+  {
+    "id": "INV-004",
+    "introducedBy": "B0",
+    "statement": "Inbox acceptance and its durable normalized work/facts are atomic; duplicate conflict is distinguished from unrelated database errors.",
+    "source": "ARCHITECTURE/03-TRANSACTIONS-AND-PROJECTION.md"
+  },
+  {
+    "id": "INV-005",
+    "introducedBy": "B0",
+    "statement": "Outbox fact identity and payload survive retries, broker failure and process restart.",
+    "source": "ARCHITECTURE/03-TRANSACTIONS-AND-PROJECTION.md"
+  },
+  {
+    "id": "INV-006",
+    "introducedBy": "S1",
+    "statement": "Create consumes exactly one previously captured, explicitly accepted preparation; no external calls or silent repricing.",
+    "source": "CONTRACTS/02-AIROFFER.md"
+  },
+  {
+    "id": "INV-007",
+    "introducedBy": "S1",
+    "statement": "Command replay is resolved before new eligibility; same key/hash returns original authorized result and different hash conflicts.",
+    "source": "DOMAIN/08-OPERATIONS-IDEMPOTENCY-AND-RECOVERY.md"
+  },
+  {
+    "id": "INV-008",
+    "introducedBy": "S1",
+    "statement": "One preparation yields at most one Order even under different keys, concurrent clients or process restart.",
+    "source": "API-CONTRACTS.md"
+  },
+  {
+    "id": "INV-009",
+    "introducedBy": "S1",
+    "statement": "OrderItem follows accepted priced boundary, not passenger/coupon/product type; OrderService has stable independent identity.",
+    "source": "DOMAIN/02-COMMERCIAL-COMPOSITION.md"
+  },
+  {
+    "id": "INV-010",
+    "introducedBy": "S1",
+    "statement": "A sold air service is one traveler on one passenger segment; operational legs do not multiply services/coupons.",
+    "source": "DOMAIN/04-TRAVELERS-JOURNEYS-AND-PRIVACY.md"
+  },
+  {
+    "id": "INV-011",
+    "introducedBy": "S1",
+    "statement": "Current beneficiary/item/order ownership is consistent; historical membership is immutable and may outlive current ownership.",
+    "source": "DOMAIN/02-COMMERCIAL-COMPOSITION.md"
+  },
+  {
+    "id": "INV-012",
+    "introducedBy": "S1",
+    "statement": "Sold pricing is immutable; quantity is not applied twice; original/sale valuations are not summed together.",
+    "source": "DOMAIN/03-PRICING-AND-FARE-CONSTRUCTION.md"
+  },
+  {
+    "id": "INV-013",
+    "introducedBy": "S1",
+    "statement": "Direction alone supplies sign; CustomerBalance alone contributes to CustomerTotal; settlement commission is not customer debt.",
+    "source": "DOMAIN/03-PRICING-AND-FARE-CONSTRUCTION.md"
+  },
+  {
+    "id": "INV-014",
+    "introducedBy": "S1",
+    "statement": "Allocation is per line/purpose/version value attribution and never additional money or refund entitlement.",
+    "source": "DOMAIN/03-PRICING-AND-FARE-CONSTRUCTION.md"
+  },
+  {
+    "id": "INV-015",
+    "introducedBy": "S1",
+    "statement": "Fare construction/coupling comes from source or remains explicitly opaque; itinerary shape never invents a pricing unit.",
+    "source": "DOMAIN/03-PRICING-AND-FARE-CONSTRUCTION.md"
+  },
+  {
+    "id": "INV-016",
+    "introducedBy": "S1",
+    "statement": "OrderDetails is committed atomically, rebuildable and readable with all external services offline.",
+    "source": "ARCHITECTURE/03-TRANSACTIONS-AND-PROJECTION.md"
+  },
+  {
+    "id": "INV-017",
+    "introducedBy": "S1",
+    "statement": "Airline/customer/actor scope comes from authenticated authority; no cross-customer leakage through IDs, keys or read models.",
+    "source": "ARCHITECTURE/04-SECURITY-AND-OPERATIONS.md"
+  },
+  {
+    "id": "INV-018",
+    "introducedBy": "S1",
+    "statement": "Unknown validity/source assurance is not infinite or certified; live-candidate sandbox Orders cannot reach real sale effects.",
+    "source": "CONTRACTS/02-AIROFFER.md"
+  },
+  {
+    "id": "INV-019",
+    "introducedBy": "S2",
+    "statement": "Every external mutation has immutable durable intent, original effect key/profile/hash and exact target scope before dispatch.",
+    "source": "DOMAIN/08-OPERATIONS-IDEMPOTENCY-AND-RECOVERY.md"
+  },
+  {
+    "id": "INV-020",
+    "introducedBy": "S2",
+    "statement": "Unknown is not rejection or success; recovery uses authoritative side-effect-free evidence and the same operation.",
+    "source": "DOMAIN/08-OPERATIONS-IDEMPOTENCY-AND-RECOVERY.md"
+  },
+  {
+    "id": "INV-021",
+    "introducedBy": "S2",
+    "statement": "An active domain claim survives worker lease expiry; fences prevent stale workers from authorizing new effects.",
+    "source": "DOMAIN/08-OPERATIONS-IDEMPOTENCY-AND-RECOVERY.md"
+  },
+  {
+    "id": "INV-022",
+    "introducedBy": "S2",
+    "statement": "Capacity outcomes are per target with exact quantity and coupling; partial/unknown batch is not fully confirmed.",
+    "source": "DOMAIN/05-RESERVATION-AND-CAPACITY.md"
+  },
+  {
+    "id": "INV-023",
+    "introducedBy": "S2",
+    "statement": "FlightFlow is canonical capacity owner; only explicit seat requirements determine quantities, not PTC alone.",
+    "source": "DOMAIN/05-RESERVATION-AND-CAPACITY.md"
+  },
+  {
+    "id": "INV-024",
+    "introducedBy": "S2",
+    "statement": "Owner hold expiry, release and commit are distinct; a timeout or local clock expiry does not prove resource release.",
+    "source": "DOMAIN/05-RESERVATION-AND-CAPACITY.md"
+  },
+  {
+    "id": "INV-025",
+    "introducedBy": "S3",
+    "statement": "Coverage binds exact obligation identity/version/scope/currency and authoritative reference, not just sufficient numeric amount.",
+    "source": "DOMAIN/06-FUNDING-OBLIGATIONS.md"
+  },
+  {
+    "id": "INV-026",
+    "introducedBy": "S3",
+    "statement": "Guarantee, captured cash and pending/refund application are independent facts and not double-counted.",
+    "source": "DOMAIN/06-FUNDING-OBLIGATIONS.md"
+  },
+  {
+    "id": "INV-027",
+    "introducedBy": "S3",
+    "statement": "Document issue consumes an operation-bound funding authority; a stale transient coverage query cannot authorize issue.",
+    "source": "DOMAIN/06-FUNDING-OBLIGATIONS.md"
+  },
+  {
+    "id": "INV-028",
+    "introducedBy": "S3",
+    "statement": "Additional product funding is scoped to new/incremental obligations; prior applied funding is not charged again.",
+    "source": "DOMAIN/06-FUNDING-OBLIGATIONS.md"
+  },
+  {
+    "id": "INV-029",
+    "introducedBy": "S4",
+    "statement": "CanStartIssue may include a valid hold, but document commit needs committed required capacity, funding authority and document eligibility.",
+    "source": "DOMAIN/07-DOCUMENTS-AND-STOCK.md"
+  },
+  {
+    "id": "INV-030",
+    "introducedBy": "S4",
+    "statement": "ETKT and EMD are separate roots; ticket coupon service identity and EMD purpose/association are explicit.",
+    "source": "DOMAIN/07-DOCUMENTS-AND-STOCK.md"
+  },
+  {
+    "id": "INV-031",
+    "introducedBy": "S4",
+    "statement": "Stock namespace is unique, ranges do not overlap atomically, uncertain/reserved numbers are never randomly replaced or recycled.",
+    "source": "DOMAIN/07-DOCUMENTS-AND-STOCK.md"
+  },
+  {
+    "id": "INV-032",
+    "introducedBy": "S4",
+    "statement": "Local issuance has one atomic document commit; external-authority partial outcomes retain each actual document and exact recovery identity.",
+    "source": "DOMAIN/07-DOCUMENTS-AND-STOCK.md"
+  },
+  {
+    "id": "INV-033",
+    "introducedBy": "S4",
+    "statement": "Ledger is never an Issue gate; document facts do not silently duplicate commercial economic facts.",
+    "source": "CONTRACTS/08-LEDGER.md"
+  },
+  {
+    "id": "INV-034",
+    "introducedBy": "S5",
+    "statement": "Cancellation, release, document void and refund are different effects; cancellation does not finalize with unresolved required release in reference profile.",
+    "source": "DOMAIN/09-SERVICING-CHOREOGRAPHIES.md"
+  },
+  {
+    "id": "INV-035",
+    "introducedBy": "S6",
+    "statement": "Ancillary product, price, flight capacity and supplier execution owners are distinct; free/included does not mean no tracking or zero fake price.",
+    "source": "DOMAIN/02-COMMERCIAL-COMPOSITION.md"
+  },
+  {
+    "id": "INV-036",
+    "introducedBy": "S6",
+    "statement": "Shared service beneficiaries and quantities are explicit; one room/car/pooled allowance is not multiplied per traveler.",
+    "source": "DOMAIN/02-COMMERCIAL-COMPOSITION.md"
+  },
+  {
+    "id": "INV-037",
+    "introducedBy": "S6",
+    "statement": "Dependent services have a Keep/Replace/Cancel/ManualReview disposition when associated air scope changes.",
+    "source": "DOMAIN/02-COMMERCIAL-COMPOSITION.md"
+  },
+  {
+    "id": "INV-038",
+    "introducedBy": "S7",
+    "statement": "EMD-A associates at coupon level; fee/deposit/residual EMD-S uses monetary/external value references, never fake flight service.",
+    "source": "DOMAIN/07-DOCUMENTS-AND-STOCK.md"
+  },
+  {
+    "id": "INV-039",
+    "introducedBy": "S8",
+    "statement": "Void requires issuer/profile/control eligibility; document-only void does not erase commercial debt or imply payment refund.",
+    "source": "DOMAIN/09-SERVICING-CHOREOGRAPHIES.md"
+  },
+  {
+    "id": "INV-040",
+    "introducedBy": "S9",
+    "statement": "Refund uses accepted authoritative historical pricing decision; reversal caps and tender payout caps are separate.",
+    "source": "DOMAIN/03-PRICING-AND-FARE-CONSTRUCTION.md"
+  },
+  {
+    "id": "INV-041",
+    "introducedBy": "S9",
+    "statement": "Refund commercial pivot and later payout have distinct evidence/events; payout replay never credits commercial value twice.",
+    "source": "DOMAIN/09-SERVICING-CHOREOGRAPHIES.md"
+  },
+  {
+    "id": "INV-042",
+    "introducedBy": "S10",
+    "statement": "Exchange preserves old/new many-to-many lineage, source fare coupling, unchanged service identities and exact quote value treatment.",
+    "source": "DOMAIN/09-SERVICING-CHOREOGRAPHIES.md"
+  },
+  {
+    "id": "INV-043",
+    "introducedBy": "S10",
+    "statement": "After an irreversible servicing pivot, unresolved cleanup recovers forward; do not reactivate old documents or start a new duplicate operation.",
+    "source": "DOMAIN/09-SERVICING-CHOREOGRAPHIES.md"
+  },
+  {
+    "id": "INV-044",
+    "introducedBy": "S11",
+    "statement": "Disruption cases/options/deadlines belong externally; recording impact alone cannot rewrite price, itinerary or cancel scope.",
+    "source": "DOMAIN/11-DELIVERY-AND-DISRUPTION.md"
+  },
+  {
+    "id": "INV-045",
+    "introducedBy": "S11",
+    "statement": "High fanout is asynchronous per Order with stable work identities; no global transaction across a flight population.",
+    "source": "DOMAIN/11-DELIVERY-AND-DISRUPTION.md"
+  },
+  {
+    "id": "INV-046",
+    "introducedBy": "S12",
+    "statement": "DCS observations are idempotent per source event plus observation key and ordered by certified aspect/source revisions.",
+    "source": "DOMAIN/11-DELIVERY-AND-DISRUPTION.md"
+  },
+  {
+    "id": "INV-047",
+    "introducedBy": "S12",
+    "statement": "Operational schedule/seat/check-in/boarding cannot rewrite sold schedule/pricing or falsely set coupon Used.",
+    "source": "DOMAIN/11-DELIVERY-AND-DISRUPTION.md"
+  },
+  {
+    "id": "INV-048",
+    "introducedBy": "S12",
+    "statement": "Control and delivery facts may arrive during claims; retain them and re-evaluate eligibility rather than dropping inconvenient truth.",
+    "source": "DOMAIN/11-DELIVERY-AND-DISRUPTION.md"
+  },
+  {
+    "id": "INV-049",
+    "introducedBy": "S13",
+    "statement": "Traveler correction preserves identity and protected before/after history; OpenAir flight binding is explicit, Surface never consumes an air seat.",
+    "source": "DOMAIN/04-TRAVELERS-JOURNEYS-AND-PRIVACY.md"
+  },
+  {
+    "id": "INV-050",
+    "introducedBy": "S14",
+    "statement": "Split moves whole traveler/guardian scope with stable service IDs, immutable historic facts and balanced money/application transfers.",
+    "source": "DOMAIN/12-SPLIT-GROUPS-AND-RELATED-ORDERS.md"
+  },
+  {
+    "id": "INV-051",
+    "introducedBy": "S14",
+    "statement": "Shared service partition requires an authoritative partition plan; merge is not implemented by copying or summing Orders.",
+    "source": "DOMAIN/12-SPLIT-GROUPS-AND-RELATED-ORDERS.md"
+  },
+  {
+    "id": "INV-052",
+    "introducedBy": "S15",
+    "statement": "Group allocation plus release never exceeds confirmed capacity for EACH block; name materialization consumes existing blocks idempotently.",
+    "source": "DOMAIN/12-SPLIT-GROUPS-AND-RELATED-ORDERS.md"
+  },
+  {
+    "id": "INV-053",
+    "introducedBy": "S15",
+    "statement": "Group deposit/value applications transfer once; invalid bulk rows do not rerun accepted rows or duplicate charter charges.",
+    "source": "DOMAIN/12-SPLIT-GROUPS-AND-RELATED-ORDERS.md"
+  },
+  {
+    "id": "INV-054",
+    "introducedBy": "S1",
+    "statement": "CommercialVersion increments once per committed commercial mutation, not per event or remote result; other version scopes remain separate.",
+    "source": "DOMAIN/10-ELIGIBILITY-VERSIONS-AND-TIME.md"
+  },
+  {
+    "id": "INV-055",
+    "introducedBy": "S1",
+    "statement": "Deadlines have distinct owners; no universal Order TTL and no local rounding/FX/tax policy invented to fill gaps.",
+    "source": "DOMAIN/10-ELIGIBILITY-VERSIONS-AND-TIME.md"
+  },
+  {
+    "id": "INV-056",
+    "introducedBy": "B0",
+    "statement": "Framework/simulators do not depend on old business repositories or share an Ordering transaction with fake owner state.",
+    "source": "ARCHITECTURE/02-BOOTSTRAP.md"
+  },
+  {
+    "id": "INV-057",
+    "introducedBy": "S16",
+    "statement": "A release enables only profiles actually certified for the deployed capabilities; no simulator or document structural check is production proof.",
+    "source": "GOVERNANCE/03-STAGE-GATES.md"
+  },
+  {
+    "id": "INV-058",
+    "introducedBy": "S16",
+    "statement": "Unknown product/owner semantics fail explicitly with scoped evidence; future extension requires compatibility and regression proof.",
+    "source": "DOMAIN/14-FUTURE-SCENARIO-BOUNDARIES.md"
+  },
+  {
+    "id": "INV-059",
+    "introducedBy": "S1",
+    "statement": "Accepted decimal values and source provenance round-trip losslessly; field precision is explicit and overflow is rejected, not rounded.",
+    "source": "DOMAIN/13-PERSISTENCE-DATA-DICTIONARY.md"
+  },
+  {
+    "id": "INV-060",
+    "introducedBy": "S12",
+    "statement": "Protected PII erasure does not delete immutable non-personal monetary/documentary lineage; events/logs minimize PII.",
+    "source": "DOMAIN/04-TRAVELERS-JOURNEYS-AND-PRIVACY.md"
+  }
+]

@@ -1,0 +1,70 @@
+[
+  {
+    "id": "MONEY-01",
+    "case": "Sale and commission",
+    "customerDebits": [
+      "400.00",
+      "50.00"
+    ],
+    "customerCredits": [
+      "45.00"
+    ],
+    "settlementDebits": [
+      "20.00"
+    ],
+    "expectedCustomerTotal": "405.00"
+  },
+  {
+    "id": "MONEY-02",
+    "case": "Reverse prior discount",
+    "customerDebits": [
+      "400.00",
+      "50.00",
+      "45.00"
+    ],
+    "customerCredits": [
+      "45.00"
+    ],
+    "settlementDebits": [
+      "20.00"
+    ],
+    "expectedCustomerTotal": "450.00"
+  },
+  {
+    "id": "MONEY-03",
+    "case": "Partial refund with new penalty",
+    "customerDebits": [
+      "120.00",
+      "10.00"
+    ],
+    "customerCredits": [
+      "50.00"
+    ],
+    "settlementDebits": [],
+    "expectedCustomerTotal": "80.00"
+  },
+  {
+    "id": "MONEY-04",
+    "case": "Exchange normalized differential",
+    "customerDebits": [
+      "120.00",
+      "30.00"
+    ],
+    "customerCredits": [],
+    "settlementDebits": [],
+    "expectedCustomerTotal": "150.00"
+  },
+  {
+    "id": "MONEY-05",
+    "case": "Explicit full old/new treatment instead of differential",
+    "customerDebits": [
+      "120.00",
+      "150.00"
+    ],
+    "customerCredits": [
+      "120.00"
+    ],
+    "settlementDebits": [],
+    "expectedCustomerTotal": "150.00"
+  }
+]

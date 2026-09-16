@@ -1,0 +1,32 @@
+{
+  "stage": "S1",
+  "executionStatus": "NOT_STARTED",
+  "localGate": "NOT_EVALUATED",
+  "testedSourceCommit": null,
+  "evidenceCommit": null,
+  "providerBindings": [
+    {
+      "owner": "AirOffer",
+      "profile": "LIVE-CANDIDATE-SANDBOX",
+      "mode": "LiveCandidateSandbox",
+      "certification": "NOT_EVALUATED",
+      "evidenceRef": null,
+      "blockers": [
+        "BD-001"
+      ]
+    }
+  ],
+  "scenarioResults": [
+    {
+      "scenarioId": "SC-S1-001",
+      "result": "NOT_RUN",
+      "testName": "To be assigned by implementation agent",
+      "evidenceRef": null
+    }
+  ],
+  "reproductionCommand": "./scripts/Test-Stage.ps1 -Stage S1 -Profile Reference",
+  "blockers": [
+    "Runtime evidence is not supplied by the Design Pack"
+  ],
+  "releaseCertified": false
+}
