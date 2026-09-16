@@ -1,5 +1,0 @@
-# Machine-readable specification indexes
-
-`invariants.json`: stable required invariants and their detailed source documents. `scenarios.json`: executable acceptance specifications and trace links, currently not run. `stages.json`: dependency and delivery sequence. `commands.json`: canonical Ordering handlers/routes and required request fields. `events.json`: semantic event payloads/economic roles. `ports.json`: consumer-owned typed capability contract index. `interactions.json`: every interaction dimension expanded. `schemas/`: initial target API/normalized/result/evidence payload validation, not owner wire schemas. `pricing-example-vectors.json`: exact numerical examples. `layers.json`: architecture graph used by the implementation gate.
-
-These complement detailed Markdown; they do not replace its behavior/transaction/authority rules. Source-specific provider JSON serialization remains in certified ACL bindings. The agent must not infer owner endpoints from port names, skip unimplemented scenario IDs, or promote a fixture status into a passed execution.
