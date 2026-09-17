@@ -1,8 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj" />
     <ProjectReference Include="..\AeroTech.Ordering.Domain\AeroTech.Ordering.Domain.csproj" />
+    <ProjectReference Include="..\AeroTech.Ordering.ReferenceData\AeroTech.Ordering.ReferenceData.csproj" />
   </ItemGroup>
 
 

@@ -1,0 +1,24 @@
+## M1 inbox: message without MessageId passes through (pre-B0 behavior)
+file: src\AeroTech.Ordering.Consumers\Inbox\InboxConsumeFilter.cs
+command: dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~Message_without_source_identity"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 510 ms - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## M2 outbox: completion not fenced by lease owner/version
+file: src\AeroTech.Ordering.Persistence\Outbox\OutboxLeaseStore.cs
+command: dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~Expired_lease_holder"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 1 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## M3 outbox: claim ignores live leases (pre-B0 behavior: no lease)
+file: src\AeroTech.Ordering.Persistence\Outbox\OutboxLeaseStore.cs
+command: dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~Expired_lease_holder|FullyQualifiedName~Lost_acknowledgement"
+exit: 1
+Failed!  - Failed:     2, Passed:     0, Skipped:     0, Total:     2, Duration: 1 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## M4 inbox: every DbUpdateException treated as duplicate candidate and swallowed
+file: src\AeroTech.Ordering.Consumers\Inbox\InboxConsumeFilter.cs
+command: dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~Unrelated_sql_failure_is_rethrown"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 1 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+

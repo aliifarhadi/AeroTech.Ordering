@@ -1,0 +1,26 @@
+# Standing-rule conflict resolution — Pack 3.8
+
+Historical predecessor Pack 2.0 incorrectly treated several implementation preferences as authority over explicit prior user rules. Predecessor Pack 2.1 corrected that overreach; the resolutions below remain binding in Pack 3.8.
+
+| Conflict | Binding resolution |
+|---|---|
+| C1 Domain → Messages allowlist | Preserve user rule: Ordering-owned enums live in `Contracts/AeroTech.Messages/Ordering/Enums/`. Domain may use `AeroTech.Messages.Ordering.Enums.*` plus exactly the current caller-context platform identity types `AeroTech.Messages.Aegis.Enums.BusinessContextType`, `AeroTech.Messages.Aegis.Enums.PrincipalType`, and `AeroTech.Messages.Shared.Enums.AuthorizationSurface`. This is a type allowlist, not a namespace exemption. Integration events, provider/owner wire DTOs, base transport contracts and all other Messages types are forbidden unless explicitly approved. The `AeroTech.Messages` project reference itself is therefore not a failure. |
+| C2 ports | Preserve user rule: semantic external-service ports live in `Domain/Ports/{Area}/`. Application consumes them; Providers implement them. |
+| C3 folders | Preserve `{X}Aggregate/{Arguments,Contracts,DomainEvents,Entities,...}` project convention. Pack modules are semantic groupings, not a folder rewrite mandate. |
+| C4 handler names | Preserve `{Name}Command` + `{Name}CommandHandler`. SPEC command names are semantic IDs, not authority to rename C# symbols. |
+| C5 queries | Preserve user rule: every `*Query` lives in Query. Do not move query request/response types to Application just to avoid a project reference. |
+| C6 UoW/projection | Pack fixes guarantees only: one effective UoW, one projector, required atomicity, no network in SQL TX. Concrete project ownership follows existing repository pattern unless proven incapable. |
+| C7 Query + ReferenceData | Preserve existing read-side ReferenceData join convention. Store accepted historical facts locally; use current reference data only as current display/enrichment. |
+| C8 project references | Do not apply Pack 2.0's add/remove reference table. Make only source-proven changes required by a binding responsibility/invariant. |
+| C9 new projects | Existing rule remains: do not add a project without approval. Required test categories may be placed in approved existing projects. |
+| C10 persistence-test execution | Existing user rule remains. This design pack does not override per-run approval/duration policy. |
+| C11 report/evidence location | Existing user/report convention remains. Pack specifies required evidence content, not filesystem location. |
+| C12 continuation/review gates | User controls execution cadence. A slice may continue automatically only when the user's current instruction explicitly authorizes sequential continuation; otherwise stop at the checkpoint. The pack never grants its own continue permission. |
+| C13 error response | Preserve current Framework response/error convention unless the user approves an API version change. Pack defines semantic error distinctions only. |
+| C14 integration envelope | Do not edit `BaseIntegrationEvent`. Ordering integration contracts remain under `Contracts/AeroTech.Messages/Ordering/**`; exact envelope follows platform convention/BD-011. |
+| C15 OwnerAirlineId source | Preserve `IHomeOperatorProvider` with the current `ReferenceDataHomeOperatorProvider` binding as the trusted home-operator source. `ICallerContext` is caller/actor scope only and must not become the source of `OwnerAirlineId`. A different source mechanism requires explicit user approval. |
+| C16 environment inputs | Not a design decision. Ask for actual environment access only when a live integration test requires it; do not ask the design pack to choose Docker, SQL instance or test issuer. |
+| C17 decision approval | No new semantic, architecture, public-contract, persistence-identity/cardinality or repository-convention decision is self-approved by the agent. Record `BLOCKED_DECISION` and obtain explicit user approval. Pure implementation mechanics inside a settled rule are allowed. |
+| C18 `CLAUDE.md` alignment | The user authorizes a limited conflict-driven alignment of current `CLAUDE.md`: (a) keep the Pack as business/domain authority and point the API section at this Pack's `API-CONTRACTS.md` instead of stale file/route examples; (b) change the `BLOCKED_DECISION` wording so affected work requires explicit user approval while independent unaffected work may continue; (c) describe `Providers.Deterministic` as the approved project/seam whose adapters are implemented by slices, not as already-populated behavior; (d) preserve the existing correct rule that integration events use the shared `BaseIntegrationEvent`/OutboxWriter envelope and contain no custom envelope fields; (e) change any blanket wording such as “all enums live under Ordering/Enums” to “all Ordering-owned enums”, and document the exact three caller-context platform-identity enum exceptions from C1 without opening either namespace generally. Preserve all unrelated DB/dev mechanics, naming, test policy and framework conventions. Broader `CLAUDE.md` edits require separate approval. |
+
+These resolutions are part of Pack 3.8 and must be read before D0/B0.

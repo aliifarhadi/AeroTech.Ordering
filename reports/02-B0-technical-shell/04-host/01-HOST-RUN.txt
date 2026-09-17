@@ -1,0 +1,35 @@
+DATABASE: localhost\SQLEXPRESS / OrderingB0_Host_20260917140914 (isolated, dropped at the end)
+ENV: ASPNETCORE_ENVIRONMENT=Development Providers__UseDeterministicTestAdapters=false ASPNETCORE_URLS=http://localhost:5099 ConnectionStrings__CommandDbContext/QueryDbContext -> OrderingB0_Host_20260917140914
+
+## dotnet ef database update --context OrderingDbContext
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+Done.
+## dotnet ef database update --context ReferenceDbContext
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+Done.
+## START: started=1 after 1s
+GET /health/live -> 200 {"status":"Healthy","totalDurationMs":0.3609,"entries":[{"name":"self","status":"Healthy","durationMs":0.0823,"description":null,"error":null}]}
+GET /health/ready -> 200 {"status":"Healthy","totalDurationMs":1090.4949,"entries":[{"name":"redis","status":"Healthy","durationMs":27.4168,"description":null,"error":null},{"name":"sql-server-command","status":"Healthy","durationMs":1066.288,"description":null,"error":null},{"name":"sql-server-query","status":"Healthy","durationMs":1068.4048,"description":null,"error":null},{"name":"masstransit-bus","status":"Healthy","durationMs":46.6562,"description":"Ready","error":null}]}
+GET /health -> 200 {"status":"Healthy","totalDurationMs":93.7787,"entries":[{"name":"redis","status":"Healthy","durationMs":1.9447,"description":null,"error":null},{"name":"sql-server-command","status":"Healthy","durationMs":88.0415,"description":null,"error":null},{"name":"sql-server-query","status":"Healthy","durationMs":92.3743,"description":null,"error":null},{"name":"masstransit-bus","status":"Healthy","durationMs":0.4921,"description":"Ready","error":null},{"name":"self","status":"Healthy","durationMs":0.0037,"description":null,"error":null}]}
+GET /api/v1/Ping -> 200 {"data":{"status":"ok"},"errors":null}
+GET /api/v1/Ping with invalid bearer -> 200 (characterization only, see OD-B0-02)
+## START: outbox publisher / background errors in log:
+0
+## RESTART: started=1 after 1s
+GET /health/live -> 200 {"status":"Healthy","totalDurationMs":0.4405,"entries":[{"name":"self","status":"Healthy","durationMs":0.1373,"description":null,"error":null}]}
+GET /health/ready -> 200 {"status":"Healthy","totalDurationMs":1331.4024,"entries":[{"name":"redis","status":"Healthy","durationMs":44.7241,"description":null,"error":null},{"name":"sql-server-command","status":"Healthy","durationMs":1285.9191,"description":null,"error":null},{"name":"sql-server-query","status":"Healthy","durationMs":1297.7212,"description":null,"error":null},{"name":"masstransit-bus","status":"Healthy","durationMs":52.3816,"description":"Ready","error":null}]}
+GET /health -> 200 {"status":"Healthy","totalDurationMs":232.6258,"entries":[{"name":"redis","status":"Healthy","durationMs":2.4359,"description":null,"error":null},{"name":"sql-server-command","status":"Healthy","durationMs":226.6203,"description":null,"error":null},{"name":"sql-server-query","status":"Healthy","durationMs":230.5307,"description":null,"error":null},{"name":"masstransit-bus","status":"Healthy","durationMs":0.6351,"description":"Ready","error":null},{"name":"self","status":"Healthy","durationMs":0.0035,"description":null,"error":null}]}
+GET /api/v1/Ping -> 200 {"data":{"status":"ok"},"errors":null}
+GET /api/v1/Ping with invalid bearer -> 200 (characterization only, see OD-B0-02)
+## RESTART: outbox publisher / background errors in log:
+0
+
+## drop isolated database
+name                                                                                                                            
+--------------------------------------------------------------------------------------------------------------------------------
+
+(0 rows affected)

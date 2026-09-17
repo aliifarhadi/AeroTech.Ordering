@@ -1,16 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace AeroTech.Messages.FlightFlow.Enums;
 
 public enum FlightDisruptionReason
 {
-
-    [Display(Name = "Schedule-Based")] ScheduleBased=1,
-    [Display(Name = "Operational")] Operational,
-    [Display(Name = "Technical")] Technical,
-    [Display(Name = "Weather")] Weather,
-    [Display(Name = "Airport-Closure")] AirportClosure,
-    [Display(Name = "Security-Incident")] SecurityIncident,
-    [Display(Name = "Natural-Disaster")] NaturalDisaster,
-    [Display(Name = "Political-Restrictions")] PoliticalRestrictions
+    [Display(Name = "Weather Related")] WeatherRelated = 1,
+    [Display(Name = "Technical Failures")] TechnicalFailures,
+    [Display(Name = "Air Traffic Control Restrictions")] AirTrafficControlRestrictions,
+    [Display(Name = "Crew Availability")] CrewAvailability,
+    [Display(Name = "Airport Issues")] AirportIssues,
+    [Display(Name = "Security Incidents")] SecurityIncidents,
+    [Display(Name = "Strike/Industrial Action")] StrikeIndustrialAction,
+    [Display(Name = "IT Outages/System Failures")] ITOutageSystemFailures,
+    [Display(Name = "Ground Handling/Baggage System Failures")] GroundHandlingBaggageSystemFailures,
+    [Display(Name = "Operational Scheduling Changes")] OperationalSchedulingChanges,
+    [Display(Name = "Diversions")] Diversions,
+    [Display(Name = "Interline/Third Party Failures")] InterlineThirdPartyFailures,
+    [Display(Name = "Others")] Others
 }

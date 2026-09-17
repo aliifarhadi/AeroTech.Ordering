@@ -37,6 +37,8 @@ namespace AeroTech.Ordering.Consumers
 
             services.Configure<OutboxPublisherOptions>(configuration.GetSection("Outbox"));
             services.Configure<MessageRetentionOptions>(configuration.GetSection("MessageRetention"));
+            services.AddSingleton<IOutboxTransport, MassTransitOutboxTransport>();
+            services.AddScoped<OutboxDispatcher>();
             services.AddHostedService<OutboxPublisher>();
             services.AddHostedService<MessageRetentionPoller>();
 

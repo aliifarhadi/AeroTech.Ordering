@@ -1,0 +1,3 @@
+$ git branch --show-current
+k8s-stg
+# exit: 0

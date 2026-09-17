@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Providers.Deterministic
             this IServiceCollection services,
             IConfiguration configuration)
             => configuration.GetValue<bool>(DeterministicAdapterOptions.EnabledKey)
-                ? services.AddDeterministicProviders()
+                ? services.AddDeterministicProviders(configuration)
                 : services;
     }
 }

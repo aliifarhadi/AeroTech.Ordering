@@ -1,0 +1,21 @@
+$ dotnet sln AeroTech.Ordering.sln list
+Project(s)
+----------
+Contracts\AeroTech.Messages\AeroTech.Messages.csproj
+Framework\AeroTech.Framework.Core\AeroTech.Framework.Core.csproj
+Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj
+Framework\AeroTech.Framework.Presentation\AeroTech.Framework.Presentation.csproj
+src\AeroTech.Ordering.Application\AeroTech.Ordering.Application.csproj
+src\AeroTech.Ordering.Consumers\AeroTech.Ordering.Consumers.csproj
+src\AeroTech.Ordering.Domain\AeroTech.Ordering.Domain.csproj
+src\AeroTech.Ordering.Persistence\AeroTech.Ordering.Persistence.csproj
+src\AeroTech.Ordering.Providers.Deterministic\AeroTech.Ordering.Providers.Deterministic.csproj
+src\AeroTech.Ordering.Providers\AeroTech.Ordering.Providers.csproj
+src\AeroTech.Ordering.Query\AeroTech.Ordering.Query.csproj
+src\AeroTech.Ordering.ReferenceData\AeroTech.Ordering.ReferenceData.csproj
+src\AeroTech.Ordering.RestApi\AeroTech.Ordering.RestApi.csproj
+src\AeroTech.Ordering.ServiceHost\AeroTech.Ordering.ServiceHost.csproj
+src\AeroTech.Ordering.Synchronizer\AeroTech.Ordering.Synchronizer.csproj
+tests\AeroTech.Ordering.Domain.Tests\AeroTech.Ordering.Domain.Tests.csproj
+tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj
+# exit: 0

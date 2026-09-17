@@ -6,8 +6,7 @@ namespace AeroTech.Messages.Aegis.IntegrationEvents.V1
         long PartnerApiAccessProfileId,
         long TravelAgencyId,
         PartnerApiAccessProfileStatus Status,
-        long? DefaultOfficeId,
-        IReadOnlyList<long> OfficeScope,
+        long TravelAgencyOfficeId,
         long SourceVersion,
         DateTimeOffset ChangedAt) : BaseIntegrationEvent;
 }

@@ -4,7 +4,7 @@ using AeroTech.Ordering.ReferenceData.Persistence;
 using AeroTech.Ordering.ReferenceData.ReadModels;
 using Microsoft.EntityFrameworkCore;
 
-namespace AeroTech.Ordering.ServiceHost.OperatorContext
+namespace AeroTech.Ordering.Persistence._Shared.OperatorContext
 {
     public sealed class ReferenceDataHomeOperatorProvider : IHomeOperatorProvider
     {

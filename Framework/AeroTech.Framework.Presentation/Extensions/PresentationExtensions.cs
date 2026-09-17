@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text;
 using System.Text.Json.Serialization;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Framework.Presentation.AspNetCore.Services;
@@ -7,6 +6,7 @@ using AeroTech.Framework.Presentation.Filters;
 using AeroTech.Framework.Presentation.HealthChecks;
 using AeroTech.Framework.Presentation.Json;
 using AeroTech.Framework.Presentation.Middlewares;
+using AeroTech.Framework.Presentation.Options;
 using AeroTech.Framework.Presentation.Swagger;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,24 +32,32 @@ namespace AeroTech.Framework.Presentation.Extensions
             services.AddHttpContextAccessor();
             services.TryAddSingleton<IIdentityService, IdentityService>();
 
+            var jwt = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+
+            ArgumentException.ThrowIfNullOrWhiteSpace(jwt.Authority, $"{JwtOptions.SectionName}:{nameof(JwtOptions.Authority)}");
+            ArgumentException.ThrowIfNullOrWhiteSpace(jwt.Audience, $"{JwtOptions.SectionName}:{nameof(JwtOptions.Audience)}");
+
             services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
                 .AddJwtBearer(options =>
                 {
-                    var jwtKey = configuration["JwtSecrets:Key"];
-                    if (string.IsNullOrWhiteSpace(jwtKey))
-                        return;
+                    options.Authority = jwt.Authority;
+                    options.Audience = jwt.Audience;
+                    options.RequireHttpsMetadata = jwt.RequireHttpsMetadata;
 
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-                        ValidateIssuer = !string.IsNullOrWhiteSpace(configuration["JwtSecrets:Issuer"]),
-                        ValidIssuer = configuration["JwtSecrets:Issuer"],
-                        ValidateAudience = !string.IsNullOrWhiteSpace(configuration["JwtSecrets:Audience"]),
-                        ValidAudience = configuration["JwtSecrets:Audience"],
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
                         ValidateLifetime = true,
-                        ClockSkew = TimeSpan.Zero
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwt.Authority,
+                        ValidAudience = jwt.Audience,
+                        ValidAlgorithms = [SecurityAlgorithms.RsaSha256, SecurityAlgorithms.EcdsaSha256]
                     };
                 });
 

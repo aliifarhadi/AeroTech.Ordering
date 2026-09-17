@@ -15,6 +15,7 @@ public enum FlightStatus
     [Display(Name = "Delayed")] Delayed,
     [Display(Name = "Landed")] Landed,
     [Display(Name = "Returned to Gate")] ReturnedGate,
-    [Display(Name = "Completed")] Completed
+    [Display(Name = "Completed")] Completed,
+    [Display(Name = "Pending Review")] PendingReview
 }
 

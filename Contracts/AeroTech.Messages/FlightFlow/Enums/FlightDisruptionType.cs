@@ -1,11 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace AeroTech.Messages.FlightFlow.Enums;
 
 public enum FlightDisruptionType
 {
-
-    [Display(Name = "Schedule Change")] ScheduleChange = 1,
-    [Display(Name = "Status Change")] StatusChange,
-    [Display(Name = "Aircraft Change")] AirCraftChange
+    [Display(Name = "Cancellation")] Cancellation = 1,
+    [Display(Name = "Time Change")] TimeChange
 }

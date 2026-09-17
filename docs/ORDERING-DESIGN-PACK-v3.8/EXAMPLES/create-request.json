@@ -1,0 +1,26 @@
+{
+  "preparationId": "1001",
+  "acceptedSnapshotDigest": "1cb8ac2e3b1b32419b2954f890cbcc293105f34778454ca65279462dd58e0822",
+  "acceptedAt": "2026-10-01T10:01:00Z",
+  "financialCustomerId": "100",
+  "travelerBindings": [
+    {
+      "sourceTravellerRef": "PAX-A",
+      "clientTravelerRef": "CLIENT-PAX-A",
+      "givenName": "Sample",
+      "surname": "Traveler",
+      "passengerTypeCode": "ADT",
+      "dateOfBirth": "1990-01-01",
+      "guardianClientTravelerRef": null
+    }
+  ],
+  "contacts": [
+    {
+      "role": "Primary",
+      "email": "traveler@example.invalid",
+      "phone": null
+    }
+  ],
+  "clientReference": "REFERENCE-CREATE-001"
+}
+

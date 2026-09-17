@@ -1,0 +1,4 @@
+$ git remote -v
+origin	https://github.com/aliifarhadi/AeroTech.Ordering.git (fetch)
+origin	https://github.com/aliifarhadi/AeroTech.Ordering.git (push)
+# exit: 0

@@ -21,5 +21,7 @@ namespace AeroTech.Messages.Aegis.IntegrationEvents.V1
         long? ResolvedCustomerId,
         EligibilityReasonCode? ReasonCode,
         long SourceVersion,
-        DateTimeOffset ChangedAt) : BaseIntegrationEvent;
+        DateTimeOffset ChangedAt,
+        long? TravelAgencyId = null,
+        long? TravelAgencyOfficeId = null) : BaseIntegrationEvent;
 }

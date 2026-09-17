@@ -1,0 +1,10 @@
+CLEAN COPY: tracked + new unignored files (no bin/obj, no appsettings.Development.json, no docs/reports) -> /c/Users/ALF031~1.FAR/AppData/Local/Temp/claude/e--Projects-DotAir-AeroTech-Ordering/39b893c6-c5f0-4344-9737-c8df41b3c6fa/scratchpad/clean-checkout
+FILES: 612
+
+## references to anything outside the repository (csproj/sln/props)
+none
+
+## dotnet build (clean copy)
+    0 Error(s)
+    13 Warning(s)
+Time Elapsed 00:00:40.82

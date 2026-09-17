@@ -41,6 +41,7 @@ namespace AeroTech.Ordering.Persistence.Outbox
 
             _dbContext.OutboxMessages.Add(new OutboxMessage
             {
+                EventId = source.EventId,
                 MessageType = $"{type.FullName}, {type.Assembly.GetName().Name}",
                 Payload = JsonSerializer.Serialize(message, type),
                 OccurredOn = _clock.GetDateTime()

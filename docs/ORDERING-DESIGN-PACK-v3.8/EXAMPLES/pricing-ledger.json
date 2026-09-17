@@ -1,0 +1,68 @@
+{
+  "id": "PRICING-LEDGER-001",
+  "purpose": "Illustrative arithmetic/provenance example only; not an owner wire payload or domain persistence schema",
+  "currencyRef": "EUR",
+  "commercialLines": [
+    {
+      "lineRef": "SALE-FARE",
+      "effect": "CustomerBalance",
+      "direction": "Debit",
+      "amount": "400.00",
+      "economicFactId": "SALE-1"
+    },
+    {
+      "lineRef": "SALE-BAG",
+      "effect": "CustomerBalance",
+      "direction": "Debit",
+      "amount": "50.00",
+      "economicFactId": "SALE-1"
+    },
+    {
+      "lineRef": "SALE-DISCOUNT",
+      "effect": "CustomerBalance",
+      "direction": "Credit",
+      "amount": "45.00",
+      "economicFactId": "SALE-1"
+    },
+    {
+      "lineRef": "SALE-COMMISSION",
+      "effect": "SettlementOnly",
+      "direction": "Debit",
+      "amount": "20.00",
+      "economicFactId": "SALE-1"
+    }
+  ],
+  "expectedCustomerTotalAfterSale": "405.00",
+  "servicingCommercialLines": [
+    {
+      "lineRef": "REV-DISCOUNT",
+      "effect": "CustomerBalance",
+      "direction": "Debit",
+      "amount": "45.00",
+      "economicFactId": "CHANGE-1",
+      "reversesLineRef": "SALE-DISCOUNT"
+    }
+  ],
+  "expectedCustomerTotalAfterDiscountReversal": "450.00",
+  "refundAuthorizationLines": [
+    {
+      "lineRef": "REFUND-AUTH-1",
+      "effect": "CustomerBalance",
+      "direction": "Credit",
+      "amount": "100.00",
+      "economicFactId": "REFUND-1"
+    }
+  ],
+  "expectedCustomerTotalAfterRefundAuthorization": "350.00",
+  "paymentMovements": [
+    {
+      "movementRef": "PAYMENT-REFUND-1",
+      "movementType": "Refund",
+      "amount": "100.00",
+      "currencyRef": "EUR",
+      "appliesToEconomicFactId": "REFUND-1"
+    }
+  ],
+  "expectedCustomerTotalAfterPaymentMovement": "350.00",
+  "assertion": "Payment execution changes applied payment movement once; it does not append a second CustomerBalance credit for the already-authorized refund."
+}

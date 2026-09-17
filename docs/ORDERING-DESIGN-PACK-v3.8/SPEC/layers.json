@@ -1,0 +1,56 @@
+{
+  "authority": "Logical responsibility/dependency boundaries plus standing repository conventions; not a physical project-reference contract and not a forced clean-architecture rewrite",
+  "standingConventions": {
+    "orderingEnums": "Contracts/AeroTech.Messages/Ordering/Enums",
+    "externalPorts": "AeroTech.Ordering.Domain/Ports/{Area}",
+    "folderConvention": "{X}Aggregate/{Arguments,Contracts,DomainEvents,Entities,...}",
+    "handlerConvention": "{Name}Command + {Name}CommandHandler",
+    "queries": "Every *Query lives in AeroTech.Ordering.Query",
+    "newProjectRule": "Do not add a project without the existing user/repository approval rule",
+    "domainMessagesAllowlist": {
+      "namespacePrefixes": [
+        "AeroTech.Messages.Ordering.Enums"
+      ],
+      "exactTypes": [
+        "AeroTech.Messages.Aegis.Enums.BusinessContextType",
+        "AeroTech.Messages.Aegis.Enums.PrincipalType",
+        "AeroTech.Messages.Shared.Enums.AuthorizationSurface"
+      ],
+      "projectReferenceMayRemain": true,
+      "newNonOrderingMessageTypeRequiresExplicitUserApproval": true
+    }
+  },
+  "forbiddenSemanticCoupling": {
+    "AeroTech.Ordering.Domain": [
+      "Microsoft.EntityFrameworkCore implementation types",
+      "Microsoft.AspNetCore controller/request types",
+      "System.Net.Http provider calls",
+      "MassTransit transport behavior",
+      "provider wire DTOs",
+      "integration-event publishing behavior",
+      "runtime configuration/service locator"
+    ],
+    "AeroTech.Ordering.Application": [
+      "provider HTTP DTOs",
+      "controller behavior",
+      "EF mapping/configuration",
+      "duplicate domain policy"
+    ],
+    "AeroTech.Ordering.Providers": [
+      "direct Ordering DB/aggregate mutation",
+      "invented owner policy"
+    ],
+    "AeroTech.Ordering.Query": [
+      "business mutations",
+      "external owner side effects"
+    ]
+  },
+  "requiredProperties": {
+    "singleWriter": "One authoritative Order projector",
+    "singleUnitOfWork": "One effective local SQL transaction mechanism; no duplicate registration ambiguity",
+    "networkInSqlTransaction": false,
+    "businessRepositoryCopyAllowed": false,
+    "historicalSnapshotRule": "Accepted historical facts are local; current ReferenceData may enrich display but cannot rewrite history"
+  },
+  "kind": "LogicalResponsibilityAndDependencyPolicy"
+}

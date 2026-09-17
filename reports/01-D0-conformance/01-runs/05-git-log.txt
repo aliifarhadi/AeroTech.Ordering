@@ -1,0 +1,6 @@
+$ git log -5 --oneline
+9577574 Pack Redesign
+37a8c7c D0
+6b47a3d Bootstrap
+2f2b903 Bootstrap Ordering vNext skeleton from Ordering k8s-stg
+# exit: 0

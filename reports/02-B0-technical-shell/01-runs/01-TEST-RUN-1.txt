@@ -1,0 +1,82 @@
+COMMAND: dotnet test tests/AeroTech.Ordering.Persistence.Tests --no-build --logger "console;verbosity=normal"
+SERVER: localhost\SQLEXPRESS  DATABASES: OrderingB0_<runid>, OrderingB0_<runid>_Owner (created and dropped by the run)
+STARTED: 2026-09-17T14:01:21Z
+Test run for E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\bin\Debug\net10.0\AeroTech.Ordering.Persistence.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.40]   Discovering: AeroTech.Ordering.Persistence.Tests
+[xUnit.net 00:00:00.57]   Discovered:  AeroTech.Ordering.Persistence.Tests
+[xUnit.net 00:00:00.58]   Starting:    AeroTech.Ordering.Persistence.Tests
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.DomainMessagesAllowlistTests.Domain_uses_only_allowlisted_Messages_types [24 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.LayerReferenceTests.Application_references_no_infrastructure_assembly [24 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.SingleRegistrationGuardTests.Two_unit_of_work_registrations_fail_with_the_named_duplicate [31 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.LayerReferenceTests.Domain_references_no_infrastructure_assembly [< 1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.SingleRegistrationGuardTests.Single_bindings_pass [1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.SingleRegistrationGuardTests.Real_and_deterministic_binding_of_the_same_contract_fail_with_the_named_duplicate [4 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.DomainMessagesAllowlistTests.Caller_context_exposes_no_owner_airline_identity [9 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.DomainMessagesAllowlistTests.Metadata_reader_sees_the_caller_context_Messages_references [17 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.DomainMessagesAllowlistTests.Allowlist_check_detects_a_forbidden_Messages_type [4 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Host.AnonymousSurfaceInventoryTests.Current_controller_surface_is_exactly_the_characterized_inventory [98 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.DecimalPrecisionTests.Amount_rate_and_quantity_round_trip_unchanged_on_sql_server [1 s]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.DecimalPrecisionTests.The_removed_blanket_precision_would_have_truncated_the_values [2 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.ModelPrecisionTests.Query_model_has_explicit_precision_on_every_owned_decimal [77 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.ModelPrecisionTests.Command_model_has_explicit_precision_on_every_decimal [3 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.ModelPrecisionTests.Command_model_has_no_blanket_string_length [4 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Expired_lease_holder_cannot_complete_a_row_claimed_by_another_publisher [643 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Two_publishers_never_hold_the_same_row [569 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Lost_acknowledgement_republishes_the_same_identity_and_payload_and_the_receiver_commits_one_fact [207 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Unusable_row_is_recorded_as_failed_and_does_not_block_usable_rows [47 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Same_event_identity_cannot_be_written_twice [85 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Outbox_fact_is_committed_or_rolled_back_with_the_local_transaction [68 ms]
+[xUnit.net 00:00:11.34]     AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Message_without_source_identity_is_rejected_and_nothing_is_committed [FAIL]
+[xUnit.net 00:00:11.35]       Assert.True() Failure
+[xUnit.net 00:00:11.35]       Expected: True
+[xUnit.net 00:00:11.35]       Actual:   False
+[xUnit.net 00:00:11.35]       Stack Trace:
+[xUnit.net 00:00:11.35]         E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs(39,0): at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Message_without_source_identity_is_rejected_and_nothing_is_committed()
+[xUnit.net 00:00:11.35]         E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs(50,0): at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Message_without_source_identity_is_rejected_and_nothing_is_committed()
+[xUnit.net 00:00:11.35]         --- End of stack trace from previous location ---
+  Failed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Message_without_source_identity_is_rejected_and_nothing_is_committed [2 s]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Message_without_source_identity_is_rejected_and_nothing_is_committed() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs:line 39
+   at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Message_without_source_identity_is_rejected_and_nothing_is_committed() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs:line 50
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:11.94]     AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Concurrent_duplicate_marker_discards_the_losing_delivery_without_committing_its_work [FAIL]
+[xUnit.net 00:00:11.94]       Assert.False() Failure
+[xUnit.net 00:00:11.94]       Expected: False
+[xUnit.net 00:00:11.94]       Actual:   True
+[xUnit.net 00:00:11.94]       Stack Trace:
+[xUnit.net 00:00:11.94]         E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs(128,0): at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Concurrent_duplicate_marker_discards_the_losing_delivery_without_committing_its_work()
+[xUnit.net 00:00:11.95]         E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs(131,0): at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Concurrent_duplicate_marker_discards_the_losing_delivery_without_committing_its_work()
+[xUnit.net 00:00:11.95]         --- End of stack trace from previous location ---
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Business_crash_commits_neither_marker_nor_work_and_redelivery_commits_both_once [432 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Classifier_accepts_only_the_inbox_key_violation [31 ms]
+  Failed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Concurrent_duplicate_marker_discards_the_losing_delivery_without_committing_its_work [136 ms]
+  Error Message:
+   Assert.False() Failure
+Expected: False
+Actual:   True
+  Stack Trace:
+     at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Concurrent_duplicate_marker_discards_the_losing_delivery_without_committing_its_work() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs:line 128
+   at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Concurrent_duplicate_marker_discards_the_losing_delivery_without_committing_its_work() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs:line 131
+--- End of stack trace from previous location ---
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Unrelated_sql_failure_is_not_classified_as_a_duplicate [1 s]
+  Passed AeroTech.Ordering.Persistence.Tests.Deterministic.DeterministicEffectStoreTests.Owner_database_is_not_the_ordering_database [5 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Deterministic.DeterministicEffectStoreTests.Owner_effect_survives_an_ordering_rollback_and_a_restart [1 s]
+  Passed AeroTech.Ordering.Persistence.Tests.Deterministic.DeterministicEffectStoreTests.Same_key_and_hash_replays_and_a_different_hash_conflicts [65 ms]
+[xUnit.net 00:00:16.27]   Finished:    AeroTech.Ordering.Persistence.Tests
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Host_composes_with_deterministic_adapters_only_when_the_existing_flag_is_true [811 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Deterministic_flag_without_its_own_database_fails_closed [22 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Missing_broker_configuration_fails_startup [25 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Host_composes_with_real_bindings_and_one_unit_of_work [85 ms]
+
+Test Run Failed.
+Total tests: 33
+     Passed: 31
+     Failed: 2
+ Total time: 17.6742 Seconds
+EXIT: 1

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace AeroTech.Ordering.Persistence.Inbox
 {
-    public sealed class InboxStore : IInboxStore
+    public sealed class InboxStore
     {
         private readonly OrderingDbContext _dbContext;
         private readonly IClock _clock;
@@ -17,24 +17,26 @@ namespace AeroTech.Ordering.Persistence.Inbox
             _clock = clock;
         }
 
-        public Task<bool> HasProcessedAsync(Guid messageId, string consumer, CancellationToken cancellationToken = default)
+        public Task<string?> FindPayloadHashAsync(InboxIdentity identity, CancellationToken cancellationToken = default)
             => _dbContext.Set<InboxMessage>()
                 .AsNoTracking()
-                .AnyAsync(message => message.MessageId == messageId && message.Consumer == consumer, cancellationToken);
+                .Where(message => message.OwnerAirlineId == identity.OwnerAirlineId
+                                  && message.SourceSystem == identity.SourceSystem
+                                  && message.EventId == identity.EventId
+                                  && message.Consumer == identity.Consumer)
+                .Select(message => message.PayloadHash)
+                .SingleOrDefaultAsync(cancellationToken);
 
-        public async Task MarkProcessedAsync(Guid messageId, string consumer, string messageType, CancellationToken cancellationToken = default)
-        {
-            EnlistProcessed(messageId, consumer, messageType);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        public void EnlistProcessed(Guid messageId, string consumer, string messageType)
+        public void EnlistProcessed(InboxIdentity identity, string messageType, string payloadHash)
             => _enlisted = _dbContext.Set<InboxMessage>().Add(
                 new InboxMessage
                 {
-                    MessageId = messageId,
-                    Consumer = consumer,
+                    OwnerAirlineId = identity.OwnerAirlineId,
+                    SourceSystem = identity.SourceSystem,
+                    EventId = identity.EventId,
+                    Consumer = identity.Consumer,
                     MessageType = messageType,
+                    PayloadHash = payloadHash,
                     ReceivedOn = _clock.GetDateTime()
                 });
 

@@ -31,11 +31,5 @@ namespace AeroTech.Ordering.Persistence
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrderingDbContext).Assembly);
         }
-
-        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-        {
-            configurationBuilder.Properties<decimal>().HavePrecision(18, 2);
-            configurationBuilder.Properties<string>().HaveMaxLength(256);
-        }
     }
 }

@@ -1,0 +1,329 @@
+[
+  {
+    "id": "EV-001",
+    "stage": "S1",
+    "name": "OrderCreated",
+    "schemaVersion": 1,
+    "role": "CommercialMovement",
+    "requiredPayloadFields": [
+      "orderId",
+      "changeId",
+      "commercialVersion",
+      "acceptedSourceDigest",
+      "priceChangeSetId",
+      "financialSequence"
+    ],
+    "economicInterpretation": "Accepted original sale components; counterpart document events are documentary, not another sale",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed facts; never fetch latest order to reinterpret history. Monetary components, when present, reference the single committed PriceChangeSet for this commercial change.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-002",
+    "stage": "S4",
+    "name": "TicketIssued",
+    "schemaVersion": 1,
+    "role": "DocumentEvidence",
+    "requiredPayloadFields": [
+      "orderId",
+      "ticketId",
+      "documentNumber",
+      "issuerNamespace",
+      "couponServiceLinks",
+      "documentVersion",
+      "issuanceAmounts",
+      "priceFactRefs"
+    ],
+    "economicInterpretation": "None; no new customer money",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed document facts; never fetch latest order to reinterpret history. Trace issuance/void amounts to historical price/economic facts; the documentary event does not create another commercial PriceChangeSet.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-003",
+    "stage": "S4",
+    "name": "EmdIssued",
+    "schemaVersion": 1,
+    "role": "DocumentEvidence",
+    "requiredPayloadFields": [
+      "orderId",
+      "emdId",
+      "documentNumber",
+      "issuerNamespace",
+      "purpose",
+      "couponAssociations",
+      "priceOrExternalValueRefs"
+    ],
+    "economicInterpretation": "None; no new customer money",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed document facts; never fetch latest order to reinterpret history. Trace issuance/void amounts to historical price/economic facts; the documentary event does not create another commercial PriceChangeSet.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-004",
+    "stage": "S5",
+    "name": "OrderScopeCancelled",
+    "schemaVersion": 1,
+    "role": "CommercialMovement",
+    "requiredPayloadFields": [
+      "orderId",
+      "changeId",
+      "serviceIds",
+      "priceChangeSetRef",
+      "commercialVersion",
+      "releaseEvidenceRefs"
+    ],
+    "economicInterpretation": "Only appended cancellation lines; no second reversal on inventory/funding release",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed facts; never fetch latest order to reinterpret history. Monetary components, when present, reference the single committed PriceChangeSet for this commercial change.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-005",
+    "stage": "S6",
+    "name": "OrderServicesAdded",
+    "schemaVersion": 1,
+    "role": "CommercialMovement",
+    "requiredPayloadFields": [
+      "orderId",
+      "changeId",
+      "serviceIds",
+      "sourceProductRefs",
+      "priceChangeSetId",
+      "obligationRefs",
+      "commercialVersion"
+    ],
+    "economicInterpretation": "New accepted ancillary commercial value once",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed facts; never fetch latest order to reinterpret history. Monetary components, when present, reference the single committed PriceChangeSet for this commercial change.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-006",
+    "stage": "S8",
+    "name": "TicketVoided",
+    "schemaVersion": 1,
+    "role": "DocumentEvidence",
+    "requiredPayloadFields": [
+      "orderId",
+      "ticketId",
+      "documentVersion",
+      "voidEvidenceRef",
+      "commercialChangeRef"
+    ],
+    "economicInterpretation": "None; no new customer money",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed document facts; never fetch latest order to reinterpret history. Trace issuance/void amounts to historical price/economic facts; the documentary event does not create another commercial PriceChangeSet.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-007",
+    "stage": "S8",
+    "name": "EmdVoided",
+    "schemaVersion": 1,
+    "role": "DocumentEvidence",
+    "requiredPayloadFields": [
+      "orderId",
+      "emdId",
+      "documentVersion",
+      "voidEvidenceRef",
+      "commercialChangeRef"
+    ],
+    "economicInterpretation": "None; no new customer money",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed document facts; never fetch latest order to reinterpret history. Trace issuance/void amounts to historical price/economic facts; the documentary event does not create another commercial PriceChangeSet.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-008",
+    "stage": "S9",
+    "name": "RefundAuthorized",
+    "schemaVersion": 1,
+    "role": "CommercialMovement",
+    "requiredPayloadFields": [
+      "orderId",
+      "refundId",
+      "changeId",
+      "priceChangeSetId",
+      "commercialVersion",
+      "refundAuthorityRef",
+      "payoutPlan"
+    ],
+    "economicInterpretation": "Accepted commercial credit/penalty once, before confirmed payout; outstanding refund remains visible",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed facts; never fetch latest order to reinterpret history. Monetary components, when present, reference the single committed PriceChangeSet for this commercial change.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-009",
+    "stage": "S9",
+    "name": "RefundConfirmed",
+    "schemaVersion": 1,
+    "role": "PaymentEvidence",
+    "requiredPayloadFields": [
+      "orderId",
+      "refundId",
+      "originalChangeId",
+      "ownerMovementRefs",
+      "confirmedPayoutAmounts",
+      "completedAt"
+    ],
+    "economicInterpretation": "Payment/value movement confirmation, NOT another commercial credit",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot the confirmed owner movement and reference the original authorized commercial/economic fact; never create a second commercial credit or PriceChangeSet from payment confirmation.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-010",
+    "stage": "S10",
+    "name": "ExchangeApplied",
+    "schemaVersion": 1,
+    "role": "CommercialMovement",
+    "requiredPayloadFields": [
+      "orderId",
+      "exchangeId",
+      "changeId",
+      "commercialVersion",
+      "oldNewLineage",
+      "priceChangeSetId",
+      "documentRefs"
+    ],
+    "economicInterpretation": "Accepted old/new delta once; never sum delta and full replacement",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed facts; never fetch latest order to reinterpret history. Monetary components, when present, reference the single committed PriceChangeSet for this commercial change.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-011",
+    "stage": "S10",
+    "name": "ReissueCompleted",
+    "schemaVersion": 1,
+    "role": "DocumentEvidence",
+    "requiredPayloadFields": [
+      "orderId",
+      "exchangeId",
+      "originalDocumentRefs",
+      "newDocumentRefs",
+      "originalChangeId"
+    ],
+    "economicInterpretation": "None; no new customer money",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed document facts; never fetch latest order to reinterpret history. Trace issuance/void amounts to historical price/economic facts; the documentary event does not create another commercial PriceChangeSet.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-012",
+    "stage": "S10",
+    "name": "ExchangeCompleted",
+    "schemaVersion": 1,
+    "role": "WorkflowCompletion",
+    "requiredPayloadFields": [
+      "orderId",
+      "exchangeId",
+      "originalChangeId",
+      "cleanupEvidenceRefs"
+    ],
+    "economicInterpretation": "Completion of the original accepted exchange, not a second sale",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot completion against the original operation/change/economic references; workflow completion does not create a second commercial PriceChangeSet.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-013",
+    "stage": "S12",
+    "name": "ServiceDelivered",
+    "schemaVersion": 1,
+    "role": "DeliveryEvidence",
+    "requiredPayloadFields": [
+      "orderIdAtOccurrence",
+      "currentOrderId",
+      "serviceId",
+      "observationId",
+      "observationKey",
+      "aspect",
+      "portion",
+      "quantity",
+      "sourceVersion"
+    ],
+    "economicInterpretation": "Ledger decides recognition from certified delivery fact; boarding alone is not delivered",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot the authoritative delivery observation/correction with service and consumption lineage; delivery evidence does not create a commercial PriceChangeSet.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-014",
+    "stage": "S12",
+    "name": "ServiceDeliveryCorrected",
+    "schemaVersion": 1,
+    "role": "DeliveryEvidence",
+    "requiredPayloadFields": [
+      "originalObservationId",
+      "correctingObservationId",
+      "serviceId",
+      "aspect",
+      "sourceRevision",
+      "reason"
+    ],
+    "economicInterpretation": "Correct the referenced recognition fact; not another delivery",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot the authoritative delivery observation/correction with service and consumption lineage; delivery evidence does not create a commercial PriceChangeSet.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-015",
+    "stage": "S13",
+    "name": "TravelerCorrected",
+    "schemaVersion": 1,
+    "role": "CommercialMovement",
+    "requiredPayloadFields": [
+      "orderId",
+      "changeId",
+      "travelerId",
+      "commercialVersion",
+      "protectedChangeRef"
+    ],
+    "economicInterpretation": "No monetary value unless a separate accepted price change exists",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot actual committed facts; never fetch latest order to reinterpret history. Monetary components, when present, reference the single committed PriceChangeSet for this commercial change.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-016",
+    "stage": "S14",
+    "name": "OrderSplitApplied",
+    "schemaVersion": 1,
+    "role": "Reclassification",
+    "requiredPayloadFields": [
+      "splitTransferId",
+      "sourceOrderId",
+      "childOrderId",
+      "pairedChangeIds",
+      "serviceOwnershipMap",
+      "pairedPriceTransferRefs",
+      "applicationTransferRef"
+    ],
+    "economicInterpretation": "Balanced reclassification; not refund plus new sale",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot the balanced source/child transfer and paired price-transfer references; reclassification may reference both sides and does not create new customer value.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  },
+  {
+    "id": "EV-017",
+    "stage": "S15",
+    "name": "GroupNameMaterialized",
+    "schemaVersion": 1,
+    "role": "WorkflowCompletion",
+    "requiredPayloadFields": [
+      "groupId",
+      "rowIdentity",
+      "childOrderId",
+      "blockAllocationRefs",
+      "priceDispositionRef",
+      "depositApplicationRef"
+    ],
+    "economicInterpretation": "Apply existing group/deposit commercial treatment; do not charge charter contract again",
+    "delivery": "Transactional outbox; at-least-once; stable EventId on retry",
+    "rule": "Snapshot completion against the original operation/change/economic references; workflow completion does not create a second commercial PriceChangeSet.",
+    "envelopeBinding": "Use the existing AeroTech.Messages/platform integration-event envelope unchanged. EVENT-CATALOG defines required semantic identities that must be supplied by the existing envelope or unambiguously by payload; this spec does not enumerate or redefine shared envelope fields."
+  }
+]

@@ -1,0 +1,844 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "2.0"
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "offerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "providerProfileId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ownerBindingRef": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourcePayloadHash": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "owner",
+        "offerId",
+        "providerProfileId",
+        "ownerBindingRef",
+        "sourcePayloadHash"
+      ],
+      "additionalProperties": false
+    },
+    "acceptanceAssurance": {
+      "enum": [
+        "OwnerBound",
+        "LocalCandidateOnly"
+      ]
+    },
+    "pricedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "validity": {
+      "type": "object",
+      "properties": {
+        "offer": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "enum": [
+                "Known",
+                "NotSupplied",
+                "NotApplicable"
+              ]
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "owner": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sourceRef": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reason": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "state",
+            "value",
+            "owner",
+            "sourceRef",
+            "reason"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "Known"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "value"
+                ]
+              },
+              "else": {
+                "properties": {
+                  "value": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "price": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "enum": [
+                "Known",
+                "NotSupplied",
+                "NotApplicable"
+              ]
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "owner": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sourceRef": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reason": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "state",
+            "value",
+            "owner",
+            "sourceRef",
+            "reason"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "Known"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "value"
+                ]
+              },
+              "else": {
+                "properties": {
+                  "value": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "ticketing": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "enum": [
+                "Known",
+                "NotSupplied",
+                "NotApplicable"
+              ]
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "owner": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sourceRef": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reason": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "state",
+            "value",
+            "owner",
+            "sourceRef",
+            "reason"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "Known"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "value"
+                ]
+              },
+              "else": {
+                "properties": {
+                  "value": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "offer",
+        "price",
+        "ticketing"
+      ],
+      "additionalProperties": false
+    },
+    "salesContext": {
+      "type": "object",
+      "properties": {
+        "ownerAirlineId": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "financialCustomerId": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sellingOfficeId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "ownerAirlineId",
+        "financialCustomerId",
+        "channel",
+        "sellingOfficeId"
+      ],
+      "additionalProperties": false
+    },
+    "travelers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceTravellerRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "passengerTypeCode": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "sourceTravellerRef",
+          "passengerTypeCode"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "segmentRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "ScheduledAir",
+              "OpenAir",
+              "Surface"
+            ]
+          },
+          "originRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "destinationRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "soldDeparture": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "soldArrival": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "flightRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operationalLegRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "segmentRef",
+          "kind",
+          "originRef",
+          "destinationRef",
+          "soldDeparture",
+          "soldArrival",
+          "flightRef",
+          "operationalLegRefs"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "itemRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "itemKind": {
+            "enum": [
+              "OfferPackage",
+              "Product",
+              "MonetaryCharge"
+            ]
+          },
+          "sourceOfferItemRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "serviceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "acceptedTotal": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+              },
+              "currencyRef": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "amount",
+              "currencyRef"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "itemRef",
+          "itemKind",
+          "sourceOfferItemRef",
+          "serviceRefs",
+          "acceptedTotal"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "serviceRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "enum": [
+              "AirTransport",
+              "Seat",
+              "Baggage",
+              "Meal",
+              "Lounge",
+              "Hotel",
+              "GroundTransport",
+              "RegisteredExtension"
+            ]
+          },
+          "beneficiaryRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "segmentRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^[0-9]+(\\.[0-9]{1,6})?$"
+          },
+          "quantityUnit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "detailSchema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "detailSchemaVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "details": {
+            "type": "object"
+          },
+          "fulfillmentProfile": {
+            "type": "object",
+            "properties": {
+              "profileRef": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reservationRequirement": {
+                "enum": [
+                  "None",
+                  "FlightCapacity",
+                  "Supplier"
+                ]
+              },
+              "documentKind": {
+                "enum": [
+                  "None",
+                  "ETKT",
+                  "EMDA",
+                  "EMDS"
+                ]
+              },
+              "requiresFunding": {
+                "type": "boolean"
+              },
+              "capacityUnits": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "profileRef",
+              "reservationRequirement",
+              "documentKind",
+              "requiresFunding",
+              "capacityUnits"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "serviceRef",
+          "type",
+          "beneficiaryRefs",
+          "segmentRefs",
+          "quantity",
+          "quantityUnit",
+          "detailSchema",
+          "detailSchemaVersion",
+          "details",
+          "fulfillmentProfile"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "pricingLines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lineRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "itemRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "component": {
+            "enum": [
+              "Fare",
+              "ProductCharge",
+              "Tax",
+              "CarrierSurcharge",
+              "Fee",
+              "Discount",
+              "Markup",
+              "Penalty",
+              "Commission",
+              "Adjustment",
+              "Other"
+            ]
+          },
+          "effect": {
+            "enum": [
+              "CustomerBalance",
+              "SettlementOnly",
+              "Informational"
+            ]
+          },
+          "direction": {
+            "enum": [
+              "Debit",
+              "Credit"
+            ]
+          },
+          "lineRole": {
+            "enum": [
+              "Original",
+              "Reversal",
+              "Adjustment",
+              "Transfer"
+            ]
+          },
+          "originalValue": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+              },
+              "currencyRef": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "amount",
+              "currencyRef"
+            ],
+            "additionalProperties": false
+          },
+          "saleValue": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+              },
+              "currencyRef": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "amount",
+              "currencyRef"
+            ],
+            "additionalProperties": false
+          },
+          "sourceLineRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "basisType": {
+            "type": "string",
+            "minLength": 1
+          },
+          "basisRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceConversionRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lineRef",
+          "itemRef",
+          "component",
+          "effect",
+          "direction",
+          "lineRole",
+          "originalValue",
+          "saleValue",
+          "sourceLineRef",
+          "basisType",
+          "basisRef",
+          "sourceConversionRef"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "customerTotal": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+        },
+        "currencyRef": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "amount",
+        "currencyRef"
+      ],
+      "additionalProperties": false
+    },
+    "fareConstruction": {
+      "type": "object",
+      "properties": {
+        "assurance": {
+          "enum": [
+            "SourceProvided",
+            "Opaque"
+          ]
+        },
+        "sourceContextRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pricingUnits": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "assurance",
+        "sourceContextRef",
+        "pricingUnits"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "source",
+    "acceptanceAssurance",
+    "pricedAt",
+    "capturedAt",
+    "validity",
+    "salesContext",
+    "travelers",
+    "segments",
+    "items",
+    "services",
+    "pricingLines",
+    "customerTotal",
+    "fareConstruction"
+  ],
+  "additionalProperties": false
+}
+

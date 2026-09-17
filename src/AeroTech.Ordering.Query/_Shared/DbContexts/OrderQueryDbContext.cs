@@ -56,11 +56,5 @@ namespace AeroTech.Ordering.Query._Shared.DbContexts
                 entity.ToTable(table, ReferenceDbContext.Schema, builder => builder.ExcludeFromMigrations());
                 entity.HasKey("Id");
             });
-
-        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-        {
-            configurationBuilder.Properties<decimal>().HavePrecision(18, 2);
-            configurationBuilder.Properties<string>().HaveMaxLength(256);
-        }
     }
 }

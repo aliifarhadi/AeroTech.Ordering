@@ -1,0 +1,21 @@
+$ dotnet restore AeroTech.Ordering.sln
+  Determining projects to restore...
+E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj : warning NU1510: PackageReference Microsoft.Extensions.Hosting.Abstractions will not be pruned. This package is automatically available and does not need to be referenced explicitly. Remove the PackageReference item. [E:\Projects\DotAir\AeroTech.Ordering\AeroTech.Ordering.sln]
+  Restored E:\Projects\DotAir\AeroTech.Ordering\Contracts\AeroTech.Messages\AeroTech.Messages.csproj (in 356 ms).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Core\AeroTech.Framework.Core.csproj (in 367 ms).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Domain.Tests\AeroTech.Ordering.Domain.Tests.csproj (in 5.23 sec).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\AeroTech.Ordering.Application.csproj (in 5.33 sec).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.ReferenceData\AeroTech.Ordering.ReferenceData.csproj (in 173 ms).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Synchronizer\AeroTech.Ordering.Synchronizer.csproj (in 8.58 sec).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.RestApi\AeroTech.Ordering.RestApi.csproj (in 239 ms).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.ServiceHost\AeroTech.Ordering.ServiceHost.csproj (in 8.73 sec).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Presentation\AeroTech.Framework.Presentation.csproj (in 9.16 sec).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Providers\AeroTech.Ordering.Providers.csproj (in 23 ms).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Domain\AeroTech.Ordering.Domain.csproj (in 8 ms).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj (in 9.09 sec).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Consumers\AeroTech.Ordering.Consumers.csproj (in 9.15 sec).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Query\AeroTech.Ordering.Query.csproj (in 232 ms).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Persistence\AeroTech.Ordering.Persistence.csproj (in 274 ms).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj (in 8.98 sec).
+  Restored E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Providers.Deterministic\AeroTech.Ordering.Providers.Deterministic.csproj (in 548 ms).
+# exit: 0

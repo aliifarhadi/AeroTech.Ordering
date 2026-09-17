@@ -1,6 +1,8 @@
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Framework.Infrastructure.HealthChecks;
+using AeroTech.Ordering.Domain._Shared.Contracts;
+using AeroTech.Ordering.Persistence._Shared.OperatorContext;
 using AeroTech.Ordering.Persistence.Inbox;
 using AeroTech.Ordering.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +24,9 @@ namespace AeroTech.Ordering.Persistence
             services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<OrderingDbContext>());
             services.Configure<IntegrationEventOptions>(configuration.GetSection("IntegrationEvents"));
             services.AddScoped<IOutboxWriter, OutboxWriter>();
-            services.AddScoped<IInboxStore, InboxStore>();
+            services.AddScoped<InboxStore>();
+            services.AddScoped<OutboxLeaseStore>();
+            services.AddScoped<IHomeOperatorProvider, ReferenceDataHomeOperatorProvider>();
 
             services.AddHealthChecks().AddDbContextReadinessCheck<OrderingDbContext>("sql-server-command");
 

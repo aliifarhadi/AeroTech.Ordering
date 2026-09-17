@@ -1,0 +1,18 @@
+## M5 inbox: payload hash not compared (same identity, different payload accepted as duplicate)
+file: src\AeroTech.Ordering.Consumers\Inbox\InboxConsumeFilter.cs
+command: dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~different_payload"
+exit: 1
+Failed!  - Failed:     2, Passed:     0, Skipped:     0, Total:     2, Duration: 1 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## M6 inbox: blank envelope identity accepted
+file: src\AeroTech.Ordering.Consumers\Inbox\InboxEnvelope.cs
+command: dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~without_envelope_source_identity"
+exit: 1
+Failed!  - Failed:     2, Passed:     1, Skipped:     0, Total:     3, Duration: 1 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## M7 inbox: dedup lookup ignores SourceSystem
+file: src\AeroTech.Ordering.Persistence\Inbox\InboxStore.cs
+command: dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~another_source_system"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 1 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
