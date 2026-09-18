@@ -1,0 +1,117 @@
+COMMAND: dotnet test tests/AeroTech.Ordering.Persistence.Tests --no-build --logger "console;verbosity=normal"
+SERVER: localhost\SQLEXPRESS  DATABASES: OrderingB0_<runid>[_Owner], created and dropped by the run
+STARTED: 2026-09-17T16:11:25Z
+Test run for E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\bin\Debug\net10.0\AeroTech.Ordering.Persistence.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.42]   Discovering: AeroTech.Ordering.Persistence.Tests
+[xUnit.net 00:00:00.66]   Discovered:  AeroTech.Ordering.Persistence.Tests
+[xUnit.net 00:00:00.67]   Starting:    AeroTech.Ordering.Persistence.Tests
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.SingleRegistrationGuardTests.Two_unit_of_work_registrations_fail_with_the_named_duplicate [23 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.LayerReferenceTests.Application_references_no_infrastructure_assembly [16 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.DomainMessagesAllowlistTests.Domain_uses_only_allowlisted_Messages_types [17 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.LayerReferenceTests.Domain_references_no_infrastructure_assembly [< 1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.SingleRegistrationGuardTests.Single_bindings_pass [< 1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.SingleRegistrationGuardTests.Real_and_deterministic_binding_of_the_same_contract_fail_with_the_named_duplicate [1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.DomainMessagesAllowlistTests.Caller_context_exposes_no_owner_airline_identity [11 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.DomainMessagesAllowlistTests.Metadata_reader_sees_the_caller_context_Messages_references [11 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.DomainMessagesAllowlistTests.Allowlist_check_detects_a_forbidden_Messages_type [1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.S1RailTests.Each_s1_command_and_query_has_exactly_one_canonical_handler(request: typeof(AeroTech.Ordering.Application.OrderPreparationAggregate.Commands.PrepareOrderFromOffer.PrepareOrderFromOfferCommand)) [77 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Host.AnonymousSurfaceInventoryTests.Current_controller_surface_is_exactly_the_characterized_inventory [78 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.S1RailTests.Each_s1_command_and_query_has_exactly_one_canonical_handler(request: typeof(AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProjection.RebuildOrderProjectionCommand)) [< 1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.S1RailTests.Each_s1_command_and_query_has_exactly_one_canonical_handler(request: typeof(AeroTech.Ordering.Query.OperationAggregate.Queries.GetOperation.GetOperationQuery)) [< 1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.S1RailTests.Each_s1_command_and_query_has_exactly_one_canonical_handler(request: typeof(AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrder.GetOrderQuery)) [< 1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.S1RailTests.Each_s1_command_and_query_has_exactly_one_canonical_handler(request: typeof(AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.CreateOrderFromOfferCommand)) [< 1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.S1RailTests.Exactly_one_order_projector_implements_the_query_synchronizer [1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.S1RailTests.Offer_providers_do_not_reference_ordering_persistence [4 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Architecture.S1RailTests.Every_query_type_lives_in_the_query_project [3 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.SC_S1_018_live_candidate_keeps_not_supplied_validity_and_is_blocked_for_real_effects [10 s]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.SC_S1_010_observed_details_projection_becomes_one_conservative_package_with_opaque_construction [100 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.Observed_wire_violations_fail_mapping_instead_of_guessing(defect: "infant") [31 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.Observed_wire_violations_fail_mapping_instead_of_guessing(defect: "percentage") [26 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.Observed_wire_violations_fail_mapping_instead_of_guessing(defect: "no-sale-valuation") [23 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.Observed_wire_violations_fail_mapping_instead_of_guessing(defect: "unknown-category") [40 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.Owner_server_error_is_unavailable_and_client_error_is_not_found [58 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.SC_S1_015_hierarchy_total_mismatch_is_contract_mismatch_and_persists_nothing [137 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.Equivalent_amount_is_used_as_sale_value_and_the_original_is_retained [40 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AtomicityAndRebuildTests.Get_order_reports_lag_instead_of_stale_success_for_a_future_revision [2 s]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AtomicityAndRebuildTests.Rebuild_never_overwrites_a_newer_projection_revision [534 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AtomicityAndRebuildTests.SC_S1_006_projection_failure_before_commit_leaves_no_order_price_outbox_receipt_or_consumption [379 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.AtomicityAndRebuildTests.SC_S1_020_restart_owner_offline_projection_rebuild_reproduces_the_same_view [443 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_021_unregistered_product_schema_is_unsupported_before_any_preparation [98 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_005_concurrent_creates_with_different_keys_commit_exactly_one_order [374 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_008_source_priced_package_persists_one_item_with_four_services [385 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_016_invalid_traveler_binding_is_rejected_before_any_order [99 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_007_technical_stop_is_one_service_with_two_itinerary_legs [246 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_001_owner_reprice_after_preparation_does_not_change_the_created_order_and_create_calls_no_owner [309 ms]
+[xUnit.net 00:00:27.66]     AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_017_other_customer_cannot_reach_preparation_order_operation_or_receipt [FAIL]
+[xUnit.net 00:00:27.66]       Assert.DoesNotContain() Failure: Sub-string found
+[xUnit.net 00:00:27.67]                                       ↓ (pos 60)
+[xUnit.net 00:00:27.67]       String: ···"as not found.Order '639252583638779812' w"···
+[xUnit.net 00:00:27.67]       Found:  "639252583638779812"
+[xUnit.net 00:00:27.67]       Stack Trace:
+[xUnit.net 00:00:27.67]         E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\PrepareCreateGetTests.cs(336,0): at AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_017_other_customer_cannot_reach_preparation_order_operation_or_receipt()
+[xUnit.net 00:00:27.67]         E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\PrepareCreateGetTests.cs(340,0): at AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_017_other_customer_cannot_reach_preparation_order_operation_or_receipt()
+[xUnit.net 00:00:27.67]         --- End of stack trace from previous location ---
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_009_round_trip_and_two_one_way_constructions_are_persisted_as_supplied [405 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_011_group_extended_line_is_persisted_once [264 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_012_original_and_sale_valuations_round_trip_exactly [150 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_004_same_key_for_another_preparation_is_a_conflict_and_changes_nothing [212 ms]
+  Failed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_017_other_customer_cannot_reach_preparation_order_operation_or_receipt [234 ms]
+  Error Message:
+   Assert.DoesNotContain() Failure: Sub-string found
+                                ↓ (pos 60)
+String: ···"as not found.Order '639252583638779812' w"···
+Found:  "639252583638779812"
+  Stack Trace:
+     at AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_017_other_customer_cannot_reach_preparation_order_operation_or_receipt() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\PrepareCreateGetTests.cs:line 336
+   at AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_017_other_customer_cannot_reach_preparation_order_operation_or_receipt() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\PrepareCreateGetTests.cs:line 340
+--- End of stack trace from previous location ---
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_019_expired_owner_validity_blocks_acceptance_at_its_own_instant [87 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_002_reference_create_commits_one_item_one_service_total_120_and_no_fulfillment_effects [304 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.S1.PrepareCreateGetTests.SC_S1_003_replay_after_owner_outage_resolves_from_the_durable_receipt_without_owner_access [219 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.ReferenceData.HomeOperatorFromCoreTests.Owner_airline_comes_from_core_operator_settings_after_sync [287 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.DecimalPrecisionTests.Amount_rate_and_quantity_round_trip_unchanged_on_sql_server [164 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.DecimalPrecisionTests.The_removed_blanket_precision_would_have_truncated_the_values [6 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.ModelPrecisionTests.Query_model_has_explicit_precision_on_every_owned_decimal [6 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.ModelPrecisionTests.Command_model_has_explicit_precision_on_every_decimal [3 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Precision.ModelPrecisionTests.Command_model_has_no_blanket_string_length [3 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Expired_lease_holder_cannot_complete_a_row_claimed_by_another_publisher [341 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Two_publishers_never_hold_the_same_row [416 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Lost_acknowledgement_republishes_the_same_identity_and_payload_and_the_receiver_commits_one_fact [199 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Unusable_row_is_recorded_as_failed_and_does_not_block_usable_rows [65 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Same_event_identity_cannot_be_written_twice [66 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Outbox.OutboxDispatcherTests.Outbox_fact_is_committed_or_rolled_back_with_the_local_transaction [57 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Message_without_envelope_source_identity_is_rejected_before_the_consumer_runs(sourceSystem: null, eventId: null) [90 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Message_without_envelope_source_identity_is_rejected_before_the_consumer_runs(sourceSystem: "", eventId: "event-1") [32 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Message_without_envelope_source_identity_is_rejected_before_the_consumer_runs(sourceSystem: "InventoryProbe", eventId: "") [9 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Concurrent_marker_with_a_different_payload_is_a_conflict [105 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Unrelated_sql_failure_is_rethrown_and_commits_nothing [37 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Concurrent_duplicate_marker_is_discarded_without_committing_the_losing_work [33 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Same_identity_with_a_different_payload_is_a_conflict_and_is_not_processed [20 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Republished_event_with_a_new_transport_id_does_not_reach_the_consumer_again [19 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Message_that_is_not_an_envelope_type_is_rejected_before_the_consumer_runs [14 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Marker_and_work_commit_in_one_save_under_the_pack_identity [51 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Same_event_id_from_another_source_system_is_a_different_fact [26 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterOutcomeTests.Message_without_transport_identity_is_rejected_before_the_consumer_runs [15 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Business_crash_commits_neither_marker_nor_work_and_redelivery_commits_both_once [2 s]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Classifier_accepts_only_the_inbox_key_violation [32 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Concurrent_duplicate_marker_discards_the_losing_delivery_without_committing_its_work [166 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Unrelated_sql_failure_is_not_classified_as_a_duplicate [1 s]
+  Passed AeroTech.Ordering.Persistence.Tests.Deterministic.DeterministicEffectStoreTests.Owner_database_is_not_the_ordering_database [< 1 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Deterministic.DeterministicEffectStoreTests.Owner_effect_survives_an_ordering_rollback_and_a_restart [141 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Deterministic.DeterministicEffectStoreTests.Same_key_and_hash_replays_and_a_different_hash_conflicts [27 ms]
+[xUnit.net 00:00:36.13]   Finished:    AeroTech.Ordering.Persistence.Tests
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Host_composes_with_deterministic_adapters_only_when_the_existing_flag_is_true [884 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Deterministic_flag_without_its_own_database_fails_closed [30 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Missing_broker_configuration_fails_startup [35 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Bearer_validation_follows_the_identity_authority_and_audience [155 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Missing_identity_authority_fails_startup [31 ms]
+  Passed AeroTech.Ordering.Persistence.Tests.Composition.HostCompositionTests.Host_composes_with_real_bindings_and_one_unit_of_work [132 ms]
+
+Test Run Failed.
+Total tests: 82
+     Passed: 81
+     Failed: 1
+ Total time: 38.0154 Seconds
+EXIT: 1

@@ -1,0 +1,40 @@
+## dotnet ef migrations has-pending-model-changes --context OrderingDbContext
+No changes have been made to the model since the last migration.
+## dotnet ef migrations list --context OrderingDbContext
+[02:58:37 INF] Executed DbCommand (94ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1 <s:Microsoft.EntityFrameworkCore.Database.Command>
+[02:58:37 INF] Executed DbCommand (94ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+[02:58:38 INF] Executed DbCommand (70ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[dbo].[__CommandsMigrationHistory]'); <s:Microsoft.EntityFrameworkCore.Database.Command>
+[02:58:38 INF] Executed DbCommand (70ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[dbo].[__CommandsMigrationHistory]');
+20260917144148_B0InfrastructureShell (Pending)
+20260917160501_S1CommercialCreate (Pending)
+## dotnet ef migrations has-pending-model-changes --context OrderQueryDbContext
+No changes have been made to the model since the last migration.
+## dotnet ef migrations list --context OrderQueryDbContext
+[02:59:08 INF] Executed DbCommand (56ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1 <s:Microsoft.EntityFrameworkCore.Database.Command>
+[02:59:08 INF] Executed DbCommand (56ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+[02:59:08 INF] Executed DbCommand (71ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[dbo].[__QueriesMigrationHistory]'); <s:Microsoft.EntityFrameworkCore.Database.Command>
+[02:59:08 INF] Executed DbCommand (71ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[dbo].[__QueriesMigrationHistory]');
+20260917160511_S1OrderDetailsProjection (Pending)
+20260917224536_S1ProtectedPayloadReadModels (Pending)
+## dotnet ef migrations has-pending-model-changes --context ReferenceDbContext
+No changes have been made to the model since the last migration.
+## dotnet ef migrations list --context ReferenceDbContext
+[02:59:30 INF] Executed DbCommand (51ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1 <s:Microsoft.EntityFrameworkCore.Database.Command>
+[02:59:30 INF] Executed DbCommand (51ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+[02:59:30 INF] Executed DbCommand (39ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[dbo].[__ReferenceDataMigrationHistory]'); <s:Microsoft.EntityFrameworkCore.Database.Command>
+[02:59:30 INF] Executed DbCommand (39ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[dbo].[__ReferenceDataMigrationHistory]');
+20260721003559_InitialCreate (Pending)
+20260907211540_P05OperatorSettingsProjection (Pending)
+20260917224424_S1CustomerScope (Pending)

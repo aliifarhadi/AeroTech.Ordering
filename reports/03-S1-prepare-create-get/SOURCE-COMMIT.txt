@@ -1,0 +1,16 @@
+Tested source: worktree of branch k8s-stg on top of commit 0c027457f3d36059bb7128ceb055612d27e0ce9c ("B0 — Certify and
+repair the technical shell"), with the S1 implementation uncommitted at the time of the runs.
+
+The repository rule is "commit or push only when the owner asks", so S1 has no implementation commit yet and therefore no
+evidence commit either. After the owner authorizes a commit, record its hash here as `testedSourceCommit` and re-run the
+suite against it; the pack forbids writing a commit's own hash inside itself.
+
+git rev-parse HEAD            -> 0c027457f3d36059bb7128ceb055612d27e0ce9c
+git status --short | wc -l    -> 88 changed/new paths at the time of the final run (src, tests, Contracts/AeroTech.Messages/Ordering, reports)
+git diff --stat -- '*.csproj' -> two project files changed:
+    src/AeroTech.Ordering.RestApi/AeroTech.Ordering.RestApi.csproj
+        + ProjectReference AeroTech.Ordering.Query (controllers name GetOrderQuery/GetOperationQuery and their views;
+          reason recorded in ARCHITECTURE/dependencies.json)
+    tests/AeroTech.Ordering.Persistence.Tests/AeroTech.Ordering.Persistence.Tests.csproj
+        + Content include for S1/LiveFixtures/*.json (the captured live AirOffer response replayed by the standard suite)
+No package reference was added or changed anywhere.

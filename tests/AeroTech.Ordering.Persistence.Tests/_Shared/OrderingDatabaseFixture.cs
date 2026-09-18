@@ -13,7 +13,7 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
     public sealed class OrderingDatabaseFixture : IDisposable
     {
         private const string Server = @"localhost\SQLEXPRESS";
-        private const string DatabasePrefix = "OrderingB0_";
+        private const string DatabasePrefix = "OrderingS1_";
 
         private readonly DbContextOptions<OrderingDbContext> _commandOptions;
         private readonly DbContextOptions<OrderQueryDbContext> _queryOptions;
@@ -33,7 +33,11 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
                     ConnectionString,
                     sql => sql.MigrationsHistoryTable(OrderingDbContext.MigrationsHistoryTable, OrderingDbContext.MigrationsHistorySchema))
                 .Options;
-            _queryOptions = new DbContextOptionsBuilder<OrderQueryDbContext>().UseSqlServer(ConnectionString).Options;
+            _queryOptions = new DbContextOptionsBuilder<OrderQueryDbContext>()
+                .UseSqlServer(
+                    ConnectionString,
+                    sql => sql.MigrationsHistoryTable(OrderQueryDbContext.MigrationsHistoryTable, OrderQueryDbContext.MigrationsHistorySchema))
+                .Options;
             _referenceOptions = new DbContextOptionsBuilder<ReferenceDbContext>()
                 .UseSqlServer(
                     ConnectionString,
@@ -45,6 +49,9 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
 
             using var reference = NewReferenceContext();
             reference.Database.Migrate();
+
+            using var query = NewQueryContext();
+            query.Database.Migrate();
         }
 
         public string DatabaseName { get; }

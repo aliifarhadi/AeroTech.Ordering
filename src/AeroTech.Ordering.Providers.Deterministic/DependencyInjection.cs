@@ -1,7 +1,10 @@
+using AeroTech.Ordering.Domain.Ports.Offers;
 using AeroTech.Ordering.Providers.Deterministic._Shared.Persistence;
+using AeroTech.Ordering.Providers.Deterministic.Offers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AeroTech.Ordering.Providers.Deterministic
 {
@@ -17,6 +20,10 @@ namespace AeroTech.Ordering.Providers.Deterministic
 
             services.AddDbContextFactory<DeterministicOwnerDbContext>(options => options.UseSqlServer(connectionString));
             services.AddSingleton<DeterministicEffectStore>();
+            services.AddSingleton<ReferenceOfferCatalog>();
+
+            services.RemoveAll<IOfferSourcePort>();
+            services.AddScoped<IOfferSourcePort, ReferenceOfferSourceAdapter>();
 
             return services;
         }

@@ -20,27 +20,25 @@ namespace AeroTech.Ordering.ReferenceData.Syncing
         protected override CustomerReadModel CreateNew(CustomerDto dto) => new()
         {
             Id = dto.Id,
-            Name = dto.Name,
-            Type = dto.Type,
-            UniqueIdentifier = dto.UniqueIdentifier,
+            CustomerNumber = dto.CustomerNumber,
+            Type = dto.CustomerType,
+            TravelAgencyId = dto.TravelAgencyId,
+            SubjectId = dto.SubjectId,
+            SubjectName = dto.SubjectName,
             Status = dto.Status,
             PreferredCurrencyId = dto.PreferredCurrencyId,
-            CityId = dto.CityId,
-            Email = dto.Contact?.Email,
-            PhoneNumber = dto.Contact?.PhoneNumber,
             LastUpdateTime = dto.LastUpdateTime
         };
 
         protected override void ApplyChanges(CustomerDto dto, CustomerReadModel model)
         {
-            model.Name = dto.Name;
-            model.Type = dto.Type;
-            model.UniqueIdentifier = dto.UniqueIdentifier;
+            model.CustomerNumber = dto.CustomerNumber;
+            model.Type = dto.CustomerType;
+            model.TravelAgencyId = dto.TravelAgencyId;
+            model.SubjectId = dto.SubjectId;
+            model.SubjectName = dto.SubjectName;
             model.Status = dto.Status;
             model.PreferredCurrencyId = dto.PreferredCurrencyId;
-            model.CityId = dto.CityId;
-            model.Email = dto.Contact?.Email;
-            model.PhoneNumber = dto.Contact?.PhoneNumber;
             model.LastUpdateTime = dto.LastUpdateTime;
         }
     }

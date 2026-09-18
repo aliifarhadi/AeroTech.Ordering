@@ -125,7 +125,7 @@ namespace AeroTech.Ordering.Persistence.Tests.Composition
                 options.ValidateScopes = true;
             });
 
-            builder.Services.AddOrderingHost(builder.Configuration);
+            builder.Services.AddOrderingHost(builder.Configuration, builder.Environment);
 
             return builder.Build();
         }

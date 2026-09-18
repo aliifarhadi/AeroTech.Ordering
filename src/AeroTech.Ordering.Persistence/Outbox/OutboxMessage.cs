@@ -6,6 +6,12 @@ namespace AeroTech.Ordering.Persistence.Outbox
 
         public string EventId { get; set; } = null!;
 
+        public string? StreamKind { get; set; }
+
+        public long? StreamId { get; set; }
+
+        public long? EventOrdinal { get; set; }
+
         public string MessageType { get; set; } = null!;
 
         public string Payload { get; set; } = null!;

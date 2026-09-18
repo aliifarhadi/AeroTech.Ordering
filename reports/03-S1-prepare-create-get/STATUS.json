@@ -1,0 +1,165 @@
+{
+  "stage": "S1",
+  "executionStatus": "LOCAL_DONE",
+  "localGate": "PASSED",
+  "testedSourceCommit": null,
+  "evidenceCommit": null,
+  "providerBindings": [
+    {
+      "owner": "AirOffer",
+      "profile": "LIVE-CANDIDATE-SANDBOX",
+      "mode": "LiveCandidateSandbox",
+      "certification": "LIVE_CANDIDATE_PROVEN",
+      "evidenceRef": "E2E/LIVE-AIROFFER-RUN.txt; E2E/airoffer-live-details.json; CONTRACTS/bindings.json; TESTS/runs/",
+      "blockers": [
+        "BD-001 acceptance binding",
+        "OD-S1-07 uncertified fulfillment profile",
+        "BD-002 infant candidates unsupported"
+      ]
+    },
+    {
+      "owner": "AirOffer",
+      "profile": "REFERENCE-OFFER-2.0",
+      "mode": "Reference",
+      "certification": "NOT_EVALUATED",
+      "evidenceRef": "CONTRACTS/bindings.json; TESTS/runs/ (S1 scenarios)",
+      "blockers": []
+    }
+  ],
+  "scenarioResults": [
+    {
+      "scenarioId": "SC-S1-001",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_001_owner_reprice_after_preparation_does_not_change_the_created_order_and_create_calls_no_owner",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-002",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_002_reference_create_commits_one_item_one_service_total_120_and_no_fulfillment_effects",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-003",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_003_replay_after_owner_outage_resolves_from_the_durable_receipt_without_owner_access",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-004",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_004_same_key_for_another_preparation_is_a_conflict_and_changes_nothing",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-005",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_005_concurrent_creates_with_different_keys_commit_exactly_one_order",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-006",
+      "result": "PASS",
+      "testName": "S1.AtomicityAndRebuildTests.SC_S1_006_projection_failure_before_commit_leaves_no_order_price_outbox_receipt_or_consumption",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-007",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_007_technical_stop_is_one_service_with_two_itinerary_legs",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-008",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_008_source_priced_package_persists_one_item_with_four_services",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-009",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_009_round_trip_and_two_one_way_constructions_are_persisted_as_supplied",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-010",
+      "result": "PASS",
+      "testName": "S1.AirOfferLiveCandidateBridgeTests.SC_S1_010_observed_details_projection_becomes_one_conservative_package_with_opaque_construction",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-011",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_011_group_extended_line_is_persisted_once",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-012",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_012_original_and_sale_valuations_round_trip_exactly",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-013",
+      "result": "PASS",
+      "testName": "OrderAggregate.PricingArithmeticTests.Sale_with_settlement_commission_totals_405_and_explicit_discount_reversal_totals_450",
+      "evidenceRef": "TESTS/runs/04-FULL-SUITE-FINAL.txt"
+    },
+    {
+      "scenarioId": "SC-S1-014",
+      "result": "PASS",
+      "testName": "OrderAggregate.PricingArithmeticTests.Allocation_attributes_value_and_never_adds_money",
+      "evidenceRef": "TESTS/runs/04-FULL-SUITE-FINAL.txt"
+    },
+    {
+      "scenarioId": "SC-S1-015",
+      "result": "PASS",
+      "testName": "S1.AirOfferLiveCandidateBridgeTests.SC_S1_015_hierarchy_total_mismatch_is_contract_mismatch_and_persists_nothing",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-016",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_016_invalid_traveler_binding_is_rejected_before_any_order",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-017",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_017_other_customer_cannot_reach_preparation_order_operation_or_receipt",
+      "evidenceRef": "TESTS/scenario-results.json (command, query and HTTP authorization matrix)"
+    },
+    {
+      "scenarioId": "SC-S1-018",
+      "result": "PASS",
+      "testName": "S1.AirOfferLiveCandidateBridgeTests.SC_S1_018_live_candidate_keeps_not_supplied_validity_and_is_blocked_for_real_effects",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-019",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_019_expired_owner_validity_blocks_acceptance_at_its_own_instant",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-020",
+      "result": "PASS",
+      "testName": "S1.AtomicityAndRebuildTests.SC_S1_020_restart_owner_offline_projection_rebuild_reproduces_the_same_view",
+      "evidenceRef": "TESTS/scenario-results.json"
+    },
+    {
+      "scenarioId": "SC-S1-021",
+      "result": "PASS",
+      "testName": "S1.PrepareCreateGetTests.SC_S1_021_unregistered_product_schema_is_unsupported_before_any_preparation",
+      "evidenceRef": "TESTS/scenario-results.json"
+    }
+  ],
+  "reproductionCommand": "dotnet build --no-restore && dotnet test tests/AeroTech.Ordering.Domain.Tests --no-build && dotnet test tests/AeroTech.Ordering.Persistence.Tests --no-build --filter \"Category!=Live\"   (SQL Server: localhost\\SQLEXPRESS; live AirOffer run and OpenAPI dump: see RUNBOOK.md)",
+  "blockers": [
+    "BD-001 AirOffer acceptance binding (production acceptance blocked)",
+    "BD-002 infant seat rule (live candidates with INF are UnsupportedCapability)",
+    "BD-004 ticketing deadline ownership",
+    "BD-011 OrderCreated envelope binding uncertified"
+  ],
+  "releaseCertified": false
+}

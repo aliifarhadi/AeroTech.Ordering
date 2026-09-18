@@ -2,6 +2,7 @@ using System.Text.Json;
 using AeroTech.Framework.Core.Domain.Events;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Messages;
+using AeroTech.Ordering.Domain._Shared.Contracts;
 using Microsoft.Extensions.Options;
 
 namespace AeroTech.Ordering.Persistence.Outbox
@@ -42,6 +43,9 @@ namespace AeroTech.Ordering.Persistence.Outbox
             _dbContext.OutboxMessages.Add(new OutboxMessage
             {
                 EventId = source.EventId,
+                StreamKind = (source as IStreamFact)?.StreamKind,
+                StreamId = (source as IStreamFact)?.StreamId,
+                EventOrdinal = (source as IStreamFact)?.EventOrdinal,
                 MessageType = $"{type.FullName}, {type.Assembly.GetName().Name}",
                 Payload = JsonSerializer.Serialize(message, type),
                 OccurredOn = _clock.GetDateTime()

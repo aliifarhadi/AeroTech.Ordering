@@ -154,6 +154,7 @@ namespace AeroTech.Ordering.Persistence.Tests.Inbox
         {
             var harness = provider.GetRequiredService<ITestHarness>();
             harness.TestTimeout = Timeout;
+            harness.TestInactivityTimeout = Timeout;
             await harness.Start();
             return harness;
         }

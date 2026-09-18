@@ -1,0 +1,36 @@
+## S1-M1 projection not written inside the Create transaction
+file: src\AeroTech.Ordering.Persistence\OrderingDbContext.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~SC_S1_002|FullyQualifiedName~SC_S1_020"
+exit: 1
+Failed!  - Failed:     2, Passed:     0, Skipped:     0, Total:     2, Duration: 1 m 53 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M2 receipt lookup skipped before eligibility
+file: src\AeroTech.Ordering.Application\OrderAggregate\Commands\CreateOrderFromOffer\CreateOrderFromOfferCommandHandler.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~SC_S1_003|FullyQualifiedName~SC_S1_004"
+exit: 1
+Failed!  - Failed:     1, Passed:     1, Skipped:     0, Total:     2, Duration: 1 m 44 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M3 concurrent consumption not translated to PreparationAlreadyConsumed
+file: src\AeroTech.Ordering.Persistence\_Shared\Transactions\CommitConflictTranslator.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~SC_S1_005"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 1 m 55 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M4 blanket decimal(18,2) amount precision
+file: src\AeroTech.Ordering.Persistence\_Shared\Mapping\DecimalPrecisionExtensions.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~SC_S1_012"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 1 ms - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M5 accepted digest not compared (client-side acceptance)
+file: src\AeroTech.Ordering.Domain\OrderPreparationAggregate\OrderPreparation.cs
+command: dotnet test tests\AeroTech.Ordering.Domain.Tests --filter "FullyQualifiedName~Digest_mismatch_and_second_consumption_are_conflicts"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 1 s - AeroTech.Ordering.Domain.Tests.dll (net10.0)
+
+## S1-M6 settlement-only lines counted as customer debt
+file: src\AeroTech.Ordering.Domain\OrderAggregate\Policies\PricingArithmetic.cs
+command: dotnet test tests\AeroTech.Ordering.Domain.Tests --filter "FullyQualifiedName~Sale_with_settlement_commission_totals_405|FullyQualifiedName~Pack_pricing_vectors"
+exit: 1
+Failed!  - Failed:     3, Passed:     3, Skipped:     0, Total:     6, Duration: 104 ms - AeroTech.Ordering.Domain.Tests.dll (net10.0)
+

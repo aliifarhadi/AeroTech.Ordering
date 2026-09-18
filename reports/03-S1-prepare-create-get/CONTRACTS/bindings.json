@@ -1,0 +1,40 @@
+{
+  "stage": "S1",
+  "port": "AeroTech.Ordering.Domain.Ports.Offers.IOfferSourcePort",
+  "selection": "Existing configuration key Providers:UseDeterministicTestAdapters (owner decision B0-5); no other mode switch",
+  "bindings": [
+    {
+      "providerProfileId": "LIVE-CANDIDATE-SANDBOX",
+      "implementation": "AeroTech.Ordering.Providers.AirOffer.Services.AirOfferSourceAdapter",
+      "active": "Providers:UseDeterministicTestAdapters = false or absent",
+      "owner": "AirOffer",
+      "contractVersion": "airoffer-service-flightoffers-details-observed-v1",
+      "route": "POST {Offer:BaseUrl}v1/FlightOffers/Details",
+      "body": "{ \"offerId\": \"<opaque priced offer id>\" }",
+      "methods": {
+        "ResolveCandidate": "Implemented: pre-acceptance query, bounded retries (Offer:RetryCount/RetryInterval), deadline Offer:RequestTimeout seconds",
+        "ReadBoundCandidate": "UnsupportedCapability (BD-001)"
+      },
+      "acceptanceAssurance": "LocalCandidateOnly",
+      "acceptanceProfile": "LIVE-CANDIDATE-SANDBOX",
+      "normalization": "Conservative single OfferPackage item, one AirTransport service per ticket coupon, Opaque fare construction, NotSupplied offer/price/ticketing validity, infants refused (OD-S1-07); a percentage charge row is valued from its sale-currency equivalentAmount and rejected when it supplies none (OD-S1-08)",
+      "certification": "NOT_CERTIFIED for real effects (LIVE_ACCEPTANCE_BLOCKED(BD-001), uncertified fulfillment profile OD-S1-07); LIVE_CANDIDATE_PROVEN on 2026-09-18 against http://localhost:5095 with a real priced offer (E2E/LIVE-AIROFFER-RUN.txt, payload E2E/airoffer-live-details.json, digest f00010dadcf1ea25d8fae853c40ae22650d3554769231c239b2f907196979611)"
+    },
+    {
+      "providerProfileId": "REFERENCE-OFFER-2.0",
+      "implementation": "AeroTech.Ordering.Providers.Deterministic.Offers.ReferenceOfferSourceAdapter",
+      "active": "Providers:UseDeterministicTestAdapters = true (replaces the real binding; rejected at startup in Production)",
+      "owner": "AirOffer (reference simulator)",
+      "contractVersion": "reference-offer-target-contract-v1",
+      "store": "Independent database ConnectionStrings:DeterministicOwnerDbContext, schema DeterministicOwner (ReferenceOffers, OwnerReads, OwnerAvailability)",
+      "methods": {
+        "ResolveCandidate": "Bound candidate visible only to its owner/customer/channel/office; every read recorded in OwnerReads",
+        "ReadBoundCandidate": "Implemented against the stored binding and payload digest"
+      },
+      "acceptanceAssurance": "OwnerBound",
+      "acceptanceProfile": "REFERENCE-OFFER-2.0",
+      "certification": "Reference simulator; attests target-contract tests only, never the real AirOffer"
+    }
+  ],
+  "acceptanceProfilePolicy": "AeroTech.Ordering.ServiceHost.Composition.AcceptanceProfilePolicy: non-Production permits LIVE-CANDIDATE-SANDBOX and REFERENCE-OFFER-2.0; Production permits none"
+}

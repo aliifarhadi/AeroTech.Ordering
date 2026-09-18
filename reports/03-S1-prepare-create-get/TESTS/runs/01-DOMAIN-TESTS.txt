@@ -1,0 +1,63 @@
+COMMAND: dotnet test tests/AeroTech.Ordering.Domain.Tests --no-build --logger "console;verbosity=normal"
+Test run for E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Domain.Tests\bin\Debug\net10.0\AeroTech.Ordering.Domain.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.20]   Discovering: AeroTech.Ordering.Domain.Tests
+[xUnit.net 00:00:00.36]   Discovered:  AeroTech.Ordering.Domain.Tests
+[xUnit.net 00:00:00.37]   Starting:    AeroTech.Ordering.Domain.Tests
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.DeadlinePolicyTests.Each_fact_expires_at_its_own_instant [51 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Allocation_attributes_value_and_never_adds_money [48 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.DeadlinePolicyTests.Not_supplied_validity_never_carries_a_value_or_expires [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Representation_overflow_is_rejected [3 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Pack_pricing_vectors(debits: ["400.00", "50.00", "45.00"], credits: ["45.00"], settlementDebits: ["20.00"], expected: "450.00") [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Pack_pricing_vectors(debits: ["400.00", "50.00"], credits: ["45.00"], settlementDebits: ["20.00"], expected: "405.00") [< 1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Pack_pricing_vectors(debits: ["120.00", "150.00"], credits: ["120.00"], settlementDebits: [], expected: "150.00") [< 1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Pack_pricing_vectors(debits: ["120.00", "30.00"], credits: [], settlementDebits: [], expected: "150.00") [< 1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Pack_pricing_vectors(debits: ["120.00", "10.00"], credits: ["50.00"], settlementDebits: [], expected: "80.00") [< 1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.DeadlinePolicyTests.Independent_deadlines_keep_their_owners_and_the_earliest_is_only_a_display [16 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Reversal_beyond_the_original_or_with_same_direction_is_rejected [9 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Complete_allocation_must_reconcile_and_partial_cannot_exceed [2 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Unregistered_service_type_is_unsupported_before_acceptance [100 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Commission_as_settlement_only_is_allowed_and_as_customer_charge_is_not [24 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Opaque_construction_cannot_claim_component_links [9 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Sale_with_settlement_commission_totals_405_and_explicit_discount_reversal_totals_450 [2 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.PricingArithmeticTests.Three_and_zero_decimal_currencies_keep_their_scale [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Air_service_with_two_segments_is_rejected [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Two_values_in_one_currency_are_a_contract_mismatch [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Unregistered_detail_schema_version_is_unsupported_before_acceptance [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateCanonicalFormTests.Pack_example_candidate_digest_is_reproduced_by_the_canonical_form [177 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateCanonicalFormTests.Floating_point_amount_is_rejected [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateCanonicalFormTests.Unregistered_extension_type_is_an_unsupported_capability [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Pack_negative_examples_are_rejected_with_their_rule [66 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateCanonicalFormTests.Property_outside_the_candidate_contract_is_rejected [< 1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Candidate_for_another_customer_is_rejected [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Commission_cannot_be_a_customer_charge [< 1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Amount_beyond_storage_scale_is_rejected_not_rounded [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateCanonicalFormTests.Canonical_form_round_trips_exact_decimal_strings_and_instants [2 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.CandidateValidatorTests.Reference_one_way_candidate_is_valid [< 1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.OrderPreparationTests.Digest_binds_the_authorized_scope_as_well_as_the_candidate [197 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Incomplete_or_inconsistent_traveler_binding_is_rejected(defect: "guardian-cycle") [200 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Incomplete_or_inconsistent_traveler_binding_is_rejected(defect: "missing") [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Incomplete_or_inconsistent_traveler_binding_is_rejected(defect: "type") [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Incomplete_or_inconsistent_traveler_binding_is_rejected(defect: "foreign") [1 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.OrderPreparationTests.Sandbox_profile_is_refused_where_the_deployment_does_not_permit_it [9 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.OrderPreparationTests.Digest_mismatch_and_second_consumption_are_conflicts [12 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.OrderPreparationTests.Expiry_is_evaluated_at_now_greater_or_equal_due [2 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.OrderPreparationTests.Owner_bound_acceptance_needs_known_validity [2 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate.OrderPreparationTests.Sandbox_candidate_keeps_not_supplied_validity_and_reports_live_acceptance_blocked [12 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Infant_guardian_is_linked_to_the_same_order_traveler [48 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Repeated_source_traveler_binding_is_rejected_before_any_order [2 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Sale_equivalent_is_the_customer_value_and_original_currency_is_retained [4 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.One_traveler_one_segment_package_creates_one_item_one_service_total_120_versions_1 [39 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Round_trip_and_two_one_way_constructions_are_retained_as_supplied [17 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Extended_group_line_is_stored_once_with_quantity_metadata [2 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Technical_stop_keeps_one_service_and_two_legs [5 ms]
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Opaque_context_is_retained_without_invented_links [2 ms]
+[xUnit.net 00:00:00.88]   Finished:    AeroTech.Ordering.Domain.Tests
+  Passed AeroTech.Ordering.Domain.Tests.OrderAggregate.AcceptOriginalSaleTests.Source_priced_package_for_two_travelers_and_two_segments_is_one_item_with_four_services [19 ms]
+
+Test Run Successful.
+Total tests: 49
+     Passed: 49
+ Total time: 2.2809 Seconds
+EXIT: 0

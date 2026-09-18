@@ -1,0 +1,105 @@
+### S1 surfaces — Prepare, Create, GetOrder, GetOperation, projection rebuild
+### Routes and bodies are generated from the running host (openapi.json in this folder).
+### Tokens are issued by IdentityServer; never paste a real token into evidence.
+
+@host = http://localhost:5000
+@backofficeToken = {{$processEnv ORDERING_BACKOFFICE_TOKEN}}
+@otaPanelToken = {{$processEnv ORDERING_OTAPANEL_TOKEN}}
+@otaToken = {{$processEnv ORDERING_OTA_TOKEN}}
+@offerId = REPLACE-WITH-A-PRICED-OFFER-ID
+@financialCustomerId = 100
+@sellingOfficeId = 10
+
+### 1. backoffice — prepare (authenticated, authz_surface=backoffice, office must match the token)
+POST {{host}}/backoffice/v1/order-preparations
+Authorization: Bearer {{backofficeToken}}
+Idempotency-Key: prepare-backoffice-0001
+Content-Type: application/json
+
+{
+  "offerId": "{{offerId}}",
+  "financialCustomerId": "{{financialCustomerId}}",
+  "sellingOfficeId": "{{sellingOfficeId}}",
+  "clientReference": null
+}
+
+### 2. backoffice — create from the accepted preparation (no owner call)
+POST {{host}}/backoffice/v1/orders/from-offer
+Authorization: Bearer {{backofficeToken}}
+Idempotency-Key: create-backoffice-0001
+Content-Type: application/json
+
+{
+  "preparationId": "REPLACE-WITH-preparationId",
+  "acceptedSnapshotDigest": "REPLACE-WITH-acceptedSnapshotDigest",
+  "acceptedAt": "2026-09-18T09:00:00Z",
+  "financialCustomerId": "{{financialCustomerId}}",
+  "sellingOfficeId": "{{sellingOfficeId}}",
+  "travelerBindings": [
+    {
+      "sourceTravellerRef": "ADT-1",
+      "clientTravelerRef": "CLIENT-ADT-1",
+      "givenName": "Sample",
+      "surname": "Traveler",
+      "passengerTypeCode": "ADT",
+      "dateOfBirth": "1990-01-01",
+      "guardianClientTravelerRef": null
+    }
+  ],
+  "contacts": [
+    { "role": "Primary", "email": "traveler@example.invalid", "phone": null }
+  ],
+  "clientReference": null
+}
+
+### 3. backoffice — read the local order (protected traveler/contact payloads included)
+GET {{host}}/backoffice/v1/orders/REPLACE-WITH-orderId?minRevision=1
+Authorization: Bearer {{backofficeToken}}
+
+### 4. backoffice — read the durable operation
+GET {{host}}/backoffice/v1/operations/REPLACE-WITH-operationId
+Authorization: Bearer {{backofficeToken}}
+
+### 5. otapanel — prepare (customer and office come from the token only)
+POST {{host}}/otapanel/v1/order-preparations
+Authorization: Bearer {{otaPanelToken}}
+Idempotency-Key: prepare-otapanel-0001
+Content-Type: application/json
+
+{
+  "offerId": "{{offerId}}",
+  "clientReference": null
+}
+
+### 6. ota (platform surface "api") — prepare for the token customer
+POST {{host}}/ota/v1/order-preparations
+Authorization: Bearer {{otaToken}}
+Idempotency-Key: prepare-ota-0001
+Content-Type: application/json
+
+{
+  "offerId": "{{offerId}}",
+  "clientReference": null
+}
+
+### 7. service — prepare (no token in the current platform phase; explicit customer scope)
+POST {{host}}/service/v1/order-preparations
+Idempotency-Key: prepare-service-0001
+Content-Type: application/json
+
+{
+  "offerId": "{{offerId}}",
+  "financialCustomerId": "{{financialCustomerId}}",
+  "sellingOfficeId": null,
+  "clientReference": null
+}
+
+### 8. service — read the local order (protected personal fields are always redacted here)
+GET {{host}}/service/v1/orders/REPLACE-WITH-orderId
+
+### 9. internal — rebuild the order projection (operational route, no token in this phase)
+POST {{host}}/internal/v1/orders/REPLACE-WITH-orderId/projection-rebuilds
+Idempotency-Key: rebuild-0001
+Content-Type: application/json
+
+{}

@@ -3,6 +3,7 @@ using AeroTech.Framework.Presentation.Extensions;
 using AeroTech.Ordering.Application;
 using AeroTech.Ordering.Consumers;
 using AeroTech.Ordering.Domain._Shared.Contracts;
+using AeroTech.Ordering.Domain.OrderPreparationAggregate.Contracts;
 using AeroTech.Ordering.Persistence;
 using AeroTech.Ordering.Providers;
 using AeroTech.Ordering.Providers.Deterministic;
@@ -16,9 +17,13 @@ namespace AeroTech.Ordering.ServiceHost.Composition
 {
     public static class OrderingHostComposition
     {
-        public static IServiceCollection AddOrderingHost(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddOrderingHost(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
         {
+            if (environment.IsProduction() && configuration.GetValue<bool>(DeterministicAdapterOptions.EnabledKey))
+                throw new InvalidOperationException($"'{DeterministicAdapterOptions.EnabledKey}' cannot be enabled in the Production environment.");
+
             services.AddScoped<ICallerContext, ClaimsCallerContext>();
+            services.AddSingleton<IAcceptanceProfilePolicy, AcceptanceProfilePolicy>();
 
             services
                 .AddFrameworkInfrastructure(configuration)

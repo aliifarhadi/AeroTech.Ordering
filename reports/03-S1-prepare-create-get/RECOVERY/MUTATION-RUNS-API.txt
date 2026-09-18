@@ -1,0 +1,74 @@
+# S1 — API/authorization mutation proofs
+
+Each mutation below breaks exactly one rule introduced with the S1 HTTP surface, runs the test that claims it, and is then
+restored. A mutation is proven when the run is red (`exit: 1`).
+
+S1-M7 and S1-M9 were **green on their first run** — that was a defect in the tests, not in the rules:
+
+- S1-M7: a backoffice token calling `/otapanel` was still rejected without the surface check, because it carries no
+  `travel_agency_id`. The test now uses a token that carries every surface's claims and only the wrong `authz_surface`.
+- S1-M9: the API host seeded no suspended customer, so "inactive" was really "unknown". The host now seeds the suspended
+  customer, and the check that fails is `!customer.IsActive`.
+
+Both were re-run after the tests were strengthened; the re-runs are at the end of this file and are red.
+
+## S1-M7 route surface no longer bound to the token surface
+file: src\AeroTech.Ordering.Application\_Shared\Authorization\AuthorizedScopeResolver.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~A_token_of_another_surface_is_rejected"
+exit: 0
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 2 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M8 backoffice selling office no longer checked against the token office
+file: src\AeroTech.Ordering.Application\_Shared\Authorization\AuthorizedScopeResolver.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~Backoffice_selling_office_must_match_the_token_office"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 2 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M9 inactive financial customer accepted
+file: src\AeroTech.Ordering.Application\_Shared\Authorization\AuthorizedScopeResolver.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~An_unknown_or_inactive_financial_customer_is_rejected"
+exit: 0
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 1 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M10 unauthenticated service surface exposes protected payloads
+file: src\AeroTech.Ordering.Application\_Shared\Authorization\AuthorizedScopeResolver.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~Service_surface_needs_no_token_and_never_returns_protected_payloads"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 9 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M11 partner api read scope no longer restricted to its own customer
+file: src\AeroTech.Ordering.Application\_Shared\Authorization\AuthorizedScopeResolver.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~Ota_token_sells_for_its_token_customer_and_cannot_read_another_customer_order"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 10 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M12 accepted preparation used under a different sales context
+file: src\AeroTech.Ordering.Application\OrderAggregate\Commands\CreateOrderFromOffer\CreateOrderFromOfferCommandHandler.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~A_preparation_cannot_be_accepted_under_another_sales_context"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 11 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M13 order reference falls back to an ambiguous alphabet and length
+file: src\AeroTech.Ordering.Persistence\OrderAggregate\RandomOrderReferenceGenerator.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~Backoffice_token_prepares_creates_and_reads_protected_travelers"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 10 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M14 percentage charge silently valued as zero instead of its sale equivalent
+file: src\AeroTech.Ordering.Providers\AirOffer\Services\AirOfferCandidateMapper.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~Percentage_order_charge_is_valued_from_its_sale_currency_equivalent|FullyQualifiedName~Recorded_live_owner_response_is_normalized_and_prepared"
+exit: 1
+Failed!  - Failed:     2, Passed:     0, Skipped:     0, Total:     2, Duration: 5 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M7 route surface no longer bound to the token surface (re-run against the strengthened test)
+file: src\AeroTech.Ordering.Application\_Shared\Authorization\AuthorizedScopeResolver.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~The_route_surface_is_bound_to_the_token_surface_even_when_every_other_claim_is_present"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 4 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+
+## S1-M9 inactive financial customer accepted (re-run with the suspended customer seeded)
+file: src\AeroTech.Ordering.Application\_Shared\Authorization\AuthorizedScopeResolver.cs
+command: dotnet test tests\AeroTech.Ordering.Persistence.Tests --filter "FullyQualifiedName~An_unknown_or_inactive_financial_customer_is_rejected"
+exit: 1
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 2 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+

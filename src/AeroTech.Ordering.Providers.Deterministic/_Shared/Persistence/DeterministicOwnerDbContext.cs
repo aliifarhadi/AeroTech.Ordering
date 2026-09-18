@@ -1,3 +1,4 @@
+using AeroTech.Ordering.Providers.Deterministic.Offers.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace AeroTech.Ordering.Providers.Deterministic._Shared.Persistence
@@ -15,9 +16,16 @@ namespace AeroTech.Ordering.Providers.Deterministic._Shared.Persistence
 
         public DbSet<DeterministicOwnerEffect> OwnerEffects => Set<DeterministicOwnerEffect>();
 
+        public DbSet<ReferenceOfferRecord> ReferenceOffers => Set<ReferenceOfferRecord>();
+
+        public DbSet<OwnerReadRecord> OwnerReads => Set<OwnerReadRecord>();
+
+        public DbSet<OwnerAvailabilityRecord> OwnerAvailability => Set<OwnerAvailabilityRecord>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema(Schema);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(DeterministicOwnerDbContext).Assembly);
 
             modelBuilder.Entity<DeterministicOwnerEffect>(effect =>
             {

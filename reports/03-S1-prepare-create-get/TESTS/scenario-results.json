@@ -1,0 +1,381 @@
+{
+ "stage": "S1",
+ "profileNote": "Reference profile REFERENCE-OFFER-2.0 (owner-bound simulator with its own database) and the observed AirOffer wire profile LIVE-CANDIDATE-SANDBOX, now exercised against the live AirOffer host on http://localhost:5095 (E2E/LIVE-AIROFFER-RUN.txt) and replayed deterministically from the captured owner response (E2E/airoffer-live-details.json).",
+ "layers": {
+  "Domain": "tests/AeroTech.Ordering.Domain.Tests",
+  "Application+SQL": "tests/AeroTech.Ordering.Persistence.Tests",
+  "API": "tests/AeroTech.Ordering.Persistence.Tests/Api (real Kestrel host, real JwtBearer handler, test-only ephemeral RSA key per OD-S1-05)"
+ },
+ "scenarios": [
+  {
+   "id": "SC-S1-001",
+   "result": "PASS",
+   "layers": [
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "S1.PrepareCreateGetTests.SC_S1_001_owner_reprice_after_preparation_does_not_change_the_created_order_and_create_calls_no_owner"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests.Backoffice_token_prepares_creates_and_reads_protected_travelers"
+  },
+  {
+   "id": "SC-S1-002",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.AcceptOriginalSaleTests.One_traveler_one_segment_package_creates_one_item_one_service_total_120_versions_1",
+    "S1.PrepareCreateGetTests.SC_S1_002_reference_create_commits_one_item_one_service_total_120_and_no_fulfillment_effects"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests.Backoffice_token_prepares_creates_and_reads_protected_travelers"
+  },
+  {
+   "id": "SC-S1-003",
+   "result": "PASS",
+   "layers": [
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "S1.PrepareCreateGetTests.SC_S1_003_replay_after_owner_outage_resolves_from_the_durable_receipt_without_owner_access"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests.Service_surface_needs_no_token_and_never_returns_protected_payloads"
+  },
+  {
+   "id": "SC-S1-004",
+   "result": "PASS",
+   "layers": [
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "S1.PrepareCreateGetTests.SC_S1_004_same_key_for_another_preparation_is_a_conflict_and_changes_nothing"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests.A_preparation_cannot_be_accepted_under_another_sales_context"
+  },
+  {
+   "id": "SC-S1-005",
+   "result": "PASS",
+   "layers": [
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "S1.PrepareCreateGetTests.SC_S1_005_concurrent_creates_with_different_keys_commit_exactly_one_order"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests.OtaPanel_token_sells_for_the_customer_of_its_travel_agency"
+  },
+  {
+   "id": "SC-S1-006",
+   "result": "PASS",
+   "layers": [
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "S1.AtomicityAndRebuildTests.SC_S1_006_projection_failure_before_commit_leaves_no_order_price_outbox_receipt_or_consumption"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests.Internal_projection_rebuild_needs_no_token"
+  },
+  {
+   "id": "SC-S1-007",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.AcceptOriginalSaleTests.Technical_stop_keeps_one_service_and_two_legs",
+    "S1.PrepareCreateGetTests.SC_S1_007_technical_stop_is_one_service_with_two_itinerary_legs"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  },
+  {
+   "id": "SC-S1-008",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.AcceptOriginalSaleTests.Source_priced_package_for_two_travelers_and_two_segments_is_one_item_with_four_services",
+    "S1.PrepareCreateGetTests.SC_S1_008_source_priced_package_persists_one_item_with_four_services"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  },
+  {
+   "id": "SC-S1-009",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.AcceptOriginalSaleTests.Round_trip_and_two_one_way_constructions_are_retained_as_supplied",
+    "S1.PrepareCreateGetTests.SC_S1_009_round_trip_and_two_one_way_constructions_are_persisted_as_supplied"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  },
+  {
+   "id": "SC-S1-010",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.AcceptOriginalSaleTests.Opaque_context_is_retained_without_invented_links",
+    "S1.AirOfferLiveCandidateBridgeTests.SC_S1_010_observed_details_projection_becomes_one_conservative_package_with_opaque_construction",
+    "S1.AirOfferLiveOwnerTests.Recorded_live_owner_response_is_normalized_and_prepared"
+   ],
+   "apiLayer": "S1.AirOfferLiveOwnerTests.Recorded_live_owner_response_is_normalized_and_prepared",
+   "note": "Mapping proven against the observed DTO shape with a stub transport; no live capture (BLOCKED_ENVIRONMENT)."
+  },
+  {
+   "id": "SC-S1-011",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.AcceptOriginalSaleTests.Extended_group_line_is_stored_once_with_quantity_metadata",
+    "S1.PrepareCreateGetTests.SC_S1_011_group_extended_line_is_persisted_once"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  },
+  {
+   "id": "SC-S1-012",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.AcceptOriginalSaleTests.Sale_equivalent_is_the_customer_value_and_original_currency_is_retained",
+    "S1.PrepareCreateGetTests.SC_S1_012_original_and_sale_valuations_round_trip_exactly",
+    "S1.AirOfferLiveCandidateBridgeTests.Equivalent_amount_is_used_as_sale_value_and_the_original_is_retained"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  },
+  {
+   "id": "SC-S1-013",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.PricingArithmeticTests.Sale_with_settlement_commission_totals_405_and_explicit_discount_reversal_totals_450",
+    "OrderAggregate.PricingArithmeticTests.Pack_pricing_vectors",
+    "OrderAggregate.PricingArithmeticTests.Reversal_beyond_the_original_or_with_same_direction_is_rejected"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  },
+  {
+   "id": "SC-S1-014",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.PricingArithmeticTests.Allocation_attributes_value_and_never_adds_money",
+    "OrderAggregate.PricingArithmeticTests.Complete_allocation_must_reconcile_and_partial_cannot_exceed"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  },
+  {
+   "id": "SC-S1-015",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderPreparationAggregate.CandidateValidatorTests.Pack_negative_examples_are_rejected_with_their_rule",
+    "S1.AirOfferLiveCandidateBridgeTests.SC_S1_015_hierarchy_total_mismatch_is_contract_mismatch_and_persists_nothing"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  },
+  {
+   "id": "SC-S1-016",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.AcceptOriginalSaleTests.Incomplete_or_inconsistent_traveler_binding_is_rejected",
+    "OrderAggregate.AcceptOriginalSaleTests.Repeated_source_traveler_binding_is_rejected_before_any_order",
+    "S1.PrepareCreateGetTests.SC_S1_016_invalid_traveler_binding_is_rejected_before_any_order"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)",
+   "note": "422 mapping is the framework envelope; HTTP status carried on the BusinessException (422)."
+  },
+  {
+   "id": "SC-S1-017",
+   "result": "PASS",
+   "layers": [
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "S1.PrepareCreateGetTests.SC_S1_017_other_customer_cannot_reach_preparation_order_operation_or_receipt"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests.Ota_token_sells_for_its_token_customer_and_cannot_read_another_customer_order; A_token_of_another_surface_is_rejected_on_every_authenticated_sale_surface; The_route_surface_is_bound_to_the_token_surface_even_when_every_other_claim_is_present; Authenticated_sale_surfaces_reject_an_anonymous_caller; Backoffice_selling_office_must_match_the_token_office; An_unknown_or_inactive_financial_customer_is_rejected",
+   "note": "Object-scope isolation proven at the command/query level; the authenticated HTTP matrix is not built."
+  },
+  {
+   "id": "SC-S1-018",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderPreparationAggregate.OrderPreparationTests.Sandbox_candidate_keeps_not_supplied_validity_and_reports_live_acceptance_blocked",
+    "OrderPreparationAggregate.OrderPreparationTests.Sandbox_profile_is_refused_where_the_deployment_does_not_permit_it",
+    "S1.AirOfferLiveCandidateBridgeTests.SC_S1_018_live_candidate_keeps_not_supplied_validity_and_is_blocked_for_real_effects",
+    "S1.AirOfferLiveOwnerTests.Recorded_live_owner_response_is_normalized_and_prepared"
+   ],
+   "apiLayer": "S1.AirOfferLiveOwnerTests.Live_owner_details_resolve_into_an_acceptable_candidate (live); Recorded_live_owner_response_is_normalized_and_prepared"
+  },
+  {
+   "id": "SC-S1-019",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderAggregate.DeadlinePolicyTests",
+    "OrderPreparationAggregate.OrderPreparationTests.Expiry_is_evaluated_at_now_greater_or_equal_due",
+    "S1.PrepareCreateGetTests.SC_S1_019_expired_owner_validity_blocks_acceptance_at_its_own_instant"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  },
+  {
+   "id": "SC-S1-020",
+   "result": "PASS",
+   "layers": [
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "S1.AtomicityAndRebuildTests.SC_S1_020_restart_owner_offline_projection_rebuild_reproduces_the_same_view"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests.Internal_projection_rebuild_needs_no_token",
+   "note": "Restart = new service provider and new EF contexts against the same database; no host process restart because no host route exists yet."
+  },
+  {
+   "id": "SC-S1-021",
+   "result": "PASS",
+   "layers": [
+    "Domain",
+    "Application",
+    "SQL",
+    "API"
+   ],
+   "tests": [
+    "OrderPreparationAggregate.CandidateValidatorTests.Unregistered_detail_schema_version_is_unsupported_before_acceptance",
+    "OrderPreparationAggregate.CandidateValidatorTests.Unregistered_service_type_is_unsupported_before_acceptance",
+    "S1.PrepareCreateGetTests.SC_S1_021_unregistered_product_schema_is_unsupported_before_any_preparation"
+   ],
+   "apiLayer": "Api.OrderingApiSurfaceTests (surface, authorization and redaction matrix)"
+  }
+ ],
+ "universalGates": [
+  {
+   "gate": "Clean checkout and migrations from zero",
+   "result": "PASS",
+   "evidence": "Persistence.Tests fixture creates and migrates a fresh database per run; DB/migrations.txt"
+  },
+  {
+   "gate": "Upgrade from previous stage",
+   "result": "PASS",
+   "evidence": "S1.MigrationUpgradeTests (B0 database + B0 rows, then S1 migration)"
+  },
+  {
+   "gate": "Negative authorization",
+   "result": "PARTIAL",
+   "evidence": "SC-S1-017 at command/query level; HTTP matrix blocked"
+  },
+  {
+   "gate": "Idempotent replay / conflict / race",
+   "result": "PASS",
+   "evidence": "SC-S1-003/004/005"
+  },
+  {
+   "gate": "Response-loss recovery",
+   "result": "NOT_APPLICABLE",
+   "evidence": "S1 performs no external mutation"
+  },
+  {
+   "gate": "No network in SQL transaction",
+   "result": "PASS",
+   "evidence": "Create performs zero owner reads (provider-effect-counts.json); Prepare resolves before the transaction"
+  },
+  {
+   "gate": "Single handler per semantic command",
+   "result": "PASS",
+   "evidence": "Architecture.S1RailTests"
+  },
+  {
+   "gate": "Single projector writer",
+   "result": "PASS",
+   "evidence": "Architecture.S1RailTests.Exactly_one_order_projector_implements_the_query_synchronizer"
+  },
+  {
+   "gate": "Invariants and examples stable",
+   "result": "PASS",
+   "evidence": "Pack example candidate digest reproduced; pack negative examples rejected; pricing vectors"
+  },
+  {
+   "gate": "Read model works with owners offline",
+   "result": "PASS",
+   "evidence": "SC-S1-003/020"
+  },
+  {
+   "gate": "Active operations survive restart",
+   "result": "PASS",
+   "evidence": "SC-S1-020 (receipts and orders read by a new provider)"
+  }
+ ],
+ "finalRun": {
+  "domain": "49/49 (TESTS/runs/08-DOMAIN-TESTS-FINAL.txt)",
+  "applicationSqlApi": "100/100 (TESTS/runs/09-FULL-SUITE-WITH-API.txt, TESTS/trx/s1-final.trx), filter Category!=Live",
+  "live": "1/1 (E2E/LIVE-AIROFFER-RUN.txt), filter Category=Live"
+ }
+}

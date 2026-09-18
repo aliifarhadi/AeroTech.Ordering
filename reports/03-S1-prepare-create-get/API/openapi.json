@@ -1,0 +1,1634 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "testhost",
+    "version": "1.0"
+  },
+  "paths": {
+    "/backoffice/v1/order-preparations": {
+      "post": {
+        "tags": [
+          "Backoffice"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackofficePrepareOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackofficePrepareOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackofficePrepareOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backoffice/v1/orders/from-offer": {
+      "post": {
+        "tags": [
+          "Backoffice"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackofficeCreateOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackofficeCreateOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackofficeCreateOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backoffice/v1/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "Backoffice"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "minRevision",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backoffice/v1/operations/{operationId}": {
+      "get": {
+        "tags": [
+          "Backoffice"
+        ],
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/orders/{orderId}/projection-rebuilds": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectionRebuildResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectionRebuildResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectionRebuildResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ota/v1/order-preparations": {
+      "post": {
+        "tags": [
+          "Ota"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ota/v1/orders/from-offer": {
+      "post": {
+        "tags": [
+          "Ota"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ota/v1/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "Ota"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "minRevision",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ota/v1/operations/{operationId}": {
+      "get": {
+        "tags": [
+          "Ota"
+        ],
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/otapanel/v1/order-preparations": {
+      "post": {
+        "tags": [
+          "OtaPanel"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/otapanel/v1/orders/from-offer": {
+      "post": {
+        "tags": [
+          "OtaPanel"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/otapanel/v1/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "OtaPanel"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "minRevision",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/otapanel/v1/operations/{operationId}": {
+      "get": {
+        "tags": [
+          "OtaPanel"
+        ],
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Ping": {
+      "get": {
+        "tags": [
+          "Ping"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/service/v1/order-preparations": {
+      "post": {
+        "tags": [
+          "Service"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServicePrepareOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServicePrepareOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServicePrepareOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/service/v1/orders/from-offer": {
+      "post": {
+        "tags": [
+          "Service"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceCreateOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceCreateOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceCreateOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOrderResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/service/v1/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "Service"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "minRevision",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailsResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/service/v1/operations/{operationId}": {
+      "get": {
+        "tags": [
+          "Service"
+        ],
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationResponseApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Currencies": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Airlines": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Cities": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Airports": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Customers": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/OperatorSettings": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AcceptanceAssurance": {
+        "enum": [
+          "OwnerBound",
+          "LocalCandidateOnly"
+        ],
+        "type": "string"
+      },
+      "ApiErrorItem": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BackofficeCreateOrderRequest": {
+        "required": [
+          "acceptedAt",
+          "acceptedSnapshotDigest",
+          "contacts",
+          "financialCustomerId",
+          "preparationId",
+          "sellingOfficeId",
+          "travelerBindings"
+        ],
+        "type": "object",
+        "properties": {
+          "preparationId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "acceptedSnapshotDigest": {
+            "minLength": 1,
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "travelerBindings": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TravelerBindingRequest"
+            }
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactRequest"
+            }
+          },
+          "clientReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "financialCustomerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sellingOfficeId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BackofficePrepareOrderRequest": {
+        "required": [
+          "financialCustomerId",
+          "offerId",
+          "sellingOfficeId"
+        ],
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "clientReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "financialCustomerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sellingOfficeId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContactRequest": {
+        "required": [
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/ContactRole"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContactRole": {
+        "enum": [
+          "Primary",
+          "Emergency",
+          "Agency",
+          "Traveler",
+          "Other"
+        ],
+        "type": "string"
+      },
+      "CreateOrderRequest": {
+        "required": [
+          "acceptedAt",
+          "acceptedSnapshotDigest",
+          "contacts",
+          "preparationId",
+          "travelerBindings"
+        ],
+        "type": "object",
+        "properties": {
+          "preparationId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "acceptedSnapshotDigest": {
+            "minLength": 1,
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "travelerBindings": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TravelerBindingRequest"
+            }
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactRequest"
+            }
+          },
+          "clientReference": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreatedOrderResponse": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "operationId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "commercialVersionAtCommit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderRevisionAtCommit": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "acceptedSourceDigest": {
+            "type": "string",
+            "nullable": true
+          },
+          "orderUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreatedOrderResponseApiResult": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiErrorItem"
+            },
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreatedOrderResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperationResponse": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "preparationId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "nullable": true
+          },
+          "phase": {
+            "type": "string",
+            "nullable": true
+          },
+          "outcome": {
+            "type": "string",
+            "nullable": true
+          },
+          "targetEvidence": {
+            "type": "array",
+            "items": { },
+            "nullable": true
+          },
+          "pendingActions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "reconciliationRequired": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperationResponseApiResult": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiErrorItem"
+            },
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/OperationResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "projectionSchemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projectedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "details": { },
+          "protectedTravelers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProtectedTravelerResponse"
+            },
+            "nullable": true
+          },
+          "protectedContacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProtectedContactResponse"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderDetailsResponseApiResult": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiErrorItem"
+            },
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrderDetailsResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PreparationResponse": {
+        "type": "object",
+        "properties": {
+          "preparationId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "operationId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sourceOfferId": {
+            "type": "string",
+            "nullable": true
+          },
+          "acceptedSnapshotDigest": {
+            "type": "string",
+            "nullable": true
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pricedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validity": {
+            "$ref": "#/components/schemas/PreparationValidityResponse"
+          },
+          "acceptanceAssurance": {
+            "$ref": "#/components/schemas/AcceptanceAssurance"
+          },
+          "permittedAcceptanceProfile": {
+            "type": "string",
+            "nullable": true
+          },
+          "candidate": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "blockingReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PreparationResponseApiResult": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiErrorItem"
+            },
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PreparationResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PreparationValidityResponse": {
+        "type": "object",
+        "properties": {
+          "offer": {
+            "$ref": "#/components/schemas/ValidityFactResponse"
+          },
+          "price": {
+            "$ref": "#/components/schemas/ValidityFactResponse"
+          },
+          "ticketing": {
+            "$ref": "#/components/schemas/ValidityFactResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PrepareOrderRequest": {
+        "required": [
+          "offerId"
+        ],
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "clientReference": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectionRebuildResponse": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "operationId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "commercialVersion": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectionRebuildResponseApiResult": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiErrorItem"
+            },
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProjectionRebuildResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProtectedContactResponse": {
+        "type": "object",
+        "properties": {
+          "contactId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "role": {
+            "$ref": "#/components/schemas/ContactRole"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProtectedTravelerResponse": {
+        "type": "object",
+        "properties": {
+          "travelerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sourceTravellerRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "clientTravelerRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "passengerTypeCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "givenName": {
+            "type": "string",
+            "nullable": true
+          },
+          "surname": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date"
+          },
+          "infantParentTravelerId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ServiceCreateOrderRequest": {
+        "required": [
+          "acceptedAt",
+          "acceptedSnapshotDigest",
+          "contacts",
+          "financialCustomerId",
+          "preparationId",
+          "travelerBindings"
+        ],
+        "type": "object",
+        "properties": {
+          "preparationId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "acceptedSnapshotDigest": {
+            "minLength": 1,
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "travelerBindings": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TravelerBindingRequest"
+            }
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactRequest"
+            }
+          },
+          "clientReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "financialCustomerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sellingOfficeId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ServicePrepareOrderRequest": {
+        "required": [
+          "financialCustomerId",
+          "offerId"
+        ],
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "clientReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "financialCustomerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sellingOfficeId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TravelerBindingRequest": {
+        "required": [
+          "clientTravelerRef",
+          "dateOfBirth",
+          "givenName",
+          "passengerTypeCode",
+          "sourceTravellerRef",
+          "surname"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceTravellerRef": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "clientTravelerRef": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "givenName": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "surname": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "passengerTypeCode": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date"
+          },
+          "guardianClientTravelerRef": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ValidityFactResponse": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/ValidityState"
+          },
+          "value": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "owner": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ValidityState": {
+        "enum": [
+          "Known",
+          "NotSupplied",
+          "NotApplicable"
+        ],
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Enter a JWT bearer token.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Backoffice"
+    },
+    {
+      "name": "Internal"
+    },
+    {
+      "name": "Ota"
+    },
+    {
+      "name": "OtaPanel"
+    },
+    {
+      "name": "Ping"
+    },
+    {
+      "name": "Service"
+    },
+    {
+      "name": "Syncers"
+    }
+  ]
+}

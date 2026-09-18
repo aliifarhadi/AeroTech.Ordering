@@ -1,0 +1,56 @@
+{
+  "stage": "S1",
+  "source": "Assertions in tests/AeroTech.Ordering.Persistence.Tests/S1 and /Api (reference simulator OwnerReads table; AirOffer stub handler call counter; the live run calls AirOffer exactly once, for the pre-acceptance candidate)",
+  "counts": [
+    {
+      "scenario": "SC-S1-001",
+      "owner": "AirOffer (reference)",
+      "operation": "ResolveCandidate",
+      "duringCreate": 0,
+      "asserted": "reads before Create == reads after Create"
+    },
+    {
+      "scenario": "SC-S1-003",
+      "owner": "AirOffer (reference)",
+      "operation": "any",
+      "duringReplayWhileUnavailable": 0,
+      "asserted": "read count unchanged across Create and Prepare replays"
+    },
+    {
+      "scenario": "SC-S1-018",
+      "owner": "AirOffer (observed wire stub)",
+      "operation": "POST v1/FlightOffers/Details",
+      "duringCreate": 0,
+      "asserted": "stub call counter unchanged across Create"
+    },
+    {
+      "scenario": "SC-S1-020",
+      "owner": "AirOffer (reference)",
+      "operation": "any",
+      "duringRestartGetAndRebuild": 0,
+      "asserted": "read count unchanged across GetOrder, rebuild and rebuild replay"
+    },
+    {
+      "scenario": "Live AirOffer run",
+      "owner": "AirOffer (live, http://localhost:5095)",
+      "operation": "POST Service/v1/FlightOffers/Details",
+      "duringPrepare": 1,
+      "duringCreate": 0,
+      "asserted": "Prepare resolves the candidate once; no Create was executed in the live run (LIVE_ACCEPTANCE_BLOCKED(BD-001))"
+    },
+    {
+      "scenario": "HTTP surfaces (Api.OrderingApiSurfaceTests)",
+      "owner": "AirOffer (reference)",
+      "operation": "any",
+      "duringCreateAndReads": 0,
+      "asserted": "Create and every GET run against the local store only; the deterministic adapter is the sole offer source"
+    }
+  ],
+  "fulfillmentOwners": {
+    "FlightFlow": 0,
+    "JetPay": 0,
+    "DocumentIssuer": 0,
+    "Ledger": 0,
+    "reason": "S1 contains no port or adapter for these owners"
+  }
+}

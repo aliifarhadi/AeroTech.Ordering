@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\AeroTech.Framework.Presentation\AeroTech.Framework.Presentation.csproj" />
     <ProjectReference Include="..\AeroTech.Ordering.Application\AeroTech.Ordering.Application.csproj" />
+    <ProjectReference Include="..\AeroTech.Ordering.Query\AeroTech.Ordering.Query.csproj" />
     <ProjectReference Include="..\AeroTech.Ordering.Synchronizer\AeroTech.Ordering.Synchronizer.csproj" />
   </ItemGroup>
 

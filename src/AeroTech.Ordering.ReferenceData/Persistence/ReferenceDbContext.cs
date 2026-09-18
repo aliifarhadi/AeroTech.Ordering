@@ -76,8 +76,9 @@ namespace AeroTech.Ordering.ReferenceData.Persistence
                 entity.ToTable("Customers");
                 entity.HasKey(customer => customer.Id);
                 entity.Property(customer => customer.Id).ValueGeneratedNever();
-                entity.Property(customer => customer.UniqueIdentifier).HasMaxLength(64);
-                entity.HasIndex(customer => customer.UniqueIdentifier);
+                entity.Property(customer => customer.CustomerNumber).HasMaxLength(64).IsRequired();
+                entity.HasIndex(customer => customer.CustomerNumber);
+                entity.HasIndex(customer => customer.TravelAgencyId);
             });
 
             modelBuilder.Entity<OperatorSettingsReadModel>(entity =>

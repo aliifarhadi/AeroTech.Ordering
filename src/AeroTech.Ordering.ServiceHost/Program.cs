@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration).Enrich.FromLogContext().WriteTo.Console());
 
-builder.Services.AddOrderingHost(builder.Configuration);
+builder.Services.AddOrderingHost(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

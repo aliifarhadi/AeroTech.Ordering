@@ -1,0 +1,149 @@
+{
+ "stage": "S1",
+ "commands": [
+  "CMD-001",
+  "CMD-002",
+  "QRY-001",
+  "QRY-002",
+  "ADM-001"
+ ],
+ "events": [
+  "EV-001 OrderCreated (Ordering/IntegrationEvents/V2)"
+ ],
+ "scenarios": [
+  "SC-S1-001",
+  "SC-S1-002",
+  "SC-S1-003",
+  "SC-S1-004",
+  "SC-S1-005",
+  "SC-S1-006",
+  "SC-S1-007",
+  "SC-S1-008",
+  "SC-S1-009",
+  "SC-S1-010",
+  "SC-S1-011",
+  "SC-S1-012",
+  "SC-S1-013",
+  "SC-S1-014",
+  "SC-S1-015",
+  "SC-S1-016",
+  "SC-S1-017",
+  "SC-S1-018",
+  "SC-S1-019",
+  "SC-S1-020",
+  "SC-S1-021"
+ ],
+ "invariants": [
+  "INV-006",
+  "INV-007",
+  "INV-008",
+  "INV-009",
+  "INV-010",
+  "INV-011",
+  "INV-012",
+  "INV-013",
+  "INV-014",
+  "INV-015",
+  "INV-016",
+  "INV-017",
+  "INV-018",
+  "INV-054",
+  "INV-055",
+  "INV-059",
+  "INV-003",
+  "INV-058"
+ ],
+ "filesByLayer": {
+  "Contracts/AeroTech.Messages/Ordering": [
+   "Enums/AcceptanceAssurance",
+   "Enums/ValidityState",
+   "Enums/OrderItemKind",
+   "Enums/FareConstructionAssurance",
+   "Enums/ReservationRequirement",
+   "Enums/FulfillmentDocumentKind",
+   "Enums/FundingObligationPurpose",
+   "Enums/OfferResolutionOutcome",
+   "Enums/OrderingCommandKind",
+   "Enums/CommitConflictKind",
+   "IntegrationEvents/V2/OrderCreated",
+   "Enums/OrderingApiSurface"
+  ],
+  "Domain": [
+   "_Shared/ValueObjects",
+   "_Shared/Serialization/CanonicalJson",
+   "_Shared/Exceptions/CommitConflictException",
+   "Ports/Offers",
+   "OrderPreparationAggregate",
+   "OrderAggregate",
+   "CommandReceiptAggregate",
+   "_Shared/Contracts/ICustomerDirectory"
+  ],
+  "Application": [
+   "_Shared/Idempotency",
+   "_Shared/Authorization",
+   "OrderPreparationAggregate/Commands/PrepareOrderFromOffer",
+   "OrderAggregate/Commands/CreateOrderFromOffer",
+   "OrderAggregate/Commands/RebuildOrderProjection",
+   "OrderAggregate/EventHandlers",
+   "_Shared/Authorization/{SalesScopeRequest,AdministrativeScopeRequest,AuthorizedReadScope,CallerScopeKey}"
+  ],
+  "Persistence": [
+   "_Shared/Mapping",
+   "_Shared/Transactions",
+   "OrderPreparationAggregate",
+   "OrderAggregate",
+   "CommandReceiptAggregate",
+   "Migrations/S1CommercialCreate",
+   "_Shared/CustomerContext/ReferenceDataCustomerDirectory",
+   "OrderAggregate/RandomOrderReferenceGenerator"
+  ],
+  "Providers": [
+   "AirOffer/Options",
+   "AirOffer/Wire",
+   "AirOffer/Services"
+  ],
+  "Providers.Deterministic": [
+   "Offers",
+   "Offers/Persistence"
+  ],
+  "Synchronizer": [
+   "OrderAggregate/OrderProjector",
+   "OrderAggregate/OrderDetailsDocument"
+  ],
+  "Query": [
+   "OrderAggregate",
+   "OperationAggregate",
+   "Migrations/S1OrderDetailsProjection",
+   "OrderAggregate/{Models,Configurations} protected payload read models"
+  ],
+  "RestApi": [
+   "_Shared/ApiSurfaceRoutes",
+   "V1/OrderPreparationAggregate/{Controllers,Requests,Responses}",
+   "V1/OrderAggregate/{Controllers,Requests,Responses}",
+   "V1/OperationAggregate/{Controllers,Responses}"
+  ],
+  "ServiceHost": [
+   "Composition/AcceptanceProfilePolicy",
+   "Composition/OrderingHostComposition"
+  ],
+  "ReferenceData": [
+   "ReadModels/CustomerReadModel + CustomerStatus",
+   "Syncing/CustomerSyncer",
+   "Migrations/S1CustomerScope"
+  ]
+ },
+ "migrations": [
+  "OrderingDbContext 20260917160501_S1CommercialCreate",
+  "OrderQueryDbContext 20260917160511_S1OrderDetailsProjection",
+  "ReferenceDbContext 20260917224424_S1CustomerScope",
+  "OrderQueryDbContext 20260918_S1ProtectedPayloadReadModels"
+ ],
+ "externalCapabilities": [
+  {
+   "port": "IOfferSourcePort",
+   "real": "AirOffer Details (LIVE-CANDIDATE-SANDBOX)",
+   "reference": "REFERENCE-OFFER-2.0 simulator",
+   "mutating": false
+  }
+ ]
+}

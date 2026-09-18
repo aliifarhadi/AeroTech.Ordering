@@ -3,14 +3,13 @@ namespace AeroTech.Ordering.ReferenceData.ReadModels
     public sealed class CustomerReadModel : IReferenceReadModel<long>
     {
         public long Id { get; set; }
-        public string? Name { get; set; }
+        public string CustomerNumber { get; set; } = default!;
         public CustomerType Type { get; set; }
-        public string UniqueIdentifier { get; set; } = default!;
-        public ActivationStatus Status { get; set; }
-        public int PreferredCurrencyId { get; set; }
-        public int? CityId { get; set; }
-        public string? Email { get; set; }
-        public string? PhoneNumber { get; set; }
+        public long? TravelAgencyId { get; set; }
+        public long SubjectId { get; set; }
+        public string? SubjectName { get; set; }
+        public CustomerStatus Status { get; set; }
+        public int? PreferredCurrencyId { get; set; }
         public DateTimeOffset LastUpdateTime { get; set; }
     }
 }

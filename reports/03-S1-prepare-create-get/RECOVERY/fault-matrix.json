@@ -1,0 +1,75 @@
+{
+  "stage": "S1",
+  "note": "S1 has no external mutation; crash points for remote effects (DOMAIN/08) start in S2. Faults below are the local and owner-read faults S1 depends on. Results come from TESTS/runs and RECOVERY/MUTATION-RUNS.txt.",
+  "faults": [
+    {
+      "id": "F-S1-01",
+      "scenario": "SC-S1-006",
+      "fault": "Projection write throws inside the Create SQL transaction (IOrderProjectionFaultInjector)",
+      "expected": "No Order, PriceChangeSet, outbox row, completed receipt or preparation consumption; same key then succeeds",
+      "test": "S1/AtomicityAndRebuildTests.SC_S1_006_projection_failure_before_commit_leaves_no_order_price_outbox_receipt_or_consumption",
+      "redProof": "S1-M1"
+    },
+    {
+      "id": "F-S1-02",
+      "scenario": "SC-S1-005",
+      "fault": "Six concurrent Create requests, different keys, one preparation",
+      "expected": "One Order, one receipt, one OrderDetails row; others PreparationAlreadyConsumed (20267)",
+      "test": "S1/PrepareCreateGetTests.SC_S1_005_concurrent_creates_with_different_keys_commit_exactly_one_order",
+      "redProof": "S1-M3"
+    },
+    {
+      "id": "F-S1-03",
+      "scenario": "SC-S1-003",
+      "fault": "Offer owner unavailable after Create",
+      "expected": "Create and Prepare replays return the original result from the durable receipt; zero owner reads; a new Prepare is 503 (20275)",
+      "test": "S1/PrepareCreateGetTests.SC_S1_003_replay_after_owner_outage_resolves_from_the_durable_receipt_without_owner_access",
+      "redProof": "S1-M2"
+    },
+    {
+      "id": "F-S1-04",
+      "scenario": "SC-S1-020",
+      "fault": "Process restart (new service provider), owner unavailable, projection row deleted",
+      "expected": "Rebuild reproduces byte-identical OrderDetails JSON, CommercialVersion 1, one outbox fact, zero owner reads; rebuild replay from receipt",
+      "test": "S1/AtomicityAndRebuildTests.SC_S1_020_restart_owner_offline_projection_rebuild_reproduces_the_same_view",
+      "redProof": "S1-M1"
+    },
+    {
+      "id": "F-S1-05",
+      "scenario": "ARCHITECTURE/03 rebuild race",
+      "fault": "Stored projection revision newer than the rebuild snapshot",
+      "expected": "Rebuild refuses (20286); newer projection kept",
+      "test": "S1/AtomicityAndRebuildTests.Rebuild_never_overwrites_a_newer_projection_revision",
+      "redProof": null
+    },
+    {
+      "id": "F-S1-06",
+      "scenario": "SC-S1-001",
+      "fault": "Owner reprices the offer between Prepare and Create",
+      "expected": "Order keeps the prepared 120; Create performs zero owner reads; a new Prepare sees 150 with a different digest",
+      "test": "S1/PrepareCreateGetTests.SC_S1_001_owner_reprice_after_preparation_does_not_change_the_created_order_and_create_calls_no_owner",
+      "redProof": null
+    },
+    {
+      "id": "F-S1-07",
+      "scenario": "SC-S1-015 / owner wire faults",
+      "fault": "AirOffer hierarchy total mismatch, unknown category, percentage row, no sale valuation, 5xx, 4xx",
+      "expected": "ContractMismatch (20272), UnsupportedCapability (20273), Unavailable (20275), NotFound (20274); nothing persisted",
+      "test": "S1/AirOfferLiveCandidateBridgeTests",
+      "redProof": null
+    },
+    {
+      "id": "F-S1-08",
+      "scenario": "SC-S1-012 / INV-059",
+      "fault": "Amount precision narrowed to decimal(18,2)",
+      "expected": "1.23456789 and 93.23456789 no longer round-trip; test fails",
+      "test": "S1/PrepareCreateGetTests.SC_S1_012_original_and_sale_valuations_round_trip_exactly",
+      "redProof": "S1-M4"
+    }
+  ],
+  "notApplicableInS1": [
+    "after dispatch marker / owner commit with lost response / before TX-B: no external mutation exists in S1 (S2+)",
+    "lease expiry while a worker is paused: no coordinator worker in S1 (S2+)",
+    "broker publish before delivered marker: covered by B0 outbox tests"
+  ]
+}

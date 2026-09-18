@@ -1,0 +1,33 @@
+COMMAND: dotnet test tests/AeroTech.Ordering.Persistence.Tests --no-build --filter "FullyQualifiedName~MigrationUpgradeTests|FullyQualifiedName~Business_crash_commits_neither_marker" --logger "console;verbosity=normal"
+Test run for E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\bin\Debug\net10.0\AeroTech.Ordering.Persistence.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.07] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.12)
+[xUnit.net 00:00:02.67]   Discovering: AeroTech.Ordering.Persistence.Tests
+[xUnit.net 00:00:04.14]   Discovered:  AeroTech.Ordering.Persistence.Tests
+[xUnit.net 00:00:04.26]   Starting:    AeroTech.Ordering.Persistence.Tests
+[xUnit.net 00:02:02.96]     AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Business_crash_commits_neither_marker_nor_work_and_redelivery_commits_both_once [FAIL]
+[xUnit.net 00:02:02.98]       Assert.True() Failure
+[xUnit.net 00:02:02.98]       Expected: True
+[xUnit.net 00:02:02.98]       Actual:   False
+[xUnit.net 00:02:03.00]       Stack Trace:
+[xUnit.net 00:02:03.01]         E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs(39,0): at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Business_crash_commits_neither_marker_nor_work_and_redelivery_commits_both_once()
+[xUnit.net 00:02:03.01]         E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs(54,0): at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Business_crash_commits_neither_marker_nor_work_and_redelivery_commits_both_once()
+[xUnit.net 00:02:03.01]         --- End of stack trace from previous location ---
+  Failed AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Business_crash_commits_neither_marker_nor_work_and_redelivery_commits_both_once [16 s]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Business_crash_commits_neither_marker_nor_work_and_redelivery_commits_both_once() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs:line 39
+   at AeroTech.Ordering.Persistence.Tests.Inbox.InboxConsumeFilterTests.Business_crash_commits_neither_marker_nor_work_and_redelivery_commits_both_once() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\Inbox\InboxConsumeFilterTests.cs:line 54
+--- End of stack trace from previous location ---
+[xUnit.net 00:02:22.36]   Finished:    AeroTech.Ordering.Persistence.Tests
+  Passed AeroTech.Ordering.Persistence.Tests.S1.MigrationUpgradeTests.S1_migration_upgrades_a_b0_database_without_losing_outbox_or_inbox_rows [2 m 15 s]
+
+Test Run Failed.
+Total tests: 2
+     Passed: 1
+     Failed: 1
+ Total time: 2.5980 Minutes
+EXIT: 1
