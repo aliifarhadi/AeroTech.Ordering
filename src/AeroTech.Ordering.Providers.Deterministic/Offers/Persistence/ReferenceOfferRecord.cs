@@ -1,3 +1,4 @@
+using AeroTech.Messages.Shared.Enums;
 namespace AeroTech.Ordering.Providers.Deterministic.Offers.Persistence
 {
     public sealed class ReferenceOfferRecord
@@ -14,7 +15,7 @@ namespace AeroTech.Ordering.Providers.Deterministic.Offers.Persistence
 
         public long FinancialCustomerId { get; set; }
 
-        public string Channel { get; set; } = null!;
+        public SalesChannel Channel { get; set; }
 
         public long? SellingOfficeId { get; set; }
 

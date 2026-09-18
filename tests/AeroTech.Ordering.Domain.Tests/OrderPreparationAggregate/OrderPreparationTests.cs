@@ -24,8 +24,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
             Assert.Equal(ValidityState.NotSupplied, preparation.OfferValidity.State);
             Assert.Equal(ValidityState.NotSupplied, preparation.PriceValidity.State);
             Assert.Null(preparation.OfferValidity.Value);
-            Assert.Contains(OrderPreparation.LiveAcceptanceBlocked, preparation.BlockingReasons(new Policy(SandboxProfile)));
-            Assert.Contains(OrderPreparation.OfferValidityNotSupplied, preparation.BlockingReasons(new Policy(SandboxProfile)));
+            Assert.Equal(AcceptanceAssurance.LocalCandidateOnly, preparation.AcceptanceAssurance);
         }
 
         [Fact]
@@ -34,9 +33,8 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
             var preparation = Capture(CandidateBuilder.OneWayFare100Tax20(Now).LocalCandidateOnly(SandboxProfile), SandboxProfile);
             var production = new Policy();
 
-            Assert.Contains(OrderPreparation.AcceptanceProfileNotPermitted, preparation.BlockingReasons(production));
-            AssertCode(20269, () => preparation.EnsureAcceptable(preparation.SnapshotDigest, production, Now));
-            preparation.EnsureAcceptable(preparation.SnapshotDigest, new Policy(SandboxProfile), Now.AddDays(30));
+            AssertCode(20269, () => preparation.EnsureAcceptable(production, Now));
+            preparation.EnsureAcceptable(new Policy(SandboxProfile), Now.AddDays(30));
         }
 
         [Fact]
@@ -48,7 +46,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
                 new ValidityFact(ValidityState.NotSupplied, null, "Unresolved owner", null, "missing"));
             var preparation = Capture(builder, CandidateBuilder.ReferenceProfile);
 
-            AssertCode(20271, () => preparation.EnsureAcceptable(preparation.SnapshotDigest, new Policy(CandidateBuilder.ReferenceProfile), Now));
+            AssertCode(20271, () => preparation.EnsureAcceptable(new Policy(CandidateBuilder.ReferenceProfile), Now));
         }
 
         [Fact]
@@ -57,21 +55,19 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
             var preparation = Capture(CandidateBuilder.OneWayFare100Tax20(Now), CandidateBuilder.ReferenceProfile);
             var policy = new Policy(CandidateBuilder.ReferenceProfile);
 
-            preparation.EnsureAcceptable(preparation.SnapshotDigest, policy, Now.AddMinutes(5).AddTicks(-1));
-            AssertCode(20270, () => preparation.EnsureAcceptable(preparation.SnapshotDigest, policy, Now.AddMinutes(5)));
+            preparation.EnsureAcceptable(policy, Now.AddMinutes(5).AddTicks(-1));
+            AssertCode(20270, () => preparation.EnsureAcceptable(policy, Now.AddMinutes(5)));
         }
 
         [Fact]
-        public void Digest_mismatch_and_second_consumption_are_conflicts()
+        public void A_second_consumption_of_the_same_accepted_source_is_a_conflict()
         {
             var preparation = Capture(CandidateBuilder.OneWayFare100Tax20(Now), CandidateBuilder.ReferenceProfile);
             var policy = new Policy(CandidateBuilder.ReferenceProfile);
 
-            AssertCode(20268, () => preparation.EnsureAcceptable(new string('0', 64), policy, Now));
-
             preparation.Consume(5001, Now);
 
-            AssertCode(20267, () => preparation.EnsureAcceptable(preparation.SnapshotDigest, policy, Now));
+            AssertCode(20267, () => preparation.EnsureAcceptable(policy, Now));
             AssertCode(20267, () => preparation.Consume(5002, Now));
             Assert.Equal(5001, preparation.ConsumedByOrderId);
         }

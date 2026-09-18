@@ -6,7 +6,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Configurations
 {
     public sealed class OrderTravelerIdentityReadModelConfiguration : IEntityTypeConfiguration<OrderTravelerIdentityReadModel>
     {
-        public const string Schema = "Commercial";
+        public const string Schema = "Order";
         public const string Table = "OrderTravelerIdentities";
 
         public void Configure(EntityTypeBuilder<OrderTravelerIdentityReadModel> builder)

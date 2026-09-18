@@ -106,7 +106,6 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
                 .AddReferenceData(configuration);
 
             services.AddSingleton<IAcceptanceProfilePolicy>(new TestAcceptanceProfilePolicy(ReferenceOfferProfile.ProfileId, AirOfferProfile.LiveCandidateSandbox));
-            services.Replace(ServiceDescriptor.Singleton<IOrderReferenceGenerator, TestOrderReferenceGenerator>());
 
             configure?.Invoke(services);
 
@@ -134,19 +133,13 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
             return await action(scope.ServiceProvider);
         }
 
-        public static SalesScopeRequest Sale(
-            long? customerId = CustomerId,
-            long? sellingOfficeId = AirlineOfficeId,
-            OrderingApiSurface surface = OrderingApiSurface.Backoffice)
-            => new(surface, customerId, sellingOfficeId);
-
         public static Domain._Shared.ValueObjects.AuthorizedSalesScope Scope(long customerId = CustomerId, long actorId = AirlineUserId)
             => new(
                 OwnerAirlineId,
                 customerId,
-                SalesChannel.BackOffice.ToString(),
+                SalesChannel.BackOffice,
                 AirlineOfficeId,
-                CallerScopeKey.ForSale(OrderingApiSurface.Backoffice, customerId, AirlineOfficeId, CallerScopeKey.None),
+                CallerScopeKey.ForSale(CallerScopeKey.Backoffice, customerId, AirlineOfficeId, CallerScopeKey.None),
                 BusinessContextType.Airline,
                 actorId);
 
@@ -154,9 +147,9 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
             => new(
                 OwnerAirlineId,
                 customerId,
-                SalesChannel.System.ToString(),
+                SalesChannel.System,
                 null,
-                CallerScopeKey.ForSale(OrderingApiSurface.Service, customerId, null, CallerScopeKey.None),
+                CallerScopeKey.ForSale(CallerScopeKey.Service, customerId, null, CallerScopeKey.None),
                 BusinessContextType.Service,
                 null);
 
@@ -164,9 +157,9 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
             => new(
                 OwnerAirlineId,
                 customerId,
-                SalesChannel.AgencyPanel.ToString(),
+                SalesChannel.AgencyPanel,
                 AgencyOfficeId,
-                CallerScopeKey.ForSale(OrderingApiSurface.OtaPanel, customerId, AgencyOfficeId, CallerScopeKey.Agency(TravelAgencyId)),
+                CallerScopeKey.ForSale(CallerScopeKey.OtaPanel, customerId, AgencyOfficeId, CallerScopeKey.Agency(TravelAgencyId)),
                 BusinessContextType.TravelAgency,
                 AgencyUserId);
 
@@ -174,9 +167,9 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
             => new(
                 OwnerAirlineId,
                 customerId,
-                SalesChannel.PartnerAPI.ToString(),
+                SalesChannel.PartnerAPI,
                 null,
-                CallerScopeKey.ForSale(OrderingApiSurface.Ota, customerId, null, CallerScopeKey.Partner(PartnerApiAccessProfileId)),
+                CallerScopeKey.ForSale(CallerScopeKey.Ota, customerId, null, CallerScopeKey.Partner(PartnerApiAccessProfileId)),
                 BusinessContextType.PartnerApi,
                 PartnerApiAccessProfileId);
 
@@ -241,11 +234,5 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
 
             public bool Permits(string acceptanceProfile) => _permitted.Contains(acceptanceProfile);
         }
-    }
-
-    public sealed class TestOrderReferenceGenerator : IOrderReferenceGenerator
-    {
-        public Task<string> NextAsync(long ownerAirlineId, CancellationToken cancellationToken = default)
-            => Task.FromResult($"T{Guid.NewGuid():N}"[..12].ToUpperInvariant());
     }
 }

@@ -26,7 +26,6 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 throw Mismatch("a candidate needs at least one item");
 
             foreach (var traveler in candidate.Travelers)
-                Require(traveler.PassengerTypeCode, $"traveler {traveler.SourceTravellerRef} passenger type");
 
             foreach (var segment in candidate.Segments)
                 EnsureSegment(segment);
@@ -58,7 +57,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
         {
             if (context.OwnerAirlineId != scope.OwnerAirlineId
                 || context.FinancialCustomerId != scope.FinancialCustomerId
-                || !string.Equals(context.Channel, scope.Channel, StringComparison.Ordinal)
+                || context.Channel != scope.Channel
                 || context.SellingOfficeId != scope.SellingOfficeId)
                 throw Mismatch("candidate sales context differs from the authorized sales scope");
         }
@@ -121,7 +120,6 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 if (service.Quantity <= 0)
                     throw Mismatch($"service {service.ServiceRef} quantity must be positive");
 
-                Require(service.QuantityUnit, $"service {service.ServiceRef} quantity unit");
                 EnsureFulfillmentProfile(service);
 
                 if (service.Type != OrderServiceType.AirTransportation)
@@ -294,7 +292,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                         if (!travelers.TryGetValue(traveler, out var known))
                             throw Mismatch($"pricing unit {unit.SourceUnitRef} traveler {traveler} is not a candidate traveler");
 
-                        if (!string.Equals(known.PassengerTypeCode, group.PassengerTypeCode, StringComparison.Ordinal))
+                        if (known.PassengerTypeCode != group.PassengerTypeCode)
                             throw Mismatch($"pricing unit {unit.SourceUnitRef} group passenger type differs from traveler {traveler}");
                     }
                 }

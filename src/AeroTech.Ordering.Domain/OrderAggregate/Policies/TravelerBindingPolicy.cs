@@ -27,7 +27,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Policies
                 if (string.IsNullOrWhiteSpace(binding.ClientTravelerRef) || !clients.TryAdd(binding.ClientTravelerRef, binding))
                     throw Invalid($"client traveler reference '{binding.ClientTravelerRef}' is missing or repeated");
 
-                if (!string.Equals(binding.PassengerTypeCode, traveler.PassengerTypeCode, StringComparison.Ordinal))
+                if (binding.PassengerTypeCode != traveler.PassengerTypeCode)
                     throw Invalid($"traveler '{binding.SourceTravellerRef}' passenger type '{binding.PassengerTypeCode}' differs from the accepted '{traveler.PassengerTypeCode}'");
 
                 if (string.IsNullOrWhiteSpace(binding.GivenName) || string.IsNullOrWhiteSpace(binding.Surname))

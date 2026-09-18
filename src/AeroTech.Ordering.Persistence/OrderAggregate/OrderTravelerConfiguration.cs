@@ -9,17 +9,16 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderTraveler> builder)
         {
-            builder.ToTable("OrderTravelers", PersistenceSchemas.Commercial, table =>
+            builder.ToTable("OrderTravelers", PersistenceSchemas.Order, table =>
                 table.HasCheckConstraint("CK_OrderTravelers_Guardian", "[InfantParentTravelerId] IS NULL OR [InfantParentTravelerId] <> [Id]"));
             builder.HasKey(traveler => traveler.Id);
             builder.Property(traveler => traveler.Id).ValueGeneratedNever();
             builder.Property(traveler => traveler.SourceTravellerRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();
             builder.Property(traveler => traveler.ClientTravelerRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();
-            builder.Property(traveler => traveler.PassengerTypeCode).HasMaxLength(PersistenceSchemas.PassengerTypeLength).IsRequired();
 
             builder.OwnsOne(traveler => traveler.Identity, identity =>
             {
-                identity.ToTable("OrderTravelerIdentities", PersistenceSchemas.Commercial);
+                identity.ToTable("OrderTravelerIdentities", PersistenceSchemas.Order);
                 identity.WithOwner().HasForeignKey("TravelerId");
                 identity.Property(value => value.GivenName).HasMaxLength(PersistenceSchemas.PersonNameLength).IsRequired();
                 identity.Property(value => value.Surname).HasMaxLength(PersistenceSchemas.PersonNameLength).IsRequired();

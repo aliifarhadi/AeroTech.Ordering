@@ -10,7 +10,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<FundingObligation> builder)
         {
-            builder.ToTable("FundingObligations", PersistenceSchemas.Commercial, table =>
+            builder.ToTable("FundingObligations", PersistenceSchemas.Order, table =>
             {
                 table.HasCheckConstraint("CK_FundingObligations_Version", "[Version] >= 1");
                 table.HasCheckConstraint("CK_FundingObligations_Amount", "[AmountAmount] >= 0");

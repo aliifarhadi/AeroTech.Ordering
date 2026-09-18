@@ -1,3 +1,4 @@
+using System.Globalization;
 using AeroTech.Ordering.Domain._Shared.Resources;
 
 namespace AeroTech.Ordering.Domain._Shared.ValueObjects
@@ -12,6 +13,10 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
         public const int QuantityScale = 6;
 
         public static decimal EnsureAmount(decimal value, string field) => Ensure(value, field, AmountPrecision, AmountScale);
+
+        public static decimal Normalize(decimal value) => value / 1.0000000000000000000000000000m;
+
+        public static string Text(decimal value) => Normalize(value).ToString(CultureInfo.InvariantCulture);
 
         public static decimal EnsureRate(decimal value, string field) => Ensure(value, field, RatePrecision, RateScale);
 

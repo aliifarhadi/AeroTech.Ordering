@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderSegment> builder)
         {
-            builder.ToTable("OrderSegments", PersistenceSchemas.Commercial, table =>
+            builder.ToTable("OrderSegments", PersistenceSchemas.Order, table =>
                 table.HasCheckConstraint("CK_OrderSegments_Sequence", "[Sequence] >= 1"));
             builder.HasKey(segment => segment.Id);
             builder.Property(segment => segment.Id).ValueGeneratedNever();

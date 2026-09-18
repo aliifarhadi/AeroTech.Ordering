@@ -6,5 +6,7 @@ namespace AeroTech.Messages.Ordering.Enums
     {
         [Display(Name = "Each")] Each = 1,
         [Display(Name = "Passenger Fare")] PassengerFare = 2,
+
+        [Display(Name = "Passenger Segment")] PassengerSegment = 3,
     }
 }

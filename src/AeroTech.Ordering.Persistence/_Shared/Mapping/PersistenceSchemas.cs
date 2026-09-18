@@ -2,7 +2,7 @@ namespace AeroTech.Ordering.Persistence._Shared.Mapping
 {
     public static class PersistenceSchemas
     {
-        public const string Commercial = "Commercial";
+        public const string Order = "Order";
         public const string Operations = "Operations";
 
         public const int ReferenceLength = 128;

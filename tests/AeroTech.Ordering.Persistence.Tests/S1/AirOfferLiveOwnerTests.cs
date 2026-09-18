@@ -1,5 +1,4 @@
 using AeroTech.Messages.Ordering.Enums;
-using AeroTech.Ordering.Domain.OrderPreparationAggregate;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization;
 using AeroTech.Ordering.Persistence.Tests._Shared;
 using AeroTech.Ordering.Providers.AirOffer;
@@ -27,7 +26,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
         }
 
         [Fact]
-        public async Task Recorded_live_owner_response_is_normalized_and_prepared()
+        public async Task Recorded_live_owner_response_is_normalized_and_sold()
         {
             var body = await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, RecordedResponse));
             var handler = new AirOfferWireFixtures.StubHandler(() => body);
@@ -37,24 +36,22 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                 services => services.ConfigureHttpClientDefaults(client => client.ConfigurePrimaryHttpMessageHandler(() => handler)),
                 useReferenceOffers: false);
 
-            var preparation = await harness.SendAsync(S1Commands.Prepare("LIVE-RECORDED-OFFER"));
-            var candidate = preparation.Candidate;
+            var created = await harness.SendAsync(S1Commands.Backoffice("LIVE-RECORDED-OFFER", travellers: S1Commands.Travellers("ADT-1")));
+            var order = await CreateOrderFromOfferTests.LoadOrderAsync(harness, created.OrderId);
+            var candidate = await AirOfferLiveCandidateBridgeTests.AcceptedCandidateAsync(harness, created.OrderId);
             var charge = candidate.PricingLines.Single(line => line.SourceLineRef == "orderCharges/0");
 
             Assert.Equal(AcceptanceAssurance.LocalCandidateOnly, candidate.AcceptanceAssurance);
-            Assert.Equal(AirOfferProfile.LiveCandidateSandbox, preparation.PermittedAcceptanceProfile);
-            Assert.Contains(OrderPreparation.LiveAcceptanceBlocked, preparation.BlockingReasons);
-
-            Assert.Equal(264005012m, candidate.CustomerTotal.Amount);
-            Assert.Equal("70", candidate.CustomerTotal.CurrencyRef);
-            Assert.Single(candidate.Items);
-            Assert.Equal(2, candidate.Services.Count);
-            Assert.Equal(2, candidate.Segments.Count);
-            Assert.Single(candidate.Travelers);
+            Assert.Equal(AirOfferProfile.LiveCandidateSandbox, order.AcceptedSource.AcceptanceProfile);
+            Assert.Equal(264005012m, order.CustomerTotal.Amount);
+            Assert.Equal("70", order.CustomerTotal.CurrencyRef);
+            Assert.Single(order.Items);
+            Assert.Equal(2, order.Services.Count);
+            Assert.Equal(2, order.Segments.Count);
+            Assert.Single(order.Travelers);
 
             Assert.Equal(24000000m, charge.SaleValue.Amount);
             Assert.Equal(24000000m, charge.OriginalValue.Amount);
-            Assert.Equal("70", charge.SaleValue.CurrencyRef);
             Assert.Equal(PricingComponentType.Tax, charge.Component);
 
             var equivalentFare = candidate.PricingLines.First(line => line.SourceConversionRef == "1533121255006273536");
@@ -67,7 +64,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
         [Trait("Category", "Live")]
         [Fact]
-        public async Task Live_owner_details_resolve_into_an_acceptable_candidate()
+        public async Task Live_owner_details_are_sold_into_a_local_order()
         {
             var baseUrl = Environment.GetEnvironmentVariable(LiveBaseUrlVariable);
             var offerId = Environment.GetEnvironmentVariable(LiveOfferVariable);
@@ -77,23 +74,23 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
             await using var harness = await S1Harness.StartAsync(_fixture, useReferenceOffers: false, offerBaseUrl: baseUrl);
 
-            var preparation = await harness.SendAsync(S1Commands.Prepare(offerId!));
+            var created = await harness.SendAsync(S1Commands.Backoffice(offerId!, travellers: S1Commands.Travellers("ADT-1")));
+            var order = await CreateOrderFromOfferTests.LoadOrderAsync(harness, created.OrderId);
+            var candidate = await AirOfferLiveCandidateBridgeTests.AcceptedCandidateAsync(harness, created.OrderId);
 
             _output.WriteLine($"offerId: {offerId}");
-            _output.WriteLine($"preparationId: {preparation.PreparationId}");
-            _output.WriteLine($"acceptedSnapshotDigest: {preparation.AcceptedSnapshotDigest}");
-            _output.WriteLine($"acceptanceAssurance: {preparation.AcceptanceAssurance}");
-            _output.WriteLine($"permittedAcceptanceProfile: {preparation.PermittedAcceptanceProfile}");
-            _output.WriteLine($"blockingReasons: {string.Join(", ", preparation.BlockingReasons)}");
-            _output.WriteLine($"customerTotal: {preparation.Candidate.CustomerTotal.Amount} {preparation.Candidate.CustomerTotal.CurrencyRef}");
-            _output.WriteLine($"travelers: {preparation.Candidate.Travelers.Count}, services: {preparation.Candidate.Services.Count}, lines: {preparation.Candidate.PricingLines.Count}");
-            _output.WriteLine($"candidate: {NormalizedCandidateJson.Write(preparation.Candidate)}");
+            _output.WriteLine($"orderId: {created.OrderId}");
+            _output.WriteLine($"orderReference: {created.OrderReference}");
+            _output.WriteLine($"grandTotal: {created.GrandTotal} {created.CurrencyRef}");
+            _output.WriteLine($"acceptanceProfile: {order.AcceptedSource.AcceptanceProfile}");
+            _output.WriteLine($"acceptanceAssurance: {order.AcceptedSource.AcceptanceAssurance}");
+            _output.WriteLine($"services: {order.Services.Count}, segments: {order.Segments.Count}, pricingLines: {order.PricingLines.Count}");
+            _output.WriteLine($"candidate: {NormalizedCandidateJson.Write(candidate)}");
 
-            Assert.Equal(offerId, preparation.SourceOfferId);
-            Assert.Equal(AcceptanceAssurance.LocalCandidateOnly, preparation.AcceptanceAssurance);
-            Assert.Contains(OrderPreparation.LiveAcceptanceBlocked, preparation.BlockingReasons);
-            Assert.NotEmpty(preparation.Candidate.Services);
-            Assert.True(preparation.Candidate.CustomerTotal.Amount > 0);
+            Assert.Equal(offerId, order.AcceptedSource.SourceOfferId);
+            Assert.Equal(AcceptanceAssurance.LocalCandidateOnly, order.AcceptedSource.AcceptanceAssurance);
+            Assert.NotEmpty(order.Services);
+            Assert.True(order.CustomerTotal.Amount > 0);
         }
     }
 }

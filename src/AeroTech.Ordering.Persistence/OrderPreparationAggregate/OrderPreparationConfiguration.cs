@@ -12,7 +12,7 @@ namespace AeroTech.Ordering.Persistence.OrderPreparationAggregate
 
         public void Configure(EntityTypeBuilder<OrderPreparation> builder)
         {
-            builder.ToTable("OrderPreparations", PersistenceSchemas.Commercial, table =>
+            builder.ToTable("OrderPreparations", PersistenceSchemas.Order, table =>
             {
                 table.HasCheckConstraint("CK_OrderPreparations_Consumption", "([ConsumedByOrderId] IS NULL AND [ConsumedAt] IS NULL) OR ([ConsumedByOrderId] IS NOT NULL AND [ConsumedAt] IS NOT NULL)");
                 table.HasCheckConstraint("CK_OrderPreparations_Digest", "LEN([SnapshotDigest]) = 64");
@@ -24,7 +24,6 @@ namespace AeroTech.Ordering.Persistence.OrderPreparationAggregate
             builder.Ignore(preparation => preparation.IsConsumed);
             builder.Ignore(preparation => preparation.ValidityFacts);
 
-            builder.Property(preparation => preparation.Channel).HasMaxLength(PersistenceSchemas.OwnerNameLength).IsRequired();
             builder.Property(preparation => preparation.CallerScope).HasMaxLength(PersistenceSchemas.CallerScopeLength).IsRequired();
             builder.Property(preparation => preparation.SourceOwner).HasMaxLength(PersistenceSchemas.OwnerNameLength).IsRequired();
             builder.Property(preparation => preparation.SourceOfferId).HasMaxLength(2048).IsRequired();

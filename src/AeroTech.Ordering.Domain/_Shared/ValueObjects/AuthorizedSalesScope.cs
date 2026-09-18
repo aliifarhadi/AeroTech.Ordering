@@ -1,4 +1,5 @@
 using AeroTech.Messages.Aegis.Enums;
+using AeroTech.Messages.Shared.Enums;
 using AeroTech.Ordering.Domain._Shared.Resources;
 
 namespace AeroTech.Ordering.Domain._Shared.ValueObjects
@@ -8,7 +9,7 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
         public AuthorizedSalesScope(
             long ownerAirlineId,
             long financialCustomerId,
-            string channel,
+            SalesChannel channel,
             long? sellingOfficeId,
             string callerScope,
             BusinessContextType actorContextType,
@@ -19,9 +20,6 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
 
             if (financialCustomerId <= 0)
                 throw ExceptionFactory.AuthorizedScopeRequired("financial customer");
-
-            if (string.IsNullOrWhiteSpace(channel))
-                throw ExceptionFactory.AuthorizedScopeRequired("sales channel");
 
             if (string.IsNullOrWhiteSpace(callerScope))
                 throw ExceptionFactory.AuthorizedScopeRequired("caller scope");
@@ -45,7 +43,7 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
 
         public long FinancialCustomerId { get; }
 
-        public string Channel { get; }
+        public SalesChannel Channel { get; }
 
         public long? SellingOfficeId { get; }
 

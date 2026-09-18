@@ -29,6 +29,7 @@ namespace AeroTech.Ordering.Application
             services.Configure<OrderCreationOptions>(configuration.GetSection(OrderCreationOptions.SectionName));
             services.AddSingleton<RequestDigester>();
             services.AddScoped<AuthorizedScopeResolver>();
+            services.AddScoped<ICreateOrderFromOfferService, CreateOrderFromOfferService>();
 
             return services;
         }

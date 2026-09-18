@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderService> builder)
         {
-            builder.ToTable("OrderServices", PersistenceSchemas.Commercial, table =>
+            builder.ToTable("OrderServices", PersistenceSchemas.Order, table =>
             {
                 table.HasCheckConstraint("CK_OrderServices_Quantity", "[Quantity] > 0");
                 table.HasCheckConstraint("CK_OrderServices_Version", "[ServiceVersion] >= 1");
@@ -18,7 +18,6 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.Property(service => service.Id).ValueGeneratedNever();
             builder.Property(service => service.SourceServiceRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();
             builder.Property(service => service.Quantity).HasQuantityPrecision();
-            builder.Property(service => service.QuantityUnit).HasMaxLength(PersistenceSchemas.OwnerNameLength).IsRequired();
             builder.Property(service => service.DetailSchema).HasMaxLength(PersistenceSchemas.OwnerNameLength).IsRequired();
 
             builder.OwnsOne(service => service.FulfillmentProfile, profile =>
@@ -32,7 +31,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
 
             builder.OwnsOne(service => service.AirTransport, detail =>
             {
-                detail.ToTable("AirTransportServiceDetails", PersistenceSchemas.Commercial);
+                detail.ToTable("AirTransportServiceDetails", PersistenceSchemas.Order);
                 detail.WithOwner().HasForeignKey("ServiceId");
                 detail.Property(value => value.CabinRef).HasMaxLength(PersistenceSchemas.ReferenceLength);
                 detail.Property(value => value.RbdRef).HasMaxLength(PersistenceSchemas.ReferenceLength);

@@ -6,6 +6,7 @@ using AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
 using AeroTech.Ordering.Domain.Tests._Shared;
 using Xunit;
+using AeroTech.Messages.Shared.Enums;
 
 namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
 {
@@ -55,7 +56,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
         [Fact]
         public void Pack_negative_examples_are_rejected_with_their_rule()
         {
-            var scope = CandidateBuilder.Scope(channel: "Backoffice");
+            var scope = CandidateBuilder.Scope(channel: SalesChannel.BackOffice);
 
             AssertMessage("differs from the pricing lines", () => CandidateValidator.EnsureValid(NormalizedCandidateJson.Read(PackExamples.IncorrectTotal), scope));
             AssertMessage("is not a candidate traveler", () => CandidateValidator.EnsureValid(NormalizedCandidateJson.Read(PackExamples.MissingBeneficiary), scope));

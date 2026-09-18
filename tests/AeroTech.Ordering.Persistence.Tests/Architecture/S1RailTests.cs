@@ -1,11 +1,15 @@
 using System.Reflection;
-using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer;
+using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Backoffice;
+using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Ota;
+using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.OtaPanel;
+using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Service;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProjection;
-using AeroTech.Ordering.Application.OrderPreparationAggregate.Commands.PrepareOrderFromOffer;
 using AeroTech.Ordering.Domain.OrderAggregate.Contracts;
 using AeroTech.Ordering.Domain.Ports.Offers;
-using AeroTech.Ordering.Query.OperationAggregate.Queries.GetOperation;
-using AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrder;
+using AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrderById.Backoffice;
+using AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrderById.Ota;
+using AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrderById.OtaPanel;
+using AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrderById.Service;
 using MediatR;
 using Xunit;
 
@@ -16,9 +20,9 @@ namespace AeroTech.Ordering.Persistence.Tests.Architecture
         private static readonly Assembly[] OrderingAssemblies =
         {
             typeof(IOfferSourcePort).Assembly,
-            typeof(PrepareOrderFromOfferCommand).Assembly,
+            typeof(BackofficeCreateOrderFromOfferCommand).Assembly,
             typeof(OrderingDbContext).Assembly,
-            typeof(GetOrderQuery).Assembly,
+            typeof(BackofficeGetOrderByIdQuery).Assembly,
             typeof(Synchronizer.DependencyInjection).Assembly,
             typeof(Providers.DependencyInjection).Assembly,
             typeof(Providers.Deterministic.DependencyInjection).Assembly,
@@ -28,11 +32,15 @@ namespace AeroTech.Ordering.Persistence.Tests.Architecture
         };
 
         [Theory]
-        [InlineData(typeof(PrepareOrderFromOfferCommand))]
-        [InlineData(typeof(CreateOrderFromOfferCommand))]
+        [InlineData(typeof(BackofficeCreateOrderFromOfferCommand))]
+        [InlineData(typeof(OtaCreateOrderFromOfferCommand))]
+        [InlineData(typeof(OtaPanelCreateOrderFromOfferCommand))]
+        [InlineData(typeof(ServiceCreateOrderFromOfferCommand))]
         [InlineData(typeof(RebuildOrderProjectionCommand))]
-        [InlineData(typeof(GetOrderQuery))]
-        [InlineData(typeof(GetOperationQuery))]
+        [InlineData(typeof(BackofficeGetOrderByIdQuery))]
+        [InlineData(typeof(OtaGetOrderByIdQuery))]
+        [InlineData(typeof(OtaPanelGetOrderByIdQuery))]
+        [InlineData(typeof(ServiceGetOrderByIdQuery))]
         public void Each_s1_command_and_query_has_exactly_one_canonical_handler(Type request)
         {
             var handlers = OrderingAssemblies
@@ -51,7 +59,7 @@ namespace AeroTech.Ordering.Persistence.Tests.Architecture
         public void Every_query_type_lives_in_the_query_project()
         {
             var misplaced = OrderingAssemblies
-                .Where(assembly => assembly != typeof(GetOrderQuery).Assembly)
+                .Where(assembly => assembly != typeof(BackofficeGetOrderByIdQuery).Assembly)
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.Name.EndsWith("Query", StringComparison.Ordinal)
                                && type.GetInterfaces().Any(contract => contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IRequest<>)))

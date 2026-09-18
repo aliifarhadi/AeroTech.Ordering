@@ -1,5 +1,6 @@
 using AeroTech.Framework.Core.Domain.Entities;
 using AeroTech.Ordering.Domain.OrderAggregate.ValueObjects;
+using AeroTech.Messages.Ordering.Enums;
 
 namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 {
@@ -25,7 +26,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 
         public string ClientTravelerRef { get; private set; } = null!;
 
-        public string PassengerTypeCode { get; private set; } = null!;
+        public PassengerTypeCode PassengerTypeCode { get; private set; }
 
         public long? InfantParentTravelerId { get; private set; }
 

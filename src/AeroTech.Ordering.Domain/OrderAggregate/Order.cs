@@ -11,6 +11,8 @@ using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Domain.OrderAggregate.Policies;
 using AeroTech.Ordering.Domain.OrderAggregate.ValueObjects;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization;
+using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
+using AeroTech.Messages.Shared.Enums;
 
 namespace AeroTech.Ordering.Domain.OrderAggregate
 {
@@ -40,7 +42,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
 
         public long FinancialCustomerId { get; private set; }
 
-        public string Channel { get; private set; } = null!;
+        public SalesChannel Channel { get; private set; }
 
         public long? SellingOfficeId { get; private set; }
 
@@ -165,64 +167,11 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
             var travelerIds = order.AddTravelers(args.TravelerBindings, ids);
             order.AddContacts(args.Contacts, ids);
 
-            var segmentIds = new Dictionary<string, long>(StringComparer.Ordinal);
+            var segmentIds = order.AddSegments(candidate, ids);
+            var (itemIds, serviceIds) = order.AddItemsAndServices(candidate, travelerIds, segmentIds, change.Id, ids);
 
-            for (var index = 0; index < candidate.Segments.Count; index++)
-            {
-                var segment = new OrderSegment(ids.NewId(), order.Id, index + 1, candidate.Segments[index], ids.NewId);
-                order._segments.Add(segment);
-                segmentIds.Add(segment.SourceSegmentRef, segment.Id);
-            }
-
-            var itemIds = new Dictionary<string, long>(StringComparer.Ordinal);
-            var serviceIds = new Dictionary<string, long>(StringComparer.Ordinal);
-            var services = candidate.Services.ToDictionary(service => service.ServiceRef, StringComparer.Ordinal);
-
-            foreach (var sourceItem in candidate.Items)
-            {
-                var item = new OrderItem(ids.NewId(), order.Id, sourceItem, change.Id);
-                order._items.Add(item);
-                itemIds.Add(item.SourceItemRef, item.Id);
-
-                foreach (var serviceRef in sourceItem.ServiceRefs)
-                {
-                    var service = new OrderService(ids.NewId(), order.Id, item.Id, services[serviceRef], travelerIds, segmentIds, change.Id, ids.NewId);
-                    order._services.Add(service);
-                    serviceIds.Add(serviceRef, service.Id);
-                    order._itemServiceLinks.Add(new OrderItemServiceLink(ids.NewId(), order.Id, item.Id, service.Id, change.Id));
-                }
-            }
-
-            foreach (var sourceLine in candidate.PricingLines)
-            {
-                var basisId = sourceLine.BasisType switch
-                {
-                    PricingBasisType.OrderItem => itemIds[sourceLine.BasisRef],
-                    PricingBasisType.OrderService => serviceIds[sourceLine.BasisRef],
-                    PricingBasisType.Segment => segmentIds[sourceLine.BasisRef],
-                    PricingBasisType.Order => order.Id,
-                    _ => (long?)null
-                };
-
-                var itemId = sourceLine.ItemRef is null ? (long?)null : itemIds[sourceLine.ItemRef];
-                order._pricingLines.Add(new PricingLine(ids.NewId(), order.Id, priceSet.Id, itemId, basisId, sourceLine));
-            }
-
-            order.CustomerTotal = PricingArithmetic.CustomerTotal(
-                order._pricingLines.Select(line => new PricedAmount(line.Effect, line.Direction, line.SaleValue)),
-                order.SaleCurrencyRef);
-
-            if (order.CustomerTotal.Amount != candidate.CustomerTotal.Amount)
-                throw ExceptionFactory.PricingRuleViolated("committed lines differ from the accepted customer total");
-
-            var constructionNode = NormalizedCandidateJson.ToNode(candidate)["fareConstruction"] as IReadOnlyDictionary<string, object?>;
-            order._fareConstructions.Add(new FareConstruction(
-                ids.NewId(),
-                order.Id,
-                change.Id,
-                candidate.FareConstruction.Assurance,
-                candidate.FareConstruction.SourceContextRef,
-                CanonicalJson.Write(constructionNode!["pricingUnits"])));
+            order.AddPricing(candidate, priceSet.Id, itemIds, serviceIds, segmentIds, ids);
+            order.AddFareConstruction(candidate, change.Id, ids);
 
             order.AddOriginalSaleObligations(change.Id, decisionRef, ids);
 
@@ -246,6 +195,93 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
         }
 
         public bool IsSandboxScoped => AcceptedSource.IsSandboxScoped;
+
+        private IReadOnlyDictionary<string, long> AddSegments(NormalizedCandidate candidate, IIdGenerator ids)
+        {
+            var segmentIds = new Dictionary<string, long>(StringComparer.Ordinal);
+
+            for (var index = 0; index < candidate.Segments.Count; index++)
+            {
+                var segment = new OrderSegment(ids.NewId(), Id, index + 1, candidate.Segments[index], ids.NewId);
+                _segments.Add(segment);
+                segmentIds.Add(segment.SourceSegmentRef, segment.Id);
+            }
+
+            return segmentIds;
+        }
+
+        private (IReadOnlyDictionary<string, long> ItemIds, IReadOnlyDictionary<string, long> ServiceIds) AddItemsAndServices(
+            NormalizedCandidate candidate,
+            IReadOnlyDictionary<string, long> travelerIds,
+            IReadOnlyDictionary<string, long> segmentIds,
+            long changeId,
+            IIdGenerator ids)
+        {
+            var itemIds = new Dictionary<string, long>(StringComparer.Ordinal);
+            var serviceIds = new Dictionary<string, long>(StringComparer.Ordinal);
+            var sourceServices = candidate.Services.ToDictionary(service => service.ServiceRef, StringComparer.Ordinal);
+
+            foreach (var sourceItem in candidate.Items)
+            {
+                var item = new OrderItem(ids.NewId(), Id, sourceItem, changeId);
+                _items.Add(item);
+                itemIds.Add(item.SourceItemRef, item.Id);
+
+                foreach (var serviceRef in sourceItem.ServiceRefs)
+                {
+                    var service = new OrderService(ids.NewId(), Id, item.Id, sourceServices[serviceRef], travelerIds, segmentIds, changeId, ids.NewId);
+                    _services.Add(service);
+                    serviceIds.Add(serviceRef, service.Id);
+                    _itemServiceLinks.Add(new OrderItemServiceLink(ids.NewId(), Id, item.Id, service.Id, changeId));
+                }
+            }
+
+            return (itemIds, serviceIds);
+        }
+
+        private void AddPricing(
+            NormalizedCandidate candidate,
+            long priceChangeSetId,
+            IReadOnlyDictionary<string, long> itemIds,
+            IReadOnlyDictionary<string, long> serviceIds,
+            IReadOnlyDictionary<string, long> segmentIds,
+            IIdGenerator ids)
+        {
+            foreach (var sourceLine in candidate.PricingLines)
+            {
+                var basisId = sourceLine.BasisType switch
+                {
+                    PricingBasisType.OrderItem => itemIds[sourceLine.BasisRef],
+                    PricingBasisType.OrderService => serviceIds[sourceLine.BasisRef],
+                    PricingBasisType.Segment => segmentIds[sourceLine.BasisRef],
+                    PricingBasisType.Order => Id,
+                    _ => (long?)null
+                };
+
+                var itemId = sourceLine.ItemRef is null ? (long?)null : itemIds[sourceLine.ItemRef];
+                _pricingLines.Add(new PricingLine(ids.NewId(), Id, priceChangeSetId, itemId, basisId, sourceLine));
+            }
+
+            CustomerTotal = PricingArithmetic.CustomerTotal(
+                _pricingLines.Select(line => new PricedAmount(line.Effect, line.Direction, line.SaleValue)),
+                SaleCurrencyRef);
+
+            if (CustomerTotal.Amount != candidate.CustomerTotal.Amount)
+                throw ExceptionFactory.PricingRuleViolated("committed lines differ from the accepted customer total");
+        }
+
+        private void AddFareConstruction(NormalizedCandidate candidate, long changeId, IIdGenerator ids)
+        {
+            var constructionNode = NormalizedCandidateJson.ToNode(candidate)["fareConstruction"] as IReadOnlyDictionary<string, object?>;
+
+            _fareConstructions.Add(new FareConstruction(
+                ids.NewId(),
+                Id,
+                changeId,
+                candidate.FareConstruction.Assurance,
+                candidate.FareConstruction.SourceContextRef,
+                CanonicalJson.Write(constructionNode!["pricingUnits"])));
+        }
 
         private IReadOnlyDictionary<string, long> AddTravelers(IReadOnlyList<TravelerBinding> bindings, IIdGenerator ids)
         {

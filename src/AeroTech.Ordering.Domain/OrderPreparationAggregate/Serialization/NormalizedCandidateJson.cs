@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Messages.Shared.Enums;
 using AeroTech.Ordering.Domain._Shared.Resources;
 using AeroTech.Ordering.Domain._Shared.Serialization;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
@@ -33,11 +34,11 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             ("salesContext", Map(
                 ("ownerAirlineId", CanonicalJson.Identifier(candidate.SalesContext.OwnerAirlineId)),
                 ("financialCustomerId", CanonicalJson.Identifier(candidate.SalesContext.FinancialCustomerId)),
-                ("channel", candidate.SalesContext.Channel),
+                ("channel", CandidateVocabulary.Name(candidate.SalesContext.Channel)),
                 ("sellingOfficeId", CanonicalJson.Identifier(candidate.SalesContext.SellingOfficeId)))),
             ("travelers", candidate.Travelers.Select(traveler => (object?)Map(
                 ("sourceTravellerRef", traveler.SourceTravellerRef),
-                ("passengerTypeCode", traveler.PassengerTypeCode))).ToList()),
+                ("passengerTypeCode", CandidateVocabulary.Name(traveler.PassengerTypeCode)))).ToList()),
             ("segments", candidate.Segments.Select(segment => (object?)Map(
                 ("segmentRef", segment.SegmentRef),
                 ("kind", CandidateVocabulary.Name(segment.Kind)),
@@ -59,7 +60,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 ("beneficiaryRefs", Strings(service.BeneficiaryRefs)),
                 ("segmentRefs", Strings(service.SegmentRefs)),
                 ("quantity", CanonicalJson.Amount(service.Quantity)),
-                ("quantityUnit", service.QuantityUnit),
+                ("quantityUnit", CandidateVocabulary.Name(service.QuantityUnit)),
                 ("detailSchema", service.DetailSchema),
                 ("detailSchemaVersion", service.DetailSchemaVersion),
                 ("details", service.Details.ToDictionary(pair => pair.Key, pair => (object?)pair.Value)),
@@ -93,7 +94,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                     ("coveredSourceBoundRefs", Strings(unit.CoveredSourceBoundRefs)),
                     ("pricingGroup", unit.PricingGroup is null ? null : Map(
                         ("travelerRefs", Strings(unit.PricingGroup.TravelerRefs)),
-                        ("passengerTypeCode", unit.PricingGroup.PassengerTypeCode),
+                        ("passengerTypeCode", CandidateVocabulary.Name(unit.PricingGroup.PassengerTypeCode)),
                         ("quantity", unit.PricingGroup.Quantity))),
                     ("components", unit.Components.Select(component => (object?)Map(
                         ("sourceFareRef", component.SourceFareRef),
@@ -153,12 +154,14 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 new CandidateSalesContext(
                     sales.Identifier("ownerAirlineId"),
                     sales.Identifier("financialCustomerId"),
-                    sales.String("channel"),
+                    CandidateVocabulary.Parse<SalesChannel>(sales.String("channel"), "salesContext.channel"),
                     sales.NullableIdentifier("sellingOfficeId")),
                 root.Array("travelers").Select(traveler =>
                 {
                     traveler.Only("sourceTravellerRef", "passengerTypeCode");
-                    return new CandidateTraveler(traveler.String("sourceTravellerRef"), traveler.String("passengerTypeCode"));
+                    return new CandidateTraveler(
+                        traveler.String("sourceTravellerRef"),
+                        CandidateVocabulary.Parse<PassengerTypeCode>(traveler.String("passengerTypeCode"), "traveler.passengerTypeCode"));
                 }).ToList(),
                 root.Array("segments").Select(segment =>
                 {
@@ -206,7 +209,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 service.Strings("beneficiaryRefs"),
                 service.Strings("segmentRefs"),
                 service.Decimal("quantity", QuantityPattern()),
-                service.String("quantityUnit"),
+                CandidateVocabulary.Parse<OrderItemUnitOfMeasure>(service.String("quantityUnit"), "service.quantityUnit"),
                 service.String("detailSchema"),
                 service.Integer("detailSchemaVersion"),
                 service.Object("details").StringMap(),
@@ -247,7 +250,10 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             if (unit.NullableObject("pricingGroup") is { } groupNode)
             {
                 groupNode.Only("travelerRefs", "passengerTypeCode", "quantity");
-                group = new CandidatePricingGroup(groupNode.Strings("travelerRefs"), groupNode.String("passengerTypeCode"), groupNode.Integer("quantity"));
+                group = new CandidatePricingGroup(
+                    groupNode.Strings("travelerRefs"),
+                    CandidateVocabulary.Parse<PassengerTypeCode>(groupNode.String("passengerTypeCode"), "pricingGroup.passengerTypeCode"),
+                    groupNode.Integer("quantity"));
             }
 
             return new CandidatePricingUnit(

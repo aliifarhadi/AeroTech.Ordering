@@ -33,7 +33,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
                 await using (var context = NewContext(options))
                 {
-                    Assert.Contains("20260917160501_S1CommercialCreate", await context.Database.GetPendingMigrationsAsync());
+                    Assert.Contains("20260918201810_S1OrderCreate", await context.Database.GetPendingMigrationsAsync());
                     await context.Database.MigrateAsync();
 
                     Assert.Empty(await context.Database.GetPendingMigrationsAsync());

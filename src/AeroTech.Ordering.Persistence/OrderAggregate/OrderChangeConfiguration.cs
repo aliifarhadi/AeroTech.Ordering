@@ -10,7 +10,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderChange> builder)
         {
-            builder.ToTable("OrderChanges", PersistenceSchemas.Commercial);
+            builder.ToTable("OrderChanges", PersistenceSchemas.Order);
             builder.HasKey(change => change.Id);
             builder.Property(change => change.Id).ValueGeneratedNever();
             builder.Property(change => change.SourceDecisionRef).HasMaxLength(PersistenceSchemas.CallerScopeLength).IsRequired();

@@ -13,7 +13,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
 
         public void Configure(EntityTypeBuilder<Order> builder)
         {
-            builder.ToTable("Orders", PersistenceSchemas.Commercial, table =>
+            builder.ToTable("Orders", PersistenceSchemas.Order, table =>
             {
                 table.HasCheckConstraint("CK_Orders_Revisions", "[CommercialVersion] >= 1 AND [FinancialSequence] >= 0 AND [OrderRevision] >= 1 AND [LastEventOrdinal] >= 0");
                 table.HasCheckConstraint("CK_Orders_Root", "[RootOrderId] = [Id]");
@@ -24,7 +24,6 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.Ignore(order => order.IsSandboxScoped);
 
             builder.Property(order => order.OrderReference).HasMaxLength(PersistenceSchemas.OwnerNameLength).IsRequired();
-            builder.Property(order => order.Channel).HasMaxLength(PersistenceSchemas.OwnerNameLength).IsRequired();
             builder.Property(order => order.SaleCurrencyRef).HasMaxLength(PersistenceSchemas.CurrencyRefLength).IsRequired();
             builder.Property(order => order.ClientReference).HasMaxLength(PersistenceSchemas.ReferenceLength);
 

@@ -6,7 +6,6 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProj
     {
         public RebuildOrderProjectionCommandValidator()
         {
-            RuleFor(command => command.Scope).NotNull();
             RuleFor(command => command.IdempotencyKey).NotEmpty();
             RuleFor(command => command.OrderId).GreaterThan(0);
         }

@@ -11,7 +11,6 @@ namespace AeroTech.Ordering.Providers.Deterministic.Offers.Persistence
             builder.HasKey(offer => offer.Id);
             builder.Property(offer => offer.OfferId).HasMaxLength(256);
             builder.Property(offer => offer.OwnerBindingRef).HasMaxLength(256);
-            builder.Property(offer => offer.Channel).HasMaxLength(64);
             builder.Property(offer => offer.CandidateJson).HasColumnType("nvarchar(max)");
             builder.HasIndex(offer => new { offer.OfferId, offer.Revision }).IsUnique();
             builder.HasIndex(offer => offer.OwnerBindingRef).IsUnique();

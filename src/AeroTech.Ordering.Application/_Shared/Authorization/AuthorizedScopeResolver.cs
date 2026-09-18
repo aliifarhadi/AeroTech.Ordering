@@ -1,5 +1,4 @@
 using AeroTech.Messages.Aegis.Enums;
-using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
 using AeroTech.Ordering.Domain._Shared.Contracts;
 using AeroTech.Ordering.Domain._Shared.Resources;
@@ -23,159 +22,128 @@ namespace AeroTech.Ordering.Application._Shared.Authorization
             _caller = caller;
         }
 
-        public async Task<AuthorizedSalesScope> ResolveAsync(SalesScopeRequest request, CancellationToken cancellationToken)
+        public async Task<AuthorizedSalesScope> BackofficeSaleAsync(long financialCustomerId, long sellingOfficeId, CancellationToken cancellationToken)
         {
-            var ownerAirlineId = await _homeOperatorProvider.GetOwnerAirlineIdAsync(cancellationToken);
+            RequireSurface(AuthorizationSurface.Backoffice, CallerScopeKey.Backoffice);
 
-            return request.Surface switch
-            {
-                OrderingApiSurface.Backoffice => await BackofficeAsync(ownerAirlineId, request, cancellationToken),
-                OrderingApiSurface.OtaPanel => await OtaPanelAsync(ownerAirlineId, request, cancellationToken),
-                OrderingApiSurface.Ota => await OtaAsync(ownerAirlineId, request, cancellationToken),
-                OrderingApiSurface.Service => await ServiceAsync(ownerAirlineId, request, cancellationToken),
-                _ => throw ExceptionFactory.AuthorizedScopeRequired("a sale surface")
-            };
-        }
-
-        public async Task<AdministrativeScope> ResolveAsync(AdministrativeScopeRequest request, CancellationToken cancellationToken)
-        {
-            var ownerAirlineId = await _homeOperatorProvider.GetOwnerAirlineIdAsync(cancellationToken);
-
-            return new AdministrativeScope(
-                ownerAirlineId,
-                CallerScopeKey.ForAdministration(request.Surface, CallerScopeKey.None),
-                BusinessContextType.Service,
-                _caller.IsAuthenticated ? _caller.ActorId : null);
-        }
-
-        public async Task<AuthorizedReadScope> ResolveReadScopeAsync(OrderingApiSurface surface, CancellationToken cancellationToken)
-        {
-            var ownerAirlineId = await _homeOperatorProvider.GetOwnerAirlineIdAsync(cancellationToken);
-
-            switch (surface)
-            {
-                case OrderingApiSurface.Backoffice:
-                    RequireSurface(AuthorizationSurface.Backoffice, surface);
-                    return new AuthorizedReadScope(ownerAirlineId, null, true);
-
-                case OrderingApiSurface.OtaPanel:
-                {
-                    RequireSurface(AuthorizationSurface.OtaPanel, surface);
-                    var travelAgencyId = Required(_caller.TravelAgencyId, "travel agency");
-                    var customer = await _customers.FindByTravelAgencyAsync(travelAgencyId, cancellationToken);
-
-                    if (customer is null || !customer.IsActive || !customer.IsTravelAgency)
-                        throw ExceptionFactory.AuthorizedScopeRequired("financial customer");
-
-                    return new AuthorizedReadScope(ownerAirlineId, customer.CustomerId, true);
-                }
-
-                case OrderingApiSurface.Ota:
-                {
-                    RequireSurface(AuthorizationSurface.Api, surface);
-                    var financialCustomerId = Required(_caller.CustomerId, "financial customer");
-                    await EnsureActiveCustomerAsync(financialCustomerId, cancellationToken);
-                    return new AuthorizedReadScope(ownerAirlineId, financialCustomerId, true);
-                }
-
-                case OrderingApiSurface.Service:
-                case OrderingApiSurface.Internal:
-                    return new AuthorizedReadScope(ownerAirlineId, null, false);
-
-                default:
-                    throw ExceptionFactory.AuthorizedScopeRequired("an unknown api surface");
-            }
-        }
-
-        public Task<long> OwnerAirlineIdAsync(CancellationToken cancellationToken)
-            => _homeOperatorProvider.GetOwnerAirlineIdAsync(cancellationToken);
-
-        private async Task<AuthorizedSalesScope> BackofficeAsync(long ownerAirlineId, SalesScopeRequest request, CancellationToken cancellationToken)
-        {
-            RequireSurface(AuthorizationSurface.Backoffice, OrderingApiSurface.Backoffice);
-
-            var financialCustomerId = Required(request.FinancialCustomerId, "financial customer");
-            var sellingOfficeId = Required(request.SellingOfficeId, "selling office");
-            var permittedOfficeId = Required(_caller.AirlineOfficeId, "selling office");
-
-            if (sellingOfficeId != permittedOfficeId)
+            if (sellingOfficeId != Required(_caller.AirlineOfficeId, "selling office"))
                 throw ExceptionFactory.AuthorizedScopeRequired("selling office");
 
             await EnsureActiveCustomerAsync(financialCustomerId, cancellationToken);
 
             return new AuthorizedSalesScope(
-                ownerAirlineId,
+                await OwnerAirlineIdAsync(cancellationToken),
                 financialCustomerId,
-                SalesChannel.BackOffice.ToString(),
+                SalesChannel.BackOffice,
                 sellingOfficeId,
-                CallerScopeKey.ForSale(OrderingApiSurface.Backoffice, financialCustomerId, sellingOfficeId, CallerScopeKey.None),
+                CallerScopeKey.ForSale(CallerScopeKey.Backoffice, financialCustomerId, sellingOfficeId, CallerScopeKey.None),
                 BusinessContextType.Airline,
                 _caller.AirlineUserId);
         }
 
-        private async Task<AuthorizedSalesScope> OtaPanelAsync(long ownerAirlineId, SalesScopeRequest request, CancellationToken cancellationToken)
+        public async Task<AuthorizedSalesScope> OtaPanelSaleAsync(CancellationToken cancellationToken)
         {
-            RequireSurface(AuthorizationSurface.OtaPanel, OrderingApiSurface.OtaPanel);
+            RequireSurface(AuthorizationSurface.OtaPanel, CallerScopeKey.OtaPanel);
 
             var travelAgencyId = Required(_caller.TravelAgencyId, "travel agency");
             var sellingOfficeId = Required(_caller.TravelAgencyOfficeId, "selling office");
-
-            var customer = await _customers.FindByTravelAgencyAsync(travelAgencyId, cancellationToken);
-
-            if (customer is null || !customer.IsActive || !customer.IsTravelAgency)
-                throw ExceptionFactory.AuthorizedScopeRequired("financial customer");
-
-            EnsureNotDelegated(request, customer.CustomerId, sellingOfficeId);
+            var financialCustomerId = await TravelAgencyCustomerIdAsync(travelAgencyId, cancellationToken);
 
             return new AuthorizedSalesScope(
-                ownerAirlineId,
-                customer.CustomerId,
-                SalesChannel.AgencyPanel.ToString(),
+                await OwnerAirlineIdAsync(cancellationToken),
+                financialCustomerId,
+                SalesChannel.AgencyPanel,
                 sellingOfficeId,
-                CallerScopeKey.ForSale(OrderingApiSurface.OtaPanel, customer.CustomerId, sellingOfficeId, CallerScopeKey.Agency(travelAgencyId)),
+                CallerScopeKey.ForSale(CallerScopeKey.OtaPanel, financialCustomerId, sellingOfficeId, CallerScopeKey.Agency(travelAgencyId)),
                 BusinessContextType.TravelAgency,
                 _caller.TravelAgencyUserId);
         }
 
-        private async Task<AuthorizedSalesScope> OtaAsync(long ownerAirlineId, SalesScopeRequest request, CancellationToken cancellationToken)
+        public async Task<AuthorizedSalesScope> OtaSaleAsync(CancellationToken cancellationToken)
         {
-            RequireSurface(AuthorizationSurface.Api, OrderingApiSurface.Ota);
+            RequireSurface(AuthorizationSurface.Api, CallerScopeKey.Ota);
 
             var financialCustomerId = Required(_caller.CustomerId, "financial customer");
             var sellingOfficeId = _caller.TravelAgencyOfficeId;
 
             await EnsureActiveCustomerAsync(financialCustomerId, cancellationToken);
-            EnsureNotDelegated(request, financialCustomerId, sellingOfficeId);
 
             var principalScope = _caller.PartnerApiAccessProfileId is { } profileId
                 ? CallerScopeKey.Partner(profileId)
                 : CallerScopeKey.None;
 
             return new AuthorizedSalesScope(
-                ownerAirlineId,
+                await OwnerAirlineIdAsync(cancellationToken),
                 financialCustomerId,
-                SalesChannel.PartnerAPI.ToString(),
+                SalesChannel.PartnerAPI,
                 sellingOfficeId,
-                CallerScopeKey.ForSale(OrderingApiSurface.Ota, financialCustomerId, sellingOfficeId, principalScope),
+                CallerScopeKey.ForSale(CallerScopeKey.Ota, financialCustomerId, sellingOfficeId, principalScope),
                 BusinessContextType.PartnerApi,
                 _caller.PartnerApiAccessProfileId);
         }
 
-        private async Task<AuthorizedSalesScope> ServiceAsync(long ownerAirlineId, SalesScopeRequest request, CancellationToken cancellationToken)
+        public async Task<AuthorizedSalesScope> ServiceSaleAsync(long financialCustomerId, long? sellingOfficeId, CancellationToken cancellationToken)
         {
-            var financialCustomerId = Required(request.FinancialCustomerId, "financial customer");
-            var sellingOfficeId = request.SellingOfficeId;
-
             await EnsureActiveCustomerAsync(financialCustomerId, cancellationToken);
 
             return new AuthorizedSalesScope(
-                ownerAirlineId,
+                await OwnerAirlineIdAsync(cancellationToken),
                 financialCustomerId,
-                SalesChannel.System.ToString(),
+                SalesChannel.System,
                 sellingOfficeId,
-                CallerScopeKey.ForSale(OrderingApiSurface.Service, financialCustomerId, sellingOfficeId, CallerScopeKey.None),
+                CallerScopeKey.ForSale(CallerScopeKey.Service, financialCustomerId, sellingOfficeId, CallerScopeKey.None),
                 BusinessContextType.Service,
                 _caller.IsAuthenticated ? _caller.ActorId : null);
+        }
+
+        public async Task<AuthorizedReadScope> BackofficeReadAsync(CancellationToken cancellationToken)
+        {
+            RequireSurface(AuthorizationSurface.Backoffice, CallerScopeKey.Backoffice);
+
+            return new AuthorizedReadScope(await OwnerAirlineIdAsync(cancellationToken), null, true);
+        }
+
+        public async Task<AuthorizedReadScope> OtaPanelReadAsync(CancellationToken cancellationToken)
+        {
+            RequireSurface(AuthorizationSurface.OtaPanel, CallerScopeKey.OtaPanel);
+
+            var travelAgencyId = Required(_caller.TravelAgencyId, "travel agency");
+            var financialCustomerId = await TravelAgencyCustomerIdAsync(travelAgencyId, cancellationToken);
+
+            return new AuthorizedReadScope(await OwnerAirlineIdAsync(cancellationToken), financialCustomerId, true);
+        }
+
+        public async Task<AuthorizedReadScope> OtaReadAsync(CancellationToken cancellationToken)
+        {
+            RequireSurface(AuthorizationSurface.Api, CallerScopeKey.Ota);
+
+            var financialCustomerId = Required(_caller.CustomerId, "financial customer");
+            await EnsureActiveCustomerAsync(financialCustomerId, cancellationToken);
+
+            return new AuthorizedReadScope(await OwnerAirlineIdAsync(cancellationToken), financialCustomerId, true);
+        }
+
+        public async Task<AuthorizedReadScope> ServiceReadAsync(CancellationToken cancellationToken)
+            => new(await OwnerAirlineIdAsync(cancellationToken), null, false);
+
+        public async Task<AdministrativeScope> InternalAsync(CancellationToken cancellationToken)
+            => new(
+                await OwnerAirlineIdAsync(cancellationToken),
+                CallerScopeKey.ForAdministration(CallerScopeKey.Internal),
+                BusinessContextType.Service,
+                _caller.IsAuthenticated ? _caller.ActorId : null);
+
+        public Task<long> OwnerAirlineIdAsync(CancellationToken cancellationToken)
+            => _homeOperatorProvider.GetOwnerAirlineIdAsync(cancellationToken);
+
+        private async Task<long> TravelAgencyCustomerIdAsync(long travelAgencyId, CancellationToken cancellationToken)
+        {
+            var customer = await _customers.FindByTravelAgencyAsync(travelAgencyId, cancellationToken);
+
+            if (customer is null || !customer.IsActive || !customer.IsTravelAgency)
+                throw ExceptionFactory.AuthorizedScopeRequired("financial customer");
+
+            return customer.CustomerId;
         }
 
         private async Task EnsureActiveCustomerAsync(long financialCustomerId, CancellationToken cancellationToken)
@@ -186,19 +154,10 @@ namespace AeroTech.Ordering.Application._Shared.Authorization
                 throw ExceptionFactory.AuthorizedScopeRequired("financial customer");
         }
 
-        private void RequireSurface(AuthorizationSurface expected, OrderingApiSurface surface)
+        private void RequireSurface(AuthorizationSurface expected, string surface)
         {
             if (!_caller.IsAuthenticated || _caller.AuthorizationSurface != expected)
-                throw ExceptionFactory.AuthorizedScopeRequired($"the {CallerScopeKey.Surface(surface)} surface");
-        }
-
-        private static void EnsureNotDelegated(SalesScopeRequest request, long financialCustomerId, long? sellingOfficeId)
-        {
-            if (request.FinancialCustomerId is { } requested && requested != financialCustomerId)
-                throw ExceptionFactory.AuthorizedScopeRequired("financial customer");
-
-            if (request.SellingOfficeId is { } requestedOffice && requestedOffice != sellingOfficeId)
-                throw ExceptionFactory.AuthorizedScopeRequired("selling office");
+                throw ExceptionFactory.AuthorizedScopeRequired($"the {surface} surface");
         }
 
         private static long Required(long? value, string subject)

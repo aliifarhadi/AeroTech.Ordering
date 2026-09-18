@@ -3,5 +3,5 @@ using AeroTech.Ordering.Domain._Shared.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
-    public sealed record CandidateTraveler(string SourceTravellerRef, string PassengerTypeCode);
+    public sealed record CandidateTraveler(string SourceTravellerRef, PassengerTypeCode PassengerTypeCode);
 }

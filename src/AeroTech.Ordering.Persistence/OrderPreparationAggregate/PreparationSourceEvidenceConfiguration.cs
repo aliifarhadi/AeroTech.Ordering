@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Persistence.OrderPreparationAggregate
     {
         public void Configure(EntityTypeBuilder<PreparationSourceEvidence> builder)
         {
-            builder.ToTable("PreparationSourceEvidence", PersistenceSchemas.Commercial);
+            builder.ToTable("PreparationSourceEvidence", PersistenceSchemas.Order);
             builder.HasKey(evidence => evidence.Id);
             builder.Property(evidence => evidence.Id).ValueGeneratedNever();
             builder.Property(evidence => evidence.EvidenceRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();

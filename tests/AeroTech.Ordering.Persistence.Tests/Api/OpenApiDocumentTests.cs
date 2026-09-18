@@ -36,30 +36,22 @@ namespace AeroTech.Ordering.Persistence.Tests.Api
 
             Assert.Equal(
                 [
+                    "GET /Api/v1/Bookings/{id}",
+                    "GET /Backoffice/v1/Orders/{id}",
+                    "GET /OtaPanel/v1/Bookings/{id}",
+                    "GET /Service/v1/Bookings/{id}",
                     "GET /api/v1/Ping",
-                    "GET /backoffice/v1/operations/{operationId}",
-                    "GET /backoffice/v1/orders/{orderId}",
-                    "GET /ota/v1/operations/{operationId}",
-                    "GET /ota/v1/orders/{orderId}",
-                    "GET /otapanel/v1/operations/{operationId}",
-                    "GET /otapanel/v1/orders/{orderId}",
-                    "GET /service/v1/operations/{operationId}",
-                    "GET /service/v1/orders/{orderId}",
+                    "POST /Api/v1/Bookings/FlightOffers",
+                    "POST /Backoffice/v1/Orders/FlightOffers",
+                    "POST /Internal/v1/Orders/{id}/ProjectionRebuilds",
+                    "POST /OtaPanel/v1/Bookings/FlightOffers",
+                    "POST /Service/v1/Bookings/FlightOffers",
                     "POST /Syncer/v1/Airlines",
                     "POST /Syncer/v1/Airports",
                     "POST /Syncer/v1/Cities",
                     "POST /Syncer/v1/Currencies",
                     "POST /Syncer/v1/Customers",
-                    "POST /Syncer/v1/OperatorSettings",
-                    "POST /backoffice/v1/order-preparations",
-                    "POST /backoffice/v1/orders/from-offer",
-                    "POST /internal/v1/orders/{orderId}/projection-rebuilds",
-                    "POST /ota/v1/order-preparations",
-                    "POST /ota/v1/orders/from-offer",
-                    "POST /otapanel/v1/order-preparations",
-                    "POST /otapanel/v1/orders/from-offer",
-                    "POST /service/v1/order-preparations",
-                    "POST /service/v1/orders/from-offer"
+                    "POST /Syncer/v1/OperatorSettings"
                 ],
                 operations);
         }

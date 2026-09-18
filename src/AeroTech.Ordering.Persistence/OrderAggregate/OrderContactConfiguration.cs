@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderContact> builder)
         {
-            builder.ToTable("OrderContacts", PersistenceSchemas.Commercial);
+            builder.ToTable("OrderContacts", PersistenceSchemas.Order);
             builder.HasKey(contact => contact.Id);
             builder.Property(contact => contact.Id).ValueGeneratedNever();
             builder.Property(contact => contact.Email).HasMaxLength(PersistenceSchemas.EmailLength);

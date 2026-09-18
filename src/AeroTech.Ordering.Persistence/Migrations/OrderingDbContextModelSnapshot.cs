@@ -150,7 +150,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                     b.HasIndex("SupersededByConstructionId");
 
-                    b.ToTable("FareConstructions", "Commercial");
+                    b.ToTable("FareConstructions", "Order");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.FundingObligation", b =>
@@ -198,7 +198,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("OrderId", "Id", "Version")
                         .IsUnique();
 
-                    b.ToTable("FundingObligations", "Commercial", t =>
+                    b.ToTable("FundingObligations", "Order", t =>
                         {
                             t.HasCheckConstraint("CK_FundingObligations_Amount", "[AmountAmount] >= 0");
 
@@ -245,7 +245,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("OrderId", "CommercialVersion")
                         .IsUnique();
 
-                    b.ToTable("OrderChanges", "Commercial");
+                    b.ToTable("OrderChanges", "Order");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderContact", b =>
@@ -281,7 +281,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("OrderId", "Sequence")
                         .IsUnique();
 
-                    b.ToTable("OrderContacts", "Commercial");
+                    b.ToTable("OrderContacts", "Order");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderItem", b =>
@@ -325,7 +325,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("OrderId", "SourceItemRef")
                         .IsUnique();
 
-                    b.ToTable("OrderItems", "Commercial");
+                    b.ToTable("OrderItems", "Order");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderItemServiceLink", b =>
@@ -362,7 +362,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("OrderItemId", "OrderServiceId", "LinkedByChangeId")
                         .IsUnique();
 
-                    b.ToTable("OrderItemServiceLinks", "Commercial");
+                    b.ToTable("OrderItemServiceLinks", "Order");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderSegment", b =>
@@ -418,7 +418,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("OrderId", "SourceSegmentRef")
                         .IsUnique();
 
-                    b.ToTable("OrderSegments", "Commercial", t =>
+                    b.ToTable("OrderSegments", "Order", t =>
                         {
                             t.HasCheckConstraint("CK_OrderSegments_Sequence", "[Sequence] >= 1");
                         });
@@ -451,7 +451,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("SegmentId", "Sequence")
                         .IsUnique();
 
-                    b.ToTable("OrderSegmentLegs", "Commercial");
+                    b.ToTable("OrderSegmentLegs", "Order");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderService", b =>
@@ -489,10 +489,8 @@ namespace AeroTech.Ordering.Persistence.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)");
 
-                    b.Property<string>("QuantityUnit")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                    b.Property<int>("QuantityUnit")
+                        .HasColumnType("int");
 
                     b.Property<int>("ServiceVersion")
                         .HasColumnType("int");
@@ -514,7 +512,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                     b.HasIndex("OrderItemId", "CommercialStatus");
 
-                    b.ToTable("OrderServices", "Commercial", t =>
+                    b.ToTable("OrderServices", "Order", t =>
                         {
                             t.HasCheckConstraint("CK_OrderServices_Quantity", "[Quantity] > 0");
 
@@ -546,7 +544,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("ServiceId", "TravelerId")
                         .IsUnique();
 
-                    b.ToTable("OrderServiceBeneficiaries", "Commercial");
+                    b.ToTable("OrderServiceBeneficiaries", "Order");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderServiceCoverage", b =>
@@ -573,7 +571,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("ServiceId", "SegmentId")
                         .IsUnique();
 
-                    b.ToTable("OrderServiceCoverage", "Commercial");
+                    b.ToTable("OrderServiceCoverage", "Order");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderTraveler", b =>
@@ -598,10 +596,8 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.Property<long>("OrderId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("PassengerTypeCode")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
+                    b.Property<int>("PassengerTypeCode")
+                        .HasColumnType("int");
 
                     b.Property<string>("SourceTravellerRef")
                         .IsRequired()
@@ -618,7 +614,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("OrderId", "SourceTravellerRef")
                         .IsUnique();
 
-                    b.ToTable("OrderTravelers", "Commercial", t =>
+                    b.ToTable("OrderTravelers", "Order", t =>
                         {
                             t.HasCheckConstraint("CK_OrderTravelers_Guardian", "[InfantParentTravelerId] IS NULL OR [InfantParentTravelerId] <> [Id]");
                         });
@@ -666,7 +662,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("OrderId", "FinancialSequence")
                         .IsUnique();
 
-                    b.ToTable("PriceChangeSets", "Commercial", t =>
+                    b.ToTable("PriceChangeSets", "Order", t =>
                         {
                             t.HasCheckConstraint("CK_PriceChangeSets_Sequence", "[FinancialSequence] >= 1");
                         });
@@ -743,7 +739,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("PriceChangeSetId", "CandidateLineRef")
                         .IsUnique();
 
-                    b.ToTable("PricingLines", "Commercial", t =>
+                    b.ToTable("PricingLines", "Order", t =>
                         {
                             t.HasCheckConstraint("CK_PricingLines_CommissionNotCustomer", "NOT ([Component] = 9 AND [Effect] = 1)");
 
@@ -772,10 +768,8 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.Property<long?>("BuyerActorId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Channel")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                    b.Property<int>("Channel")
+                        .HasColumnType("int");
 
                     b.Property<string>("ClientReference")
                         .HasMaxLength(128)
@@ -852,7 +846,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                     b.HasIndex("OwnerAirlineId", "FinancialCustomerId", "CreatedAt");
 
-                    b.ToTable("Orders", "Commercial", t =>
+                    b.ToTable("Orders", "Order", t =>
                         {
                             t.HasCheckConstraint("CK_Orders_Revisions", "[CommercialVersion] >= 1 AND [FinancialSequence] >= 0 AND [OrderRevision] >= 1 AND [LastEventOrdinal] >= 0");
 
@@ -901,7 +895,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.HasIndex("PreparationId", "EvidenceRef")
                         .IsUnique();
 
-                    b.ToTable("PreparationSourceEvidence", "Commercial");
+                    b.ToTable("PreparationSourceEvidence", "Order");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderPreparationAggregate.OrderPreparation", b =>
@@ -940,10 +934,8 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.Property<DateTimeOffset>("CapturedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Channel")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                    b.Property<int>("Channel")
+                        .HasColumnType("int");
 
                     b.Property<string>("ClientReference")
                         .HasMaxLength(128)
@@ -1029,7 +1021,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                     b.HasIndex("OwnerAirlineId", "FinancialCustomerId", "CreatedAt");
 
-                    b.ToTable("OrderPreparations", "Commercial", t =>
+                    b.ToTable("OrderPreparations", "Order", t =>
                         {
                             t.HasCheckConstraint("CK_OrderPreparations_Consumption", "([ConsumedByOrderId] IS NULL AND [ConsumedAt] IS NULL) OR ([ConsumedByOrderId] IS NOT NULL AND [ConsumedAt] IS NOT NULL)");
 
@@ -1212,7 +1204,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("FundingObligationId");
 
-                            b1.ToTable("FundingObligations", "Commercial");
+                            b1.ToTable("FundingObligations", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("FundingObligationId");
@@ -1272,7 +1264,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderItemId");
 
-                            b1.ToTable("OrderItems", "Commercial");
+                            b1.ToTable("OrderItems", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderItemId");
@@ -1376,7 +1368,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderServiceId");
 
-                            b1.ToTable("OrderServices", "Commercial");
+                            b1.ToTable("OrderServices", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderServiceId");
@@ -1417,7 +1409,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("ServiceId");
 
-                            b1.ToTable("AirTransportServiceDetails", "Commercial");
+                            b1.ToTable("AirTransportServiceDetails", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("ServiceId");
@@ -1492,7 +1484,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("TravelerId");
 
-                            b1.ToTable("OrderTravelerIdentities", "Commercial");
+                            b1.ToTable("OrderTravelerIdentities", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("TravelerId");
@@ -1559,7 +1551,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("PricingLineId");
 
-                            b1.ToTable("PricingLines", "Commercial");
+                            b1.ToTable("PricingLines", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("PricingLineId");
@@ -1583,7 +1575,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("PricingLineId");
 
-                            b1.ToTable("PricingLines", "Commercial");
+                            b1.ToTable("PricingLines", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("PricingLineId");
@@ -1622,7 +1614,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderId");
 
-                            b1.ToTable("Orders", "Commercial");
+                            b1.ToTable("Orders", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderId");
@@ -1659,7 +1651,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderId");
 
-                            b1.ToTable("Orders", "Commercial");
+                            b1.ToTable("Orders", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderId");
@@ -1696,7 +1688,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderId");
 
-                            b1.ToTable("Orders", "Commercial");
+                            b1.ToTable("Orders", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderId");
@@ -1733,7 +1725,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderId");
 
-                            b1.ToTable("Orders", "Commercial");
+                            b1.ToTable("Orders", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderId");
@@ -1819,7 +1811,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderId");
 
-                            b1.ToTable("Orders", "Commercial");
+                            b1.ToTable("Orders", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderId");
@@ -1883,7 +1875,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderPreparationId");
 
-                            b1.ToTable("OrderPreparations", "Commercial");
+                            b1.ToTable("OrderPreparations", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderPreparationId");
@@ -1920,7 +1912,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderPreparationId");
 
-                            b1.ToTable("OrderPreparations", "Commercial");
+                            b1.ToTable("OrderPreparations", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderPreparationId");
@@ -1957,7 +1949,7 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             b1.HasKey("OrderPreparationId");
 
-                            b1.ToTable("OrderPreparations", "Commercial");
+                            b1.ToTable("OrderPreparations", "Order");
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderPreparationId");

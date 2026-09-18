@@ -1,0 +1,129 @@
+### S1 — public API after the readability cleanup
+### Business input only: an offer, its travellers, contacts. No preparation id, digest, operation id or projection version.
+
+@host = http://localhost:5000
+@backofficeToken = {{$processEnv ORDERING_BACKOFFICE_TOKEN}}
+@otaPanelToken = {{$processEnv ORDERING_OTAPANEL_TOKEN}}
+@otaToken = {{$processEnv ORDERING_OTA_TOKEN}}
+@offerId = REPLACE-WITH-A-PRICED-OFFER-ID
+
+### 1. Backoffice — sell a flight offer
+POST {{host}}/Backoffice/v1/Orders/FlightOffers
+Authorization: Bearer {{backofficeToken}}
+Idempotency-Key: backoffice-0001
+Content-Type: application/json
+
+{
+  "customerId": "100",
+  "airlineOfficeId": "10",
+  "offerId": "{{offerId}}",
+  "travellers": [
+    {
+      "offerTravellerRef": "ADT-1",
+      "travellerRef": "PAX-1",
+      "firstName": "Sample",
+      "surName": "Traveler",
+      "passengerType": "ADT",
+      "dateOfBirth": "1990-01-01",
+      "guardianTravellerRef": null
+    }
+  ],
+  "contacts": [
+    { "role": "Primary", "email": "traveler@example.invalid", "phone": null }
+  ],
+  "clientReference": null
+}
+
+### 2. Backoffice — read the order
+GET {{host}}/Backoffice/v1/Orders/REPLACE-WITH-orderId
+Authorization: Bearer {{backofficeToken}}
+
+### 3. OTA (partner API) — book from an offer for the token customer
+POST {{host}}/Api/v1/Bookings/FlightOffers
+Authorization: Bearer {{otaToken}}
+Idempotency-Key: ota-0001
+Content-Type: application/json
+
+{
+  "offerId": "{{offerId}}",
+  "travellers": [
+    {
+      "offerTravellerRef": "ADT-1",
+      "travellerRef": "PAX-1",
+      "firstName": "Sample",
+      "surName": "Traveler",
+      "passengerType": "ADT",
+      "dateOfBirth": "1990-01-01",
+      "guardianTravellerRef": null
+    }
+  ],
+  "contacts": [
+    { "role": "Primary", "email": "traveler@example.invalid", "phone": null }
+  ],
+  "clientReference": null
+}
+
+### 4. OTA — read the booking
+GET {{host}}/Api/v1/Bookings/REPLACE-WITH-orderId
+Authorization: Bearer {{otaToken}}
+
+### 5. OTA Panel — book for the agency's customer (customer and office come from the token)
+POST {{host}}/OtaPanel/v1/Bookings/FlightOffers
+Authorization: Bearer {{otaPanelToken}}
+Idempotency-Key: otapanel-0001
+Content-Type: application/json
+
+{
+  "offerId": "{{offerId}}",
+  "travellers": [
+    {
+      "offerTravellerRef": "ADT-1",
+      "travellerRef": "PAX-1",
+      "firstName": "Sample",
+      "surName": "Traveler",
+      "passengerType": "ADT",
+      "dateOfBirth": "1990-01-01",
+      "guardianTravellerRef": null
+    }
+  ],
+  "contacts": [
+    { "role": "Primary", "email": "traveler@example.invalid", "phone": null }
+  ],
+  "clientReference": null
+}
+
+### 6. Service (service-to-service, no token in this platform phase)
+POST {{host}}/Service/v1/Bookings/FlightOffers
+Idempotency-Key: service-0001
+Content-Type: application/json
+
+{
+  "customerId": "100",
+  "airlineOfficeId": null,
+  "offerId": "{{offerId}}",
+  "travellers": [
+    {
+      "offerTravellerRef": "ADT-1",
+      "travellerRef": "PAX-1",
+      "firstName": "Sample",
+      "surName": "Traveler",
+      "passengerType": "ADT",
+      "dateOfBirth": "1990-01-01",
+      "guardianTravellerRef": null
+    }
+  ],
+  "contacts": [
+    { "role": "Primary", "email": "traveler@example.invalid", "phone": null }
+  ],
+  "clientReference": null
+}
+
+### 7. Service — read the booking (traveller names and contacts are redacted here)
+GET {{host}}/Service/v1/Bookings/REPLACE-WITH-orderId
+
+### 8. Internal — rebuild the order projection (operational route)
+POST {{host}}/Internal/v1/Orders/REPLACE-WITH-orderId/ProjectionRebuilds
+Idempotency-Key: rebuild-0001
+Content-Type: application/json
+
+{}

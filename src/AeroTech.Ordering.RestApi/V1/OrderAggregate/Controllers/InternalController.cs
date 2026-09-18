@@ -1,9 +1,6 @@
 using AeroTech.Framework.Presentation.Responses;
-using AeroTech.Messages.Ordering.Enums;
-using AeroTech.Ordering.Application._Shared.Authorization;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProjection;
 using AeroTech.Ordering.RestApi._Shared;
-using AeroTech.Ordering.RestApi.V1.OrderAggregate.Responses;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -15,27 +12,21 @@ namespace AeroTech.Ordering.RestApi.V1.OrderAggregate.Controllers
     [ApiController]
     [ApiVersion("1.0")]
     [AllowAnonymous]
-    [Route(ApiSurfaceRoutes.Internal)]
+    [Tags("Internal")]
+    [Route($"Internal/v{{version:apiVersion}}/Orders")]
     public sealed class InternalController : ControllerBase
     {
         private readonly IMediator _mediator;
 
         public InternalController(IMediator mediator) => _mediator = mediator;
 
-        [HttpPost(ApiSurfaceRoutes.ProjectionRebuilds)]
-        [ProducesResponseType(typeof(ApiResult<ProjectionRebuildResponse>), StatusCodes.Status201Created)]
-        public async Task<ActionResult<ProjectionRebuildResponse>> RebuildProjectionAsync(
-            [FromRoute] long orderId,
-            CancellationToken cancellationToken)
+        [HttpPost("{id:long}/ProjectionRebuilds")]
+        [ProducesResponseType(typeof(ApiResult<RebuildOrderProjectionResult>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> RebuildProjection(long id, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(
-                new RebuildOrderProjectionCommand(
-                    new AdministrativeScopeRequest(OrderingApiSurface.Internal),
-                    IdempotencyKey.Require(Request),
-                    orderId),
-                cancellationToken);
+            var result = await _mediator.Send(new RebuildOrderProjectionCommand(id, IdempotencyKey.Require(Request)), cancellationToken);
 
-            return StatusCode(StatusCodes.Status201Created, ProjectionRebuildResponse.From(result));
+            return Ok(result);
         }
     }
 }

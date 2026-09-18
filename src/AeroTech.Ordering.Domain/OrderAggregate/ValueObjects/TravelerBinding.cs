@@ -1,3 +1,5 @@
+using AeroTech.Messages.Ordering.Enums;
+
 namespace AeroTech.Ordering.Domain.OrderAggregate.ValueObjects
 {
     public sealed record TravelerBinding(
@@ -5,7 +7,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.ValueObjects
         string ClientTravelerRef,
         string GivenName,
         string Surname,
-        string PassengerTypeCode,
+        PassengerTypeCode PassengerTypeCode,
         DateOnly DateOfBirth,
         string? GuardianClientTravelerRef);
 }

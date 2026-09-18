@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderServiceCoverage> builder)
         {
-            builder.ToTable("OrderServiceCoverage", PersistenceSchemas.Commercial);
+            builder.ToTable("OrderServiceCoverage", PersistenceSchemas.Order);
             builder.HasKey(coverage => coverage.Id);
             builder.Property(coverage => coverage.Id).ValueGeneratedNever();
             builder.HasOne<OrderSegment>().WithMany().HasForeignKey(coverage => coverage.SegmentId).OnDelete(DeleteBehavior.Restrict);

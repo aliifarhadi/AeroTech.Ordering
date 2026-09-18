@@ -13,7 +13,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
         public const string PackageItemRef = "OFFER-PACKAGE";
         public const string FulfillmentProfileRef = "AIROFFER-OBSERVED-AIR-UNCERTIFIED";
         public const string SourceContextRef = "airoffer:details:pricingUnits";
-        public const string InfantPassengerType = "INF";
+
 
         private static readonly IReadOnlyDictionary<string, PricingComponentType> Categories = new Dictionary<string, PricingComponentType>(StringComparer.OrdinalIgnoreCase)
         {
@@ -44,7 +44,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
             if (details.Tickets.Count == 0)
                 throw new AirOfferContractMismatchException("details contain no priced traveler tickets");
 
-            if (details.Tickets.Any(ticket => string.Equals(ticket.PassengerTypeCode, InfantPassengerType, StringComparison.Ordinal)))
+            if (details.Tickets.Any(ticket => PassengerType(ticket.PassengerTypeCode) == PassengerTypeCode.INF))
                 throw new AirOfferUnsupportedException("infant seat/resource requirement is unresolved (BD-002, OD-S1-07)");
 
             var segments = new List<CandidateSegment>();
@@ -136,7 +136,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                     new ValidityFact(ValidityState.NotSupplied, null, "AirPrice", null, "Details response supplies no PriceValidUntil (BD-001)"),
                     new ValidityFact(ValidityState.NotSupplied, null, "Unresolved owner", null, TicketingReason(details.LastTicketingDate))),
                 new CandidateSalesContext(scope.OwnerAirlineId, scope.FinancialCustomerId, scope.Channel, scope.SellingOfficeId),
-                details.Tickets.Select(ticket => new CandidateTraveler(ticket.TravellerRef, ticket.PassengerTypeCode)).ToList(),
+                details.Tickets.Select(ticket => new CandidateTraveler(ticket.TravellerRef, PassengerType(ticket.PassengerTypeCode))).ToList(),
                 segments,
                 [new CandidateItem(PackageItemRef, OrderItemKind.OfferPackage, null, services.Select(service => service.ServiceRef).ToList(), new Money(details.TotalAmount, saleCurrency))],
                 services,
@@ -180,7 +180,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 [travellerRef],
                 [segmentRef],
                 1,
-                "PassengerSegment",
+                OrderItemUnitOfMeasure.PassengerSegment,
                 ServiceDetailSchemaRegistry.AirTransportSchema,
                 ServiceDetailSchemaRegistry.AirTransportSchemaVersion,
                 details,
@@ -201,8 +201,6 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 if (row.EquivalentAmount < 0)
                     throw new AirOfferContractMismatchException($"{path} carries a negative amount; its direction is not defined by the observed contract");
 
-                var percentageValue = new Money(row.EquivalentAmount, Currency(saleCurrencyId));
-
                 return new CandidatePricingLine(
                     path,
                     null,
@@ -210,8 +208,8 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                     PricingEffect.CustomerBalance,
                     OrderPricingLineDirection.Debit,
                     PricingLineRole.Original,
-                    percentageValue,
-                    percentageValue,
+                    new Money(row.EquivalentAmount, Currency(saleCurrencyId)),
+                    new Money(row.EquivalentAmount, Currency(saleCurrencyId)),
                     path,
                     basisType,
                     basisRef,
@@ -269,6 +267,11 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
         }
 
         private static string SegmentRef(string boundId, long flightId) => $"{boundId}|{Id(flightId)}";
+
+        private static PassengerTypeCode PassengerType(string code)
+            => Enum.TryParse<PassengerTypeCode>(code, ignoreCase: false, out var parsed) && Enum.IsDefined(parsed)
+                ? parsed
+                : throw new AirOfferContractMismatchException($"passenger type code {code} is not a known passenger type");
 
         private static string Currency(int currencyId) => Id(currencyId);
 

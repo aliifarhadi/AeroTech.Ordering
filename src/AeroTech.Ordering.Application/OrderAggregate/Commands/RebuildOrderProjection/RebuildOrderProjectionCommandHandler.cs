@@ -46,7 +46,7 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProj
 
         public async Task<RebuildOrderProjectionResult> Handle(RebuildOrderProjectionCommand command, CancellationToken cancellationToken)
         {
-            var administrativeScope = await _scopeResolver.ResolveAsync(command.Scope, cancellationToken);
+            var administrativeScope = await _scopeResolver.InternalAsync(cancellationToken);
             var ownerAirlineId = administrativeScope.OwnerAirlineId;
             var order = await _orders.LoadSnapshotAsync(command.OrderId, ownerAirlineId, cancellationToken)
                         ?? throw ExceptionFactory.OrderNotFound(command.OrderId);

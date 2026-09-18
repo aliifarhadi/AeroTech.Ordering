@@ -14,7 +14,8 @@ namespace AeroTech.Ordering.Persistence.Tests.Architecture
         {
             "AeroTech.Messages.Aegis.Enums.BusinessContextType",
             "AeroTech.Messages.Aegis.Enums.PrincipalType",
-            "AeroTech.Messages.Shared.Enums.AuthorizationSurface"
+            "AeroTech.Messages.Shared.Enums.AuthorizationSurface",
+            "AeroTech.Messages.Shared.Enums.SalesChannel"
         };
 
         [Fact]

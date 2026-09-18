@@ -1,4 +1,5 @@
 using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Messages.Shared.Enums;
 using AeroTech.Ordering.Domain._Shared.Resources;
 
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
@@ -26,6 +27,16 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             [FulfillmentDocumentKind.EmdS] = "EMDS"
         };
 
+        public static readonly IReadOnlyDictionary<SalesChannel, string> Channels = new Dictionary<SalesChannel, string>
+        {
+            [SalesChannel.BackOffice] = "Backoffice",
+            [SalesChannel.IBE] = "IBE",
+            [SalesChannel.PartnerAPI] = "PartnerAPI",
+            [SalesChannel.AgencyPanel] = "AgencyPanel",
+            [SalesChannel.GDS] = "GDS",
+            [SalesChannel.System] = "System"
+        };
+
         public static string Name<TEnum>(TEnum value) where TEnum : struct, Enum
         {
             if (!Enum.IsDefined(value))
@@ -37,6 +48,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                     ? name
                     : throw ExceptionFactory.UnsupportedCapability($"service type {serviceType} has no candidate vocabulary"),
                 FulfillmentDocumentKind documentKind => DocumentKinds[documentKind],
+                SalesChannel channel => Channels[channel],
                 _ => value.ToString()
             };
         }
@@ -56,6 +68,15 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                         return (TEnum)(object)pair.Key;
 
                 throw ExceptionFactory.UnsupportedCapability($"{field} {name} is not a known service type");
+            }
+
+            if (typeof(TEnum) == typeof(SalesChannel))
+            {
+                foreach (var pair in Channels)
+                    if (pair.Value == name)
+                        return (TEnum)(object)pair.Key;
+
+                throw ExceptionFactory.CandidateContractMismatch($"{field} {name} is not defined");
             }
 
             if (typeof(TEnum) == typeof(FulfillmentDocumentKind))

@@ -10,7 +10,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<PriceChangeSet> builder)
         {
-            builder.ToTable("PriceChangeSets", PersistenceSchemas.Commercial, table =>
+            builder.ToTable("PriceChangeSets", PersistenceSchemas.Order, table =>
                 table.HasCheckConstraint("CK_PriceChangeSets_Sequence", "[FinancialSequence] >= 1"));
             builder.HasKey(set => set.Id);
             builder.Property(set => set.Id).ValueGeneratedNever();

@@ -3,6 +3,7 @@ using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
+using AeroTech.Messages.Shared.Enums;
 
 namespace AeroTech.Ordering.Domain.Tests._Shared
 {
@@ -34,7 +35,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             _scope = scope ?? Scope();
         }
 
-        public static AuthorizedSalesScope Scope(long customerId = 100, string callerScope = "customer:100/actor:1", long ownerAirlineId = 1, string channel = "BackOffice")
+        public static AuthorizedSalesScope Scope(long customerId = 100, string callerScope = "customer:100/actor:1", long ownerAirlineId = 1, SalesChannel channel = SalesChannel.BackOffice)
             => new(ownerAirlineId, customerId, channel, 10, callerScope, BusinessContextType.Airline, 1);
 
         public AuthorizedSalesScope SalesScope => _scope;
@@ -68,7 +69,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             return this;
         }
 
-        public CandidateBuilder Traveler(string reference, string passengerType = "ADT")
+        public CandidateBuilder Traveler(string reference, PassengerTypeCode passengerType = PassengerTypeCode.ADT)
         {
             _travelers.Add(new CandidateTraveler(reference, passengerType));
             return this;
@@ -90,7 +91,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 [traveler],
                 [segment],
                 1,
-                "PassengerSegment",
+                OrderItemUnitOfMeasure.PassengerSegment,
                 ServiceDetailSchemaRegistry.AirTransportSchema,
                 ServiceDetailSchemaRegistry.AirTransportSchemaVersion,
                 details ?? new Dictionary<string, string> { [ServiceDetailSchemaRegistry.CabinRef] = "ECONOMY", [ServiceDetailSchemaRegistry.BookingClass] = "Y" },

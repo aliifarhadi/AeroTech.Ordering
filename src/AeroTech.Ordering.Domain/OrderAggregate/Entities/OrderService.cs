@@ -75,7 +75,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 
         public decimal Quantity { get; private set; }
 
-        public string QuantityUnit { get; private set; } = null!;
+        public OrderItemUnitOfMeasure QuantityUnit { get; private set; }
 
         public string DetailSchema { get; private set; } = null!;
 

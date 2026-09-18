@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderItemServiceLink> builder)
         {
-            builder.ToTable("OrderItemServiceLinks", PersistenceSchemas.Commercial);
+            builder.ToTable("OrderItemServiceLinks", PersistenceSchemas.Order);
             builder.HasKey(link => link.Id);
             builder.Property(link => link.Id).ValueGeneratedNever();
             builder.HasOne<OrderItem>().WithMany().HasForeignKey(link => link.OrderItemId).OnDelete(DeleteBehavior.Restrict);

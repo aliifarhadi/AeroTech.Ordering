@@ -7,6 +7,7 @@ using AeroTech.Ordering.Domain.OrderAggregate.Contracts;
 using AeroTech.Ordering.Persistence;
 using AeroTech.Ordering.Persistence._Shared.Transactions;
 using AeroTech.Ordering.Query._Shared.DbContexts;
+using AeroTech.Ordering.Query.OrderAggregate.Dto;
 using AeroTech.Ordering.Query.OrderAggregate.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -81,8 +82,8 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                 OrderReference = order.OrderReference,
                 OrderRevision = order.OrderRevision,
                 CommercialVersion = order.CommercialVersion,
-                ProjectionSchemaVersion = OrderDetailsDocument.SchemaVersion,
-                DetailsJson = OrderDetailsDocument.Build(order),
+                ProjectionSchemaVersion = OrderDtoJson.SchemaVersion,
+                DetailsJson = OrderDtoJson.Write(OrderDtoBuilder.Build(order)),
                 CreatedAt = order.CreatedAt,
                 ProjectedAt = _clock.GetDateTime()
             }, conditionalReplace));

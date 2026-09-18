@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         IReadOnlyList<string> BeneficiaryRefs,
         IReadOnlyList<string> SegmentRefs,
         decimal Quantity,
-        string QuantityUnit,
+        OrderItemUnitOfMeasure QuantityUnit,
         string DetailSchema,
         int DetailSchemaVersion,
         IReadOnlyDictionary<string, string> Details,

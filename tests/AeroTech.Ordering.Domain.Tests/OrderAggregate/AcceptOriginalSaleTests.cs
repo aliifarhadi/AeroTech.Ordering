@@ -132,7 +132,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
                 .Package("PACKAGE", "S-A", "S-B")
                 .Line("GROUP-FARE", "PACKAGE", PricingComponentType.Fare, 200m, "PACKAGE", basisType: PricingBasisType.OrderItem)
                 .SourceProvidedConstruction(new CandidatePricingUnit("PU-1", FarePricingUnitType.OneWay, FareCombinationMethod.FiledFare, ["OUT"],
-                    new CandidatePricingGroup(["PAX-A", "PAX-B"], "ADT", 2),
+                    new CandidatePricingGroup(["PAX-A", "PAX-B"], PassengerTypeCode.ADT, 2),
                     [new CandidateFareComponent("FC-1", "YOW", null, "Published", null, null, "Y", ["S-A", "S-B"])]));
 
             var order = Accept(builder, Bind("PAX-A"), Bind("PAX-B"));
@@ -188,7 +188,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         {
             var builder = new CandidateBuilder(Now)
                 .Traveler("PAX-A")
-                .Traveler("PAX-I", "INF")
+                .Traveler("PAX-I", PassengerTypeCode.INF)
                 .Segment("SEG-1")
                 .AirService("S-A", "PAX-A", "SEG-1")
                 .AirService("S-I", "PAX-I", "SEG-1")
@@ -198,9 +198,9 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
             TravelerBinding[] bindings = defect switch
             {
                 "missing" => [Bind("PAX-A")],
-                "foreign" => [Bind("PAX-A"), Bind("PAX-Z", "CLIENT-Z", "INF")],
-                "type" => [Bind("PAX-A"), Bind("PAX-I", "CLIENT-I", "ADT")],
-                _ => [Bind("PAX-A", "CLIENT-A", guardian: "CLIENT-I"), Bind("PAX-I", "CLIENT-I", "INF", "CLIENT-A")]
+                "foreign" => [Bind("PAX-A"), Bind("PAX-Z", "CLIENT-Z", PassengerTypeCode.INF)],
+                "type" => [Bind("PAX-A"), Bind("PAX-I", "CLIENT-I", PassengerTypeCode.ADT)],
+                _ => [Bind("PAX-A", "CLIENT-A", guardian: "CLIENT-I"), Bind("PAX-I", "CLIENT-I", PassengerTypeCode.INF, "CLIENT-A")]
             };
 
             var exception = Assert.Throws<BusinessException>(() => Accept(builder, bindings));
@@ -213,14 +213,14 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         {
             var builder = new CandidateBuilder(Now)
                 .Traveler("PAX-A")
-                .Traveler("PAX-I", "INF")
+                .Traveler("PAX-I", PassengerTypeCode.INF)
                 .Segment("SEG-1")
                 .AirService("S-A", "PAX-A", "SEG-1")
                 .AirService("S-I", "PAX-I", "SEG-1")
                 .Package("PACKAGE", "S-A", "S-I")
                 .Line("FARE", "PACKAGE", PricingComponentType.Fare, 120m, "PACKAGE", basisType: PricingBasisType.OrderItem);
 
-            var order = Accept(builder, Bind("PAX-A", "CLIENT-A"), Bind("PAX-I", "CLIENT-I", "INF", "CLIENT-A"));
+            var order = Accept(builder, Bind("PAX-A", "CLIENT-A"), Bind("PAX-I", "CLIENT-I", PassengerTypeCode.INF, "CLIENT-A"));
 
             var adult = order.Travelers.Single(traveler => traveler.SourceTravellerRef == "PAX-A");
             var infant = order.Travelers.Single(traveler => traveler.SourceTravellerRef == "PAX-I");
@@ -256,9 +256,9 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
                 new SequentialIdGenerator());
         }
 
-        public static TravelerBinding Bind(string sourceRef, string? clientRef = null, string passengerType = "ADT", string? guardian = null)
+        public static TravelerBinding Bind(string sourceRef, string? clientRef = null, PassengerTypeCode passengerType = PassengerTypeCode.ADT, string? guardian = null)
             => new(sourceRef, clientRef ?? $"CLIENT-{sourceRef}", "Sample", "Traveler", passengerType,
-                passengerType == "INF" ? new DateOnly(2026, 1, 1) : new DateOnly(1990, 1, 1), guardian);
+                passengerType == PassengerTypeCode.INF ? new DateOnly(2026, 1, 1) : new DateOnly(1990, 1, 1), guardian);
 
         private static int CountOccurrences(string text, string fragment)
             => (text.Length - text.Replace(fragment, string.Empty).Length) / fragment.Length;

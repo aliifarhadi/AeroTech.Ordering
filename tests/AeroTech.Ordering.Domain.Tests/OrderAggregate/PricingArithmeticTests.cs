@@ -10,10 +10,8 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
     {
         private const string Eur = "EUR";
 
-        private static readonly ReversibleLine Discount = Line(PricingComponentType.Discount, PricingEffect.CustomerBalance, OrderPricingLineDirection.Credit, PricingLineRole.Original, 45m);
-
         [Fact]
-        public void Sale_with_settlement_commission_totals_405_and_explicit_discount_reversal_totals_450()
+        public void Sale_with_settlement_commission_charges_the_customer_405()
         {
             var sale = new[]
             {
@@ -24,13 +22,6 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
             };
 
             Assert.Equal(405m, PricingArithmetic.CustomerTotal(sale, Eur).Amount);
-
-            var reversal = Line(PricingComponentType.Discount, PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, PricingLineRole.Reversal, 45m);
-            PricingReversalPolicy.EnsureReversible(Discount, reversal, []);
-
-            var afterReversal = sale.Append(Priced(reversal.Effect, reversal.Direction, reversal.SaleValue.Amount));
-
-            Assert.Equal(450m, PricingArithmetic.CustomerTotal(afterReversal, Eur).Amount);
         }
 
         [Fact]
@@ -40,55 +31,6 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
 
             Assert.Throws<BusinessException>(() =>
                 PricingLineMatrix.EnsureAllowed(PricingComponentType.Commission, PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, PricingLineRole.Original));
-        }
-
-        [Fact]
-        public void Reversal_beyond_the_original_or_with_same_direction_is_rejected()
-        {
-            var first = Line(PricingComponentType.Discount, PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, PricingLineRole.Reversal, 30m);
-            var second = Line(PricingComponentType.Discount, PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, PricingLineRole.Reversal, 20m);
-            var sameDirection = Line(PricingComponentType.Discount, PricingEffect.CustomerBalance, OrderPricingLineDirection.Credit, PricingLineRole.Reversal, 5m);
-
-            PricingReversalPolicy.EnsureReversible(Discount, first, []);
-
-            Assert.Throws<BusinessException>(() => PricingReversalPolicy.EnsureReversible(Discount, second, [first]));
-            Assert.Throws<BusinessException>(() => PricingReversalPolicy.EnsureReversible(Discount, sameDirection, []));
-            Assert.Throws<BusinessException>(() => PricingReversalPolicy.EnsureReversible(first, sameDirection, []));
-        }
-
-        [Fact]
-        public void Allocation_attributes_value_and_never_adds_money()
-        {
-            var parent = new Money(100m, Eur);
-            var commercial = new AllocationProposal(PricingAllocationPurpose.CommercialValue, 1, PricingAllocationMethod.SourceProvided, PricingAllocationCompleteness.Complete,
-                [Share("S-1", 60m), Share("S-2", 40m)]);
-            var reporting = new AllocationProposal(PricingAllocationPurpose.Reporting, 1, PricingAllocationMethod.EqualSplit, PricingAllocationCompleteness.Complete,
-                [Share("S-1", 50m), Share("S-2", 50m)]);
-
-            AllocationPolicy.EnsureConsistent(parent, parent, commercial);
-            AllocationPolicy.EnsureConsistent(parent, parent, reporting);
-
-            Assert.Equal(100m, PricingArithmetic.CustomerTotal([Priced(PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, 100m)], Eur).Amount);
-            Assert.Equal(60m, AllocationPolicy.Select([commercial, reporting], PricingAllocationPurpose.CommercialValue, 1).Rows[0].SaleValue.Amount);
-            Assert.Throws<BusinessException>(() => AllocationPolicy.Select([commercial, reporting], PricingAllocationPurpose.Servicing, 1));
-        }
-
-        [Fact]
-        public void Complete_allocation_must_reconcile_and_partial_cannot_exceed()
-        {
-            var parent = new Money(100m, Eur);
-
-            Assert.Throws<BusinessException>(() => AllocationPolicy.EnsureConsistent(parent, parent,
-                new AllocationProposal(PricingAllocationPurpose.CommercialValue, 1, PricingAllocationMethod.ProRata, PricingAllocationCompleteness.Complete, [Share("S-1", 60m)])));
-
-            AllocationPolicy.EnsureConsistent(parent, parent,
-                new AllocationProposal(PricingAllocationPurpose.CommercialValue, 1, PricingAllocationMethod.ProRata, PricingAllocationCompleteness.Partial, [Share("S-1", 60m)]));
-
-            Assert.Throws<BusinessException>(() => AllocationPolicy.EnsureConsistent(parent, parent,
-                new AllocationProposal(PricingAllocationPurpose.CommercialValue, 1, PricingAllocationMethod.ProRata, PricingAllocationCompleteness.Partial, [Share("S-1", 60m), Share("S-2", 60m)])));
-
-            Assert.Throws<BusinessException>(() => AllocationPolicy.EnsureConsistent(parent, parent,
-                new AllocationProposal(PricingAllocationPurpose.CommercialValue, 1, PricingAllocationMethod.ProRata, PricingAllocationCompleteness.Unavailable, [Share("S-1", 0m)])));
         }
 
         [Theory]
@@ -127,11 +69,5 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
 
         private static PricedAmount Priced(PricingEffect effect, OrderPricingLineDirection direction, decimal amount, string currency = Eur)
             => new(effect, direction, new Money(amount, currency));
-
-        private static ReversibleLine Line(PricingComponentType component, PricingEffect effect, OrderPricingLineDirection direction, PricingLineRole role, decimal amount)
-            => new(component, effect, direction, role, new Money(amount, Eur), new Money(amount, Eur));
-
-        private static AllocationShare Share(string service, decimal amount)
-            => new(PricingBasisType.OrderService, service, new Money(amount, Eur), new Money(amount, Eur));
     }
 }

@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderSegmentLeg> builder)
         {
-            builder.ToTable("OrderSegmentLegs", PersistenceSchemas.Commercial);
+            builder.ToTable("OrderSegmentLegs", PersistenceSchemas.Order);
             builder.HasKey(leg => leg.Id);
             builder.Property(leg => leg.Id).ValueGeneratedNever();
             builder.Property(leg => leg.SourceLegRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();

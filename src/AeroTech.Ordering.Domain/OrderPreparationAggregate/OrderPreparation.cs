@@ -10,16 +10,12 @@ using AeroTech.Ordering.Domain.OrderPreparationAggregate.Entities;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
+using AeroTech.Messages.Shared.Enums;
 
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
 {
     public sealed class OrderPreparation : AggregateRoot<long>
     {
-        public const string LiveAcceptanceBlocked = "LIVE_ACCEPTANCE_BLOCKED(BD-001)";
-        public const string OfferValidityNotSupplied = "OFFER_VALIDITY_NOT_SUPPLIED";
-        public const string PriceValidityNotSupplied = "PRICE_VALIDITY_NOT_SUPPLIED";
-        public const string AcceptanceProfileNotPermitted = "ACCEPTANCE_PROFILE_NOT_PERMITTED";
-
         private readonly List<PreparationSourceEvidence> _evidence = new();
         private NormalizedCandidate? _candidate;
 
@@ -31,7 +27,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
 
         public long FinancialCustomerId { get; private set; }
 
-        public string Channel { get; private set; } = null!;
+        public SalesChannel Channel { get; private set; }
 
         public long? SellingOfficeId { get; private set; }
 
@@ -144,30 +140,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
 
         public IReadOnlyList<ValidityFact> ValidityFacts => [OfferValidity, PriceValidity, TicketingValidity];
 
-        public IReadOnlyList<string> BlockingReasons(IAcceptanceProfilePolicy policy)
+        public void EnsureAcceptable(IAcceptanceProfilePolicy policy, DateTimeOffset now)
         {
-            var reasons = new List<string>();
-
-            if (AcceptanceAssurance == AcceptanceAssurance.LocalCandidateOnly)
-                reasons.Add(LiveAcceptanceBlocked);
-
-            if (OfferValidity.State == ValidityState.NotSupplied)
-                reasons.Add(OfferValidityNotSupplied);
-
-            if (PriceValidity.State == ValidityState.NotSupplied)
-                reasons.Add(PriceValidityNotSupplied);
-
-            if (!policy.Permits(AcceptanceProfile))
-                reasons.Add(AcceptanceProfileNotPermitted);
-
-            return reasons;
-        }
-
-        public void EnsureAcceptable(string acceptedSnapshotDigest, IAcceptanceProfilePolicy policy, DateTimeOffset now)
-        {
-            if (!string.Equals(acceptedSnapshotDigest, SnapshotDigest, StringComparison.Ordinal))
-                throw ExceptionFactory.AcceptedDigestMismatch(Id);
-
             if (ConsumedByOrderId is { } orderId)
                 throw ExceptionFactory.PreparationAlreadyConsumed(Id, orderId);
 
@@ -206,7 +180,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
             {
                 ["ownerAirlineId"] = CanonicalJson.Identifier(OwnerAirlineId),
                 ["financialCustomerId"] = CanonicalJson.Identifier(FinancialCustomerId),
-                ["channel"] = Channel,
+                ["channel"] = CandidateVocabulary.Name(Channel),
                 ["sellingOfficeId"] = CanonicalJson.Identifier(SellingOfficeId),
                 ["callerScope"] = CallerScope
             },

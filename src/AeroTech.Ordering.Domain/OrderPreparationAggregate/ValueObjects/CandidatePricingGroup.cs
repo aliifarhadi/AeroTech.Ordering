@@ -5,6 +5,6 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
     public sealed record CandidatePricingGroup(
         IReadOnlyList<string> TravelerRefs,
-        string PassengerTypeCode,
+        PassengerTypeCode PassengerTypeCode,
         int Quantity);
 }

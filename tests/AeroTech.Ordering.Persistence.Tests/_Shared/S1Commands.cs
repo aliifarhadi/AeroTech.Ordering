@@ -1,9 +1,9 @@
 using AeroTech.Messages.Ordering.Enums;
-using AeroTech.Ordering.Application._Shared.Authorization;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer;
-using AeroTech.Ordering.Application.OrderPreparationAggregate.Commands.PrepareOrderFromOffer;
-using AeroTech.Ordering.Domain.OrderAggregate.ValueObjects;
-using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
+using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Backoffice;
+using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Ota;
+using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.OtaPanel;
+using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Service;
 
 namespace AeroTech.Ordering.Persistence.Tests._Shared
 {
@@ -11,35 +11,71 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
     {
         public static string NewKey(string prefix) => $"{prefix}-{Guid.NewGuid():N}";
 
-        public static PrepareOrderFromOfferCommand Prepare(string offerId, SalesScopeRequest? scope = null, string? key = null)
-            => new(scope ?? S1Harness.Sale(), key ?? NewKey("prepare"), offerId, null);
-
-        public static CreateOrderFromOfferCommand Create(
-            PreparationResult preparation,
-            DateTimeOffset acceptedAt,
-            SalesScopeRequest? scope = null,
+        public static BackofficeCreateOrderFromOfferCommand Backoffice(
+            string offerId,
+            long customerId = S1Harness.CustomerId,
+            long airlineOfficeId = S1Harness.AirlineOfficeId,
             string? key = null,
-            IReadOnlyList<TravelerBinding>? bindings = null)
+            IReadOnlyList<CreateOrderTravellerInput>? travellers = null)
             => new(
-                scope ?? S1Harness.Sale(),
-                key ?? NewKey("create"),
-                preparation.PreparationId,
-                preparation.AcceptedSnapshotDigest,
-                acceptedAt,
-                bindings ?? BindAll(preparation.Candidate),
-                [new ContactDetails(ContactRole.Primary, "traveler@example.invalid", null)],
-                null);
+                customerId,
+                airlineOfficeId,
+                offerId,
+                travellers ?? Travellers("PAX-A"),
+                Contacts(),
+                null,
+                key ?? NewKey("create"));
 
-        public static IReadOnlyList<TravelerBinding> BindAll(NormalizedCandidate candidate)
-            => candidate.Travelers
-                .Select(traveler => new TravelerBinding(
-                    traveler.SourceTravellerRef,
-                    $"CLIENT-{traveler.SourceTravellerRef}",
+        public static ServiceCreateOrderFromOfferCommand Service(
+            string offerId,
+            long customerId = S1Harness.CustomerId,
+            long? airlineOfficeId = null,
+            string? key = null,
+            IReadOnlyList<CreateOrderTravellerInput>? travellers = null)
+            => new(
+                customerId,
+                airlineOfficeId,
+                offerId,
+                travellers ?? Travellers("PAX-A"),
+                Contacts(),
+                null,
+                key ?? NewKey("create"));
+
+        public static OtaCreateOrderFromOfferCommand Ota(
+            string offerId,
+            string? key = null,
+            IReadOnlyList<CreateOrderTravellerInput>? travellers = null)
+            => new(
+                offerId,
+                travellers ?? Travellers("PAX-A"),
+                Contacts(),
+                null,
+                key ?? NewKey("create"));
+
+        public static OtaPanelCreateOrderFromOfferCommand OtaPanel(
+            string offerId,
+            string? key = null,
+            IReadOnlyList<CreateOrderTravellerInput>? travellers = null)
+            => new(
+                offerId,
+                travellers ?? Travellers("PAX-A"),
+                Contacts(),
+                null,
+                key ?? NewKey("create"));
+
+        public static IReadOnlyList<CreateOrderTravellerInput> Travellers(params string[] offerTravellerRefs)
+            => offerTravellerRefs
+                .Select(reference => new CreateOrderTravellerInput(
+                    reference,
+                    $"CLIENT-{reference}",
                     "Sample",
                     "Traveler",
-                    traveler.PassengerTypeCode,
+                    PassengerTypeCode.ADT,
                     new DateOnly(1990, 1, 1),
                     null))
                 .ToList();
+
+        public static IReadOnlyList<CreateOrderContactInput> Contacts()
+            => [new CreateOrderContactInput(ContactRole.Primary, "traveler@example.invalid", null)];
     }
 }

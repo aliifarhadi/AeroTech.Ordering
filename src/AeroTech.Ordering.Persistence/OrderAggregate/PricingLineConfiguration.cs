@@ -10,7 +10,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<PricingLine> builder)
         {
-            builder.ToTable("PricingLines", PersistenceSchemas.Commercial, table =>
+            builder.ToTable("PricingLines", PersistenceSchemas.Order, table =>
             {
                 table.HasCheckConstraint("CK_PricingLines_OriginalMagnitude", "[OriginalValueAmount] >= 0");
                 table.HasCheckConstraint("CK_PricingLines_SaleMagnitude", "[SaleValueAmount] >= 0");

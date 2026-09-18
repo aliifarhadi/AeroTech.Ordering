@@ -1,0 +1,1381 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "testhost",
+    "version": "1.0"
+  },
+  "paths": {
+    "/Backoffice/v1/Orders/FlightOffers": {
+      "post": {
+        "tags": [
+          "Backoffice"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackofficeCreateOrderFromOfferRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackofficeCreateOrderFromOfferRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackofficeCreateOrderFromOfferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Backoffice/v1/Orders/{id}": {
+      "get": {
+        "tags": [
+          "Backoffice"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Internal/v1/Orders/{id}/ProjectionRebuilds": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/RebuildOrderProjectionResultApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RebuildOrderProjectionResultApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RebuildOrderProjectionResultApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Api/v1/Bookings/FlightOffers": {
+      "post": {
+        "tags": [
+          "OTA Api"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtaCreateOrderFromOfferRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtaCreateOrderFromOfferRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtaCreateOrderFromOfferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Api/v1/Bookings/{id}": {
+      "get": {
+        "tags": [
+          "OTA Api"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/OtaPanel/v1/Bookings/FlightOffers": {
+      "post": {
+        "tags": [
+          "OTA Panel"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtaCreateOrderFromOfferRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtaCreateOrderFromOfferRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtaCreateOrderFromOfferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/OtaPanel/v1/Bookings/{id}": {
+      "get": {
+        "tags": [
+          "OTA Panel"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Ping": {
+      "get": {
+        "tags": [
+          "Ping"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Service/v1/Bookings/FlightOffers": {
+      "post": {
+        "tags": [
+          "Service2Service"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceCreateOrderFromOfferRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceCreateOrderFromOfferRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceCreateOrderFromOfferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderFromOfferResultApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Service/v1/Bookings/{id}": {
+      "get": {
+        "tags": [
+          "Service2Service"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDtoApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Currencies": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Airlines": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Cities": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Airports": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/Customers": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Syncer/v1/OperatorSettings": {
+      "post": {
+        "tags": [
+          "Syncers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiErrorItem": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BackofficeCreateOrderFromOfferRequest": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "airlineOfficeId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "offerId": {
+            "type": "string",
+            "nullable": true
+          },
+          "travellers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTravellerRequest"
+            },
+            "nullable": true
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderContactRequest"
+            },
+            "nullable": true
+          },
+          "clientReference": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CommercialSummary": {
+        "enum": [
+          "Draft",
+          "Active",
+          "Cancelled",
+          "Inactive",
+          "Closed"
+        ],
+        "type": "string"
+      },
+      "ContactRole": {
+        "enum": [
+          "Primary",
+          "Emergency",
+          "Agency",
+          "Traveler",
+          "Other"
+        ],
+        "type": "string"
+      },
+      "CreateOrderFromOfferResult": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/CommercialSummary"
+          },
+          "grandTotal": {
+            "type": "string",
+            "nullable": true
+          },
+          "currencyRef": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateOrderFromOfferResultApiResult": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiErrorItem"
+            },
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateOrderFromOfferResult"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MoneyDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string",
+            "nullable": true
+          },
+          "currencyRef": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderAirTransportDto": {
+        "type": "object",
+        "properties": {
+          "cabinRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "rbdRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "bookingClass": {
+            "type": "string",
+            "nullable": true
+          },
+          "flightNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "marketingAirlineRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "operatingAirlineRef": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderContactDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/ContactRole"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderContactRequest": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/ContactRole"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/CommercialSummary"
+          },
+          "commercialVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "offerId": {
+            "type": "string",
+            "nullable": true
+          },
+          "channel": {
+            "$ref": "#/components/schemas/SalesChannel"
+          },
+          "customerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "airlineOfficeId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "grandTotal": {
+            "$ref": "#/components/schemas/MoneyDto"
+          },
+          "travellers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTravellerDto"
+            },
+            "nullable": true
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderContactDto"
+            },
+            "nullable": true
+          },
+          "itinerary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderSegmentDto"
+            },
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemDto"
+            },
+            "nullable": true
+          },
+          "pricing": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderPriceLineDto"
+            },
+            "nullable": true
+          },
+          "creationDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderDtoApiResult": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiErrorItem"
+            },
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrderDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderItemCommercialStatus": {
+        "enum": [
+          "Active",
+          "Replaced",
+          "Cancelled"
+        ],
+        "type": "string"
+      },
+      "OrderItemDto": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/OrderItemKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderItemCommercialStatus"
+          },
+          "acceptedTotal": {
+            "$ref": "#/components/schemas/MoneyDto"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderServiceDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderItemKind": {
+        "enum": [
+          "OfferPackage",
+          "Product",
+          "MonetaryCharge"
+        ],
+        "type": "string"
+      },
+      "OrderItemUnitOfMeasure": {
+        "enum": [
+          "Each",
+          "PassengerFare",
+          "PassengerSegment"
+        ],
+        "type": "string"
+      },
+      "OrderPriceLineDto": {
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "itemId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "component": {
+            "$ref": "#/components/schemas/PricingComponentType"
+          },
+          "effect": {
+            "$ref": "#/components/schemas/PricingEffect"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/OrderPricingLineDirection"
+          },
+          "saleValue": {
+            "$ref": "#/components/schemas/MoneyDto"
+          },
+          "originalValue": {
+            "$ref": "#/components/schemas/MoneyDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderPricingLineDirection": {
+        "enum": [
+          "Debit",
+          "Credit"
+        ],
+        "type": "string"
+      },
+      "OrderSegmentDto": {
+        "type": "object",
+        "properties": {
+          "segmentId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "originRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "destinationRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "departure": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "arrival": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "flightRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "legs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderSegmentLegDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderSegmentLegDto": {
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "legRef": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderServiceCommercialStatus": {
+        "enum": [
+          "Pending",
+          "Active",
+          "Cancelled",
+          "Exchanged",
+          "Suspended"
+        ],
+        "type": "string"
+      },
+      "OrderServiceDto": {
+        "type": "object",
+        "properties": {
+          "serviceId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "serviceType": {
+            "$ref": "#/components/schemas/OrderServiceType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderServiceCommercialStatus"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantityUnit": {
+            "$ref": "#/components/schemas/OrderItemUnitOfMeasure"
+          },
+          "travellerIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "nullable": true
+          },
+          "segmentIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "nullable": true
+          },
+          "airTransport": {
+            "$ref": "#/components/schemas/OrderAirTransportDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderServiceType": {
+        "enum": [
+          "AirTransportation",
+          "SeatAssignment",
+          "BaggageAllowance",
+          "Meal",
+          "LoungeAccess",
+          "Cip",
+          "SimCard",
+          "HotelStay",
+          "TransferRide",
+          "InsurancePolicy",
+          "Penalty",
+          "ServiceFee",
+          "Credit",
+          "Voucher",
+          "TaxAdjustment",
+          "ManualAdjustment",
+          "Notification",
+          "Other",
+          "GroundTransport",
+          "Priority",
+          "WiFi",
+          "ExtraSeat"
+        ],
+        "type": "string"
+      },
+      "OrderTravellerDto": {
+        "type": "object",
+        "properties": {
+          "travellerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "travellerRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "offerTravellerRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "passengerType": {
+            "$ref": "#/components/schemas/PassengerTypeCode"
+          },
+          "guardianTravellerId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "surName": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderTravellerRequest": {
+        "type": "object",
+        "properties": {
+          "offerTravellerRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "travellerRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "surName": {
+            "type": "string",
+            "nullable": true
+          },
+          "passengerType": {
+            "$ref": "#/components/schemas/PassengerTypeCode"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date"
+          },
+          "guardianTravellerRef": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OtaCreateOrderFromOfferRequest": {
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "type": "string",
+            "nullable": true
+          },
+          "travellers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTravellerRequest"
+            },
+            "nullable": true
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderContactRequest"
+            },
+            "nullable": true
+          },
+          "clientReference": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PassengerTypeCode": {
+        "enum": [
+          "ADT",
+          "ACC",
+          "AGT",
+          "ACP",
+          "ASF",
+          "ANN",
+          "GOV",
+          "GNN",
+          "GMZ",
+          "GIT",
+          "GEX",
+          "GDP",
+          "GCT",
+          "GCF",
+          "FFY",
+          "FDT",
+          "ENN",
+          "EMI",
+          "DOD",
+          "CTZ",
+          "CPN",
+          "CNV",
+          "CNN",
+          "CMX",
+          "CMA",
+          "CLG",
+          "CHD",
+          "BUD",
+          "BRV",
+          "BLD",
+          "BAG",
+          "ASB",
+          "GVT",
+          "GVM",
+          "GST",
+          "GTF",
+          "MED",
+          "MDP",
+          "MCR",
+          "MBT",
+          "LBR",
+          "JOB",
+          "ITX",
+          "INS",
+          "INN",
+          "INF",
+          "IIT",
+          "FNN",
+          "FTF",
+          "HNN",
+          "HCR",
+          "HOF",
+          "GVZ",
+          "ICP",
+          "MIS",
+          "MIR",
+          "MIL",
+          "MFM",
+          "OTS",
+          "NSB",
+          "NAT",
+          "MXS",
+          "MSG",
+          "MUS",
+          "MSB",
+          "MRE",
+          "MPA",
+          "MNN",
+          "MLZ",
+          "PFC",
+          "PFB",
+          "PFA",
+          "PNN",
+          "PCR",
+          "PFI",
+          "PFH",
+          "PFG",
+          "PFF",
+          "PFE",
+          "PFD",
+          "PFR",
+          "PFQ",
+          "PFP",
+          "PFO",
+          "PFN",
+          "PFM",
+          "PFL",
+          "PFK",
+          "PFJ",
+          "REF",
+          "REC",
+          "ZNN",
+          "YTH",
+          "YSB",
+          "YNN",
+          "YMZ",
+          "YCR",
+          "YCL",
+          "YCD",
+          "YCB",
+          "VNN",
+          "VFR",
+          "VAG",
+          "VAC",
+          "UNV",
+          "UNN",
+          "UAM",
+          "TUR",
+          "TNN",
+          "STU",
+          "SPS",
+          "SNN",
+          "SEA",
+          "SDB",
+          "STR",
+          "SRC"
+        ],
+        "type": "string"
+      },
+      "PricingComponentType": {
+        "enum": [
+          "Fare",
+          "ProductCharge",
+          "Tax",
+          "CarrierSurcharge",
+          "Fee",
+          "Discount",
+          "Markup",
+          "Penalty",
+          "Commission",
+          "Adjustment",
+          "Other"
+        ],
+        "type": "string"
+      },
+      "PricingEffect": {
+        "enum": [
+          "CustomerBalance",
+          "SettlementOnly",
+          "Informational"
+        ],
+        "type": "string"
+      },
+      "RebuildOrderProjectionResult": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "operationId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "commercialVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "replayedFromReceipt": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RebuildOrderProjectionResultApiResult": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiErrorItem"
+            },
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/RebuildOrderProjectionResult"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SalesChannel": {
+        "enum": [
+          "BackOffice",
+          "IBE",
+          "PartnerAPI",
+          "AgencyPanel",
+          "GDS",
+          "System"
+        ],
+        "type": "string"
+      },
+      "ServiceCreateOrderFromOfferRequest": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "airlineOfficeId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "offerId": {
+            "type": "string",
+            "nullable": true
+          },
+          "travellers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTravellerRequest"
+            },
+            "nullable": true
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderContactRequest"
+            },
+            "nullable": true
+          },
+          "clientReference": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Enter a JWT bearer token.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Backoffice"
+    },
+    {
+      "name": "Internal"
+    },
+    {
+      "name": "OTA Api"
+    },
+    {
+      "name": "OTA Panel"
+    },
+    {
+      "name": "Ping"
+    },
+    {
+      "name": "Service2Service"
+    },
+    {
+      "name": "Syncers"
+    }
+  ]
+}
