@@ -30,7 +30,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             ("validity", Map(
                 ("offer", Validity(candidate.Validity.Offer)),
                 ("price", Validity(candidate.Validity.Price)),
-                ("ticketing", Validity(candidate.Validity.Ticketing)))),
+                ("ticketing", Validity(candidate.Validity.Ticketing)),
+                ("observedTicketingDeadline", ObservedNode(candidate.Validity.ObservedTicketingDeadline)))),
             ("salesContext", Map(
                 ("ownerAirlineId", CanonicalJson.Identifier(candidate.SalesContext.OwnerAirlineId)),
                 ("financialCustomerId", CanonicalJson.Identifier(candidate.SalesContext.FinancialCustomerId)),
@@ -39,24 +40,63 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             ("travelers", candidate.Travelers.Select(traveler => (object?)Map(
                 ("sourceTravellerRef", traveler.SourceTravellerRef),
                 ("passengerTypeCode", CandidateVocabulary.Name(traveler.PassengerTypeCode)))).ToList()),
+            ("journeys", candidate.Journeys.Select(journey => (object?)Map(
+                ("journeyRef", journey.JourneyRef),
+                ("sequence", journey.Sequence),
+                ("sourceDirectionRaw", journey.SourceDirectionRaw),
+                ("direction", OptionalName(journey.Direction)),
+                ("originRef", journey.OriginRef),
+                ("destinationRef", journey.DestinationRef))).ToList()),
             ("segments", candidate.Segments.Select(segment => (object?)Map(
                 ("segmentRef", segment.SegmentRef),
+                ("journeyRef", segment.JourneyRef),
                 ("kind", CandidateVocabulary.Name(segment.Kind)),
                 ("originRef", segment.OriginRef),
+                ("originTerminalRef", segment.OriginTerminalRef),
                 ("destinationRef", segment.DestinationRef),
+                ("destinationTerminalRef", segment.DestinationTerminalRef),
                 ("soldDeparture", CanonicalJson.Instant(segment.SoldDeparture)),
                 ("soldArrival", CanonicalJson.Instant(segment.SoldArrival)),
                 ("flightRef", segment.FlightRef),
-                ("operationalLegRefs", Strings(segment.OperationalLegRefs)))).ToList()),
+                ("flightNumber", segment.FlightNumber),
+                ("flightVersion", segment.FlightVersion),
+                ("marketingCarrierRef", segment.MarketingCarrierRef),
+                ("operatingCarrierRef", segment.OperatingCarrierRef),
+                ("sourceCapacityRef", segment.SourceCapacityRef),
+                ("duration", segment.Duration),
+                ("aircraftRef", segment.AircraftRef),
+                ("legs", segment.Legs.Select(leg => (object?)Map(
+                    ("sourceLegRef", leg.SourceLegRef),
+                    ("sequence", leg.Sequence),
+                    ("originRef", leg.OriginRef),
+                    ("originTerminalRef", leg.OriginTerminalRef),
+                    ("destinationRef", leg.DestinationRef),
+                    ("destinationTerminalRef", leg.DestinationTerminalRef),
+                    ("departure", CanonicalJson.Instant(leg.Departure)),
+                    ("arrival", CanonicalJson.Instant(leg.Arrival)))).ToList()))).ToList()),
             ("items", candidate.Items.Select(item => (object?)Map(
                 ("itemRef", item.ItemRef),
                 ("itemKind", CandidateVocabulary.Name(item.ItemKind)),
                 ("sourceOfferItemRef", item.SourceOfferItemRef),
                 ("serviceRefs", Strings(item.ServiceRefs)),
-                ("acceptedTotal", MoneyNode(item.AcceptedTotal)))).ToList()),
+                ("acceptedTotal", MoneyNode(item.AcceptedTotal)),
+                ("product", Map(
+                    ("sourceSystem", item.Product.SourceSystem),
+                    ("sourceOfferId", item.Product.SourceOfferId),
+                    ("sourceOfferItemRef", item.Product.SourceOfferItemRef),
+                    ("productCode", item.Product.ProductCode),
+                    ("productName", item.Product.ProductName),
+                    ("brandCode", item.Product.BrandCode),
+                    ("brandName", item.Product.BrandName),
+                    ("productVersion", item.Product.ProductVersion))))).ToList()),
             ("services", candidate.Services.Select(service => (object?)Map(
                 ("serviceRef", service.ServiceRef),
                 ("type", CandidateVocabulary.Name(service.Type)),
+                ("serviceCode", service.ServiceCode),
+                ("name", service.Name),
+                ("priceTreatment", CandidateVocabulary.Name(service.PriceTreatment)),
+                ("supplierPartyRef", service.SupplierPartyRef),
+                ("deliveryProviderRef", service.DeliveryProviderRef),
                 ("beneficiaryRefs", Strings(service.BeneficiaryRefs)),
                 ("segmentRefs", Strings(service.SegmentRefs)),
                 ("quantity", CanonicalJson.Amount(service.Quantity)),
@@ -64,11 +104,19 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 ("detailSchema", service.DetailSchema),
                 ("detailSchemaVersion", service.DetailSchemaVersion),
                 ("details", service.Details.ToDictionary(pair => pair.Key, pair => (object?)pair.Value)),
+                ("checkedBaggage", BaggageNode(service.CheckedBaggage)),
+                ("cabinBaggage", BaggageNode(service.CabinBaggage)),
+                ("soldTerms", Map(
+                    ("refundable", service.SoldTerms.Refundable),
+                    ("changeable", service.SoldTerms.Changeable),
+                    ("upgradable", service.SoldTerms.Upgradable))),
                 ("fulfillmentProfile", Map(
                     ("profileRef", service.FulfillmentProfile.ProfileRef),
+                    ("profileVersion", service.FulfillmentProfile.ProfileVersion),
+                    ("assurance", CandidateVocabulary.Name(service.FulfillmentProfile.Assurance)),
                     ("reservationRequirement", CandidateVocabulary.Name(service.FulfillmentProfile.ReservationRequirement)),
                     ("documentKind", CandidateVocabulary.Name(service.FulfillmentProfile.DocumentKind)),
-                    ("requiresFunding", service.FulfillmentProfile.RequiresFunding),
+                    ("fundingRequirement", CandidateVocabulary.Name(service.FulfillmentProfile.FundingRequirement)),
                     ("capacityUnits", service.FulfillmentProfile.CapacityUnits))))).ToList()),
             ("pricingLines", candidate.PricingLines.Select(line => (object?)Map(
                 ("lineRef", line.LineRef),
@@ -77,18 +125,27 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 ("effect", CandidateVocabulary.Name(line.Effect)),
                 ("direction", CandidateVocabulary.Name(line.Direction)),
                 ("lineRole", CandidateVocabulary.Name(line.LineRole)),
+                ("sourceCode", line.SourceCode),
+                ("sourceName", line.SourceName),
+                ("sourceReference", line.SourceReference),
+                ("calculationKind", CandidateVocabulary.Name(line.CalculationKind)),
                 ("originalValue", MoneyNode(line.OriginalValue)),
                 ("saleValue", MoneyNode(line.SaleValue)),
                 ("sourceLineRef", line.SourceLineRef),
                 ("basisType", CandidateVocabulary.Name(line.BasisType)),
                 ("basisRef", line.BasisRef),
-                ("sourceConversionRef", line.SourceConversionRef))).ToList()),
+                ("sourceConversionRef", line.SourceConversionRef),
+                ("appliedConversion", ConversionNode(line.AppliedConversion)))).ToList()),
             ("customerTotal", MoneyNode(candidate.CustomerTotal)),
+            ("saleCurrencyCode", candidate.SaleCurrencyCode),
+            ("sourceJourneyTypeRaw", candidate.SourceJourneyTypeRaw),
+            ("journeyType", OptionalName(candidate.JourneyType)),
             ("fareConstruction", Map(
                 ("assurance", CandidateVocabulary.Name(candidate.FareConstruction.Assurance)),
                 ("sourceContextRef", candidate.FareConstruction.SourceContextRef),
                 ("pricingUnits", candidate.FareConstruction.PricingUnits.Select(unit => (object?)Map(
                     ("sourceUnitRef", unit.SourceUnitRef),
+                    ("sourceKindRaw", unit.SourceKindRaw),
                     ("type", CandidateVocabulary.Name(unit.Type)),
                     ("combinationMethod", CandidateVocabulary.Name(unit.CombinationMethod)),
                     ("coveredSourceBoundRefs", Strings(unit.CoveredSourceBoundRefs)),
@@ -104,7 +161,13 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                         ("cabinRef", component.CabinRef),
                         ("rbdRef", component.RbdRef),
                         ("bookingClass", component.BookingClass),
-                        ("coveredServiceRefs", Strings(component.CoveredServiceRefs)))).ToList()))).ToList()))));
+                        ("ticketingRestrictionMinutes", component.TicketingRestrictionMinutes),
+                        ("fareOwnerRef", component.FareOwnerRef),
+                        ("tariffRef", component.TariffRef),
+                        ("ruleRef", component.RuleRef),
+                        ("routingRef", component.RoutingRef),
+                        ("coveredServiceRefs", Strings(component.CoveredServiceRefs)),
+                        ("coveredSegmentRefs", Strings(component.CoveredSegmentRefs)))).ToList()))).ToList()))));
 
         public static NormalizedCandidate Read(string json)
         {
@@ -122,13 +185,14 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
         private static NormalizedCandidate ReadCandidate(Node root)
         {
             root.Only("schemaVersion", "source", "acceptanceAssurance", "pricedAt", "capturedAt", "validity", "salesContext",
-                "travelers", "segments", "items", "services", "pricingLines", "customerTotal", "fareConstruction");
+                "travelers", "journeys", "segments", "items", "services", "pricingLines", "customerTotal", "saleCurrencyCode",
+                "sourceJourneyTypeRaw", "journeyType", "fareConstruction");
 
             var source = root.Object("source");
             source.Only("owner", "offerId", "providerProfileId", "ownerBindingRef", "sourcePayloadHash");
 
             var validity = root.Object("validity");
-            validity.Only("offer", "price", "ticketing");
+            validity.Only("offer", "price", "ticketing", "observedTicketingDeadline");
 
             var sales = root.Object("salesContext");
             sales.Only("ownerAirlineId", "financialCustomerId", "channel", "sellingOfficeId");
@@ -150,7 +214,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 new CandidateValidity(
                     ReadValidity(validity.Object("offer")),
                     ReadValidity(validity.Object("price")),
-                    ReadValidity(validity.Object("ticketing"))),
+                    ReadValidity(validity.Object("ticketing")),
+                    ReadObserved(validity.NullableObject("observedTicketingDeadline"))),
                 new CandidateSalesContext(
                     sales.Identifier("ownerAirlineId"),
                     sales.Identifier("financialCustomerId"),
@@ -163,49 +228,123 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                         traveler.String("sourceTravellerRef"),
                         CandidateVocabulary.Parse<PassengerTypeCode>(traveler.String("passengerTypeCode"), "traveler.passengerTypeCode"));
                 }).ToList(),
-                root.Array("segments").Select(segment =>
-                {
-                    segment.Only("segmentRef", "kind", "originRef", "destinationRef", "soldDeparture", "soldArrival", "flightRef", "operationalLegRefs");
-                    return new CandidateSegment(
-                        segment.String("segmentRef"),
-                        segment.Enum<SegmentKind>("kind"),
-                        segment.String("originRef"),
-                        segment.String("destinationRef"),
-                        segment.NullableInstant("soldDeparture"),
-                        segment.NullableInstant("soldArrival"),
-                        segment.NullableString("flightRef"),
-                        segment.Strings("operationalLegRefs"));
-                }).ToList(),
-                root.Array("items").Select(item =>
-                {
-                    item.Only("itemRef", "itemKind", "sourceOfferItemRef", "serviceRefs", "acceptedTotal");
-                    return new CandidateItem(
-                        item.String("itemRef"),
-                        item.Enum<OrderItemKind>("itemKind"),
-                        item.NullableString("sourceOfferItemRef"),
-                        item.Strings("serviceRefs"),
-                        ReadMoney(item.Object("acceptedTotal")));
-                }).ToList(),
+                root.Array("journeys").Select(ReadJourney).ToList(),
+                root.Array("segments").Select(ReadSegment).ToList(),
+                root.Array("items").Select(ReadItem).ToList(),
                 root.Array("services").Select(ReadService).ToList(),
                 root.Array("pricingLines").Select(ReadPricingLine).ToList(),
                 ReadMoney(root.Object("customerTotal")),
+                root.NullableString("saleCurrencyCode"),
+                root.NullableString("sourceJourneyTypeRaw"),
+                root.NullableEnum<JourneyType>("journeyType"),
                 new CandidateFareConstruction(
                     construction.Enum<FareConstructionAssurance>("assurance"),
                     construction.String("sourceContextRef"),
                     construction.Array("pricingUnits").Select(ReadPricingUnit).ToList()));
         }
 
+        private static CandidateJourney ReadJourney(Node journey)
+        {
+            journey.Only("journeyRef", "sequence", "sourceDirectionRaw", "direction", "originRef", "destinationRef");
+
+            return new CandidateJourney(
+                journey.String("journeyRef"),
+                journey.Integer("sequence"),
+                journey.NullableString("sourceDirectionRaw"),
+                journey.NullableEnum<BoundDirection>("direction"),
+                journey.String("originRef"),
+                journey.String("destinationRef"));
+        }
+
+        private static CandidateSegment ReadSegment(Node segment)
+        {
+            segment.Only("segmentRef", "journeyRef", "kind", "originRef", "originTerminalRef", "destinationRef",
+                "destinationTerminalRef", "soldDeparture", "soldArrival", "flightRef", "flightNumber", "flightVersion",
+                "marketingCarrierRef", "operatingCarrierRef", "sourceCapacityRef", "duration", "aircraftRef", "legs");
+
+            return new CandidateSegment(
+                segment.String("segmentRef"),
+                segment.String("journeyRef"),
+                segment.Enum<SegmentKind>("kind"),
+                segment.String("originRef"),
+                segment.NullableString("originTerminalRef"),
+                segment.String("destinationRef"),
+                segment.NullableString("destinationTerminalRef"),
+                segment.NullableInstant("soldDeparture"),
+                segment.NullableInstant("soldArrival"),
+                segment.NullableString("flightRef"),
+                segment.NullableString("flightNumber"),
+                segment.NullableString("flightVersion"),
+                segment.NullableString("marketingCarrierRef"),
+                segment.NullableString("operatingCarrierRef"),
+                segment.NullableString("sourceCapacityRef"),
+                segment.NullableInteger("duration"),
+                segment.NullableString("aircraftRef"),
+                segment.Array("legs").Select(ReadLeg).ToList());
+        }
+
+        private static CandidateSegmentLeg ReadLeg(Node leg)
+        {
+            leg.Only("sourceLegRef", "sequence", "originRef", "originTerminalRef", "destinationRef", "destinationTerminalRef",
+                "departure", "arrival");
+
+            return new CandidateSegmentLeg(
+                leg.String("sourceLegRef"),
+                leg.Integer("sequence"),
+                leg.NullableString("originRef"),
+                leg.NullableString("originTerminalRef"),
+                leg.NullableString("destinationRef"),
+                leg.NullableString("destinationTerminalRef"),
+                leg.NullableInstant("departure"),
+                leg.NullableInstant("arrival"));
+        }
+
+        private static CandidateItem ReadItem(Node item)
+        {
+            item.Only("itemRef", "itemKind", "sourceOfferItemRef", "serviceRefs", "acceptedTotal", "product");
+
+            var product = item.Object("product");
+            product.Only("sourceSystem", "sourceOfferId", "sourceOfferItemRef", "productCode", "productName", "brandCode",
+                "brandName", "productVersion");
+
+            return new CandidateItem(
+                item.String("itemRef"),
+                item.Enum<OrderItemKind>("itemKind"),
+                item.NullableString("sourceOfferItemRef"),
+                item.Strings("serviceRefs"),
+                ReadMoney(item.Object("acceptedTotal")),
+                new ProductSnapshot(
+                    product.String("sourceSystem"),
+                    product.String("sourceOfferId"),
+                    product.NullableString("sourceOfferItemRef"),
+                    product.NullableString("productCode"),
+                    product.NullableString("productName"),
+                    product.NullableString("brandCode"),
+                    product.NullableString("brandName"),
+                    product.NullableString("productVersion")));
+        }
+
         private static CandidateService ReadService(Node service)
         {
-            service.Only("serviceRef", "type", "beneficiaryRefs", "segmentRefs", "quantity", "quantityUnit", "detailSchema",
-                "detailSchemaVersion", "details", "fulfillmentProfile");
+            service.Only("serviceRef", "type", "serviceCode", "name", "priceTreatment", "supplierPartyRef", "deliveryProviderRef",
+                "beneficiaryRefs", "segmentRefs", "quantity", "quantityUnit", "detailSchema", "detailSchemaVersion", "details",
+                "checkedBaggage", "cabinBaggage", "soldTerms", "fulfillmentProfile");
+
+            var terms = service.Object("soldTerms");
+            terms.Only("refundable", "changeable", "upgradable");
 
             var profile = service.Object("fulfillmentProfile");
-            profile.Only("profileRef", "reservationRequirement", "documentKind", "requiresFunding", "capacityUnits");
+            profile.Only("profileRef", "profileVersion", "assurance", "reservationRequirement", "documentKind",
+                "fundingRequirement", "capacityUnits");
 
             return new CandidateService(
                 service.String("serviceRef"),
                 service.Enum<OrderServiceType>("type"),
+                service.NullableString("serviceCode"),
+                service.NullableString("name"),
+                service.Enum<ServicePriceTreatment>("priceTreatment"),
+                service.NullableString("supplierPartyRef"),
+                service.NullableString("deliveryProviderRef"),
                 service.Strings("beneficiaryRefs"),
                 service.Strings("segmentRefs"),
                 service.Decimal("quantity", QuantityPattern()),
@@ -213,18 +352,27 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 service.String("detailSchema"),
                 service.Integer("detailSchemaVersion"),
                 service.Object("details").StringMap(),
+                ReadBaggage(service.NullableObject("checkedBaggage")),
+                ReadBaggage(service.NullableObject("cabinBaggage")),
+                new SoldTermFlags(
+                    terms.NullableBoolean("refundable"),
+                    terms.NullableBoolean("changeable"),
+                    terms.NullableBoolean("upgradable")),
                 new CandidateFulfillmentProfile(
                     profile.String("profileRef"),
+                    profile.String("profileVersion"),
+                    profile.Enum<FulfillmentProfileAssurance>("assurance"),
                     profile.Enum<ReservationRequirement>("reservationRequirement"),
                     profile.Enum<FulfillmentDocumentKind>("documentKind"),
-                    profile.Boolean("requiresFunding"),
-                    profile.Integer("capacityUnits")));
+                    profile.Enum<FundingRequirement>("fundingRequirement"),
+                    profile.NullableInteger("capacityUnits")));
         }
 
         private static CandidatePricingLine ReadPricingLine(Node line)
         {
-            line.Only("lineRef", "itemRef", "component", "effect", "direction", "lineRole", "originalValue", "saleValue",
-                "sourceLineRef", "basisType", "basisRef", "sourceConversionRef");
+            line.Only("lineRef", "itemRef", "component", "effect", "direction", "lineRole", "sourceCode", "sourceName",
+                "sourceReference", "calculationKind", "originalValue", "saleValue", "sourceLineRef", "basisType", "basisRef",
+                "sourceConversionRef", "appliedConversion");
 
             return new CandidatePricingLine(
                 line.String("lineRef"),
@@ -233,17 +381,22 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 line.Enum<PricingEffect>("effect"),
                 line.Enum<OrderPricingLineDirection>("direction"),
                 line.Enum<PricingLineRole>("lineRole"),
+                line.NullableString("sourceCode"),
+                line.NullableString("sourceName"),
+                line.NullableString("sourceReference"),
+                line.Enum<PricingCalculationKind>("calculationKind"),
                 ReadMoney(line.Object("originalValue")),
                 ReadMoney(line.Object("saleValue")),
                 line.String("sourceLineRef"),
                 line.Enum<PricingBasisType>("basisType"),
                 line.String("basisRef"),
-                line.NullableString("sourceConversionRef"));
+                line.NullableString("sourceConversionRef"),
+                ReadConversion(line.NullableObject("appliedConversion")));
         }
 
         private static CandidatePricingUnit ReadPricingUnit(Node unit)
         {
-            unit.Only("sourceUnitRef", "type", "combinationMethod", "coveredSourceBoundRefs", "pricingGroup", "components");
+            unit.Only("sourceUnitRef", "sourceKindRaw", "type", "combinationMethod", "coveredSourceBoundRefs", "pricingGroup", "components");
 
             CandidatePricingGroup? group = null;
 
@@ -258,23 +411,77 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
 
             return new CandidatePricingUnit(
                 unit.String("sourceUnitRef"),
+                unit.NullableString("sourceKindRaw"),
                 unit.Enum<FarePricingUnitType>("type"),
                 unit.Enum<FareCombinationMethod>("combinationMethod"),
                 unit.Strings("coveredSourceBoundRefs"),
                 group,
-                unit.Array("components").Select(component =>
-                {
-                    component.Only("sourceFareRef", "fareBasis", "fareFamily", "fareType", "cabinRef", "rbdRef", "bookingClass", "coveredServiceRefs");
-                    return new CandidateFareComponent(
-                        component.String("sourceFareRef"),
-                        component.NullableString("fareBasis"),
-                        component.NullableString("fareFamily"),
-                        component.NullableString("fareType"),
-                        component.NullableString("cabinRef"),
-                        component.NullableString("rbdRef"),
-                        component.NullableString("bookingClass"),
-                        component.Strings("coveredServiceRefs"));
-                }).ToList());
+                unit.Array("components").Select(ReadFareComponent).ToList());
+        }
+
+        private static CandidateFareComponent ReadFareComponent(Node component)
+        {
+            component.Only("sourceFareRef", "fareBasis", "fareFamily", "fareType", "cabinRef", "rbdRef", "bookingClass",
+                "ticketingRestrictionMinutes", "fareOwnerRef", "tariffRef", "ruleRef", "routingRef", "coveredServiceRefs",
+                "coveredSegmentRefs");
+
+            return new CandidateFareComponent(
+                component.String("sourceFareRef"),
+                component.NullableString("fareBasis"),
+                component.NullableString("fareFamily"),
+                component.NullableString("fareType"),
+                component.NullableString("cabinRef"),
+                component.NullableString("rbdRef"),
+                component.NullableString("bookingClass"),
+                component.NullableInteger("ticketingRestrictionMinutes"),
+                component.NullableString("fareOwnerRef"),
+                component.NullableString("tariffRef"),
+                component.NullableString("ruleRef"),
+                component.NullableString("routingRef"),
+                component.Strings("coveredServiceRefs"),
+                component.Strings("coveredSegmentRefs"));
+        }
+
+        private static BaggageAllowance? ReadBaggage(Node? node)
+        {
+            if (node is not { } baggage)
+                return null;
+
+            baggage.Only("pieces", "weight", "weightUnit");
+
+            return new BaggageAllowance(
+                baggage.NullableInteger("pieces"),
+                baggage.NullableDecimal("weight", QuantityPattern()),
+                baggage.NullableEnum<BaggageWeightUnit>("weightUnit"));
+        }
+
+        private static AppliedConversion? ReadConversion(Node? node)
+        {
+            if (node is not { } conversion)
+                return null;
+
+            conversion.Only("sourceConversionRef", "fromCurrencyRef", "toCurrencyRef", "rate", "decimalPlaces", "roundingToken");
+
+            return new AppliedConversion(
+                conversion.String("sourceConversionRef"),
+                conversion.String("fromCurrencyRef"),
+                conversion.String("toCurrencyRef"),
+                conversion.Decimal("rate", RatePattern()),
+                conversion.Integer("decimalPlaces"),
+                conversion.NullableString("roundingToken"));
+        }
+
+        private static ObservedTimeFact? ReadObserved(Node? node)
+        {
+            if (node is not { } observed)
+                return null;
+
+            observed.Only("value", "sourceOwner", "sourceRef");
+
+            return new ObservedTimeFact(
+                observed.Instant("value"),
+                observed.String("sourceOwner"),
+                observed.String("sourceRef"));
         }
 
         private static ValidityFact ReadValidity(Node node)
@@ -302,9 +509,30 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             ("sourceRef", fact.SourceRef),
             ("reason", fact.Reason));
 
+        private static IReadOnlyDictionary<string, object?>? ObservedNode(ObservedTimeFact? fact) => fact is null ? null : Map(
+            ("value", CanonicalJson.Instant(fact.Value)),
+            ("sourceOwner", fact.SourceOwner),
+            ("sourceRef", fact.SourceRef));
+
+        private static IReadOnlyDictionary<string, object?>? BaggageNode(BaggageAllowance? allowance) => allowance is null ? null : Map(
+            ("pieces", allowance.Pieces),
+            ("weight", allowance.Weight is null ? null : CanonicalJson.Amount(allowance.Weight.Value)),
+            ("weightUnit", OptionalName(allowance.WeightUnit)));
+
+        private static IReadOnlyDictionary<string, object?>? ConversionNode(AppliedConversion? conversion) => conversion is null ? null : Map(
+            ("sourceConversionRef", conversion.SourceConversionRef),
+            ("fromCurrencyRef", conversion.FromCurrencyRef),
+            ("toCurrencyRef", conversion.ToCurrencyRef),
+            ("rate", CanonicalJson.Amount(conversion.Rate)),
+            ("decimalPlaces", conversion.DecimalPlaces),
+            ("roundingToken", conversion.RoundingToken));
+
         private static IReadOnlyDictionary<string, object?> MoneyNode(Money money) => Map(
             ("amount", CanonicalJson.Amount(money.Amount)),
             ("currencyRef", money.CurrencyRef));
+
+        private static string? OptionalName<TEnum>(TEnum? value) where TEnum : struct, Enum
+            => value is null ? null : CandidateVocabulary.Name(value.Value);
 
         private static List<object?> Strings(IEnumerable<string> values) => values.Select(value => (object?)value).ToList();
 
@@ -316,6 +544,9 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
 
         [GeneratedRegex(@"^[0-9]+(\.[0-9]{1,6})?$")]
         private static partial Regex QuantityPattern();
+
+        [GeneratedRegex(@"^(0|[1-9][0-9]*)(\.[0-9]{1,12})?$")]
+        private static partial Regex RatePattern();
 
         [GeneratedRegex(@"^[1-9][0-9]*$")]
         private static partial Regex IdentifierPattern();
@@ -415,6 +646,12 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             public TEnum Enum<TEnum>(string name) where TEnum : struct, Enum
                 => CandidateVocabulary.Parse<TEnum>(String(name), $"{_path}.{name}");
 
+            public TEnum? NullableEnum<TEnum>(string name) where TEnum : struct, Enum
+            {
+                var text = NullableString(name);
+                return text is null ? null : CandidateVocabulary.Parse<TEnum>(text, $"{_path}.{name}");
+            }
+
             public DateTimeOffset Instant(string name)
                 => NullableInstant(name) ?? throw Mismatch($"{_path}.{name} must be a date-time");
 
@@ -432,8 +669,14 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             }
 
             public decimal Decimal(string name, Regex pattern)
+                => NullableDecimal(name, pattern) ?? throw Mismatch($"{_path}.{name} must be an exact decimal string");
+
+            public decimal? NullableDecimal(string name, Regex pattern)
             {
-                var text = String(name);
+                var text = NullableString(name);
+
+                if (text is null)
+                    return null;
 
                 if (!pattern.IsMatch(text) || !decimal.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var value))
                     throw Mismatch($"{_path}.{name} must be an exact decimal string");
@@ -457,19 +700,33 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             }
 
             public int Integer(string name)
+                => NullableInteger(name) ?? throw Mismatch($"{_path}.{name} must be an integer");
+
+            public int? NullableInteger(string name)
             {
                 var value = Get(name);
-                return value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number)
-                    ? number
-                    : throw Mismatch($"{_path}.{name} must be an integer");
+
+                return value.ValueKind switch
+                {
+                    JsonValueKind.Null => null,
+                    JsonValueKind.Number when value.TryGetInt32(out var number) => number,
+                    _ => throw Mismatch($"{_path}.{name} must be an integer or null")
+                };
             }
 
             public bool Boolean(string name)
+                => NullableBoolean(name) ?? throw Mismatch($"{_path}.{name} must be a boolean");
+
+            public bool? NullableBoolean(string name)
             {
                 var value = Get(name);
-                return value.ValueKind is JsonValueKind.True or JsonValueKind.False
-                    ? value.GetBoolean()
-                    : throw Mismatch($"{_path}.{name} must be a boolean");
+
+                return value.ValueKind switch
+                {
+                    JsonValueKind.Null => null,
+                    JsonValueKind.True or JsonValueKind.False => value.GetBoolean(),
+                    _ => throw Mismatch($"{_path}.{name} must be a boolean or null")
+                };
             }
 
             private JsonElement Get(string name)

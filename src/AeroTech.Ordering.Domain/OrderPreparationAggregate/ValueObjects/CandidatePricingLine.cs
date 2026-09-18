@@ -10,10 +10,15 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         PricingEffect Effect,
         OrderPricingLineDirection Direction,
         PricingLineRole LineRole,
+        string? SourceCode,
+        string? SourceName,
+        string? SourceReference,
+        PricingCalculationKind CalculationKind,
         Money OriginalValue,
         Money SaleValue,
         string SourceLineRef,
         PricingBasisType BasisType,
         string BasisRef,
-        string? SourceConversionRef);
+        string? SourceConversionRef,
+        AppliedConversion? AppliedConversion);
 }

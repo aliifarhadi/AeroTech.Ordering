@@ -26,8 +26,12 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.Property(line => line.CandidateLineRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();
             builder.Property(line => line.SourceBasisRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();
             builder.Property(line => line.SourceConversionRef).HasMaxLength(PersistenceSchemas.ReferenceLength);
+            builder.Property(line => line.SourceCode).HasMaxLength(PersistenceSchemas.ReferenceLength);
+            builder.Property(line => line.SourceName).HasMaxLength(PersistenceSchemas.ReasonLength);
+            builder.Property(line => line.SourceReference).HasMaxLength(PersistenceSchemas.ReferenceLength);
             builder.OwnsOne(line => line.OriginalValue, money => money.MapMoney("OriginalValue"));
             builder.OwnsOne(line => line.SaleValue, money => money.MapMoney("SaleValue"));
+            builder.OwnsOne(line => line.AppliedConversion, conversion => conversion.MapAppliedConversion("Conversion"));
             builder.HasOne<PriceChangeSet>().WithMany().HasForeignKey(line => line.PriceChangeSetId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<OrderItem>().WithMany().HasForeignKey(line => line.OrderItemId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<PricingLine>().WithMany().HasForeignKey(line => line.OriginalPricingLineId).OnDelete(DeleteBehavior.Restrict);

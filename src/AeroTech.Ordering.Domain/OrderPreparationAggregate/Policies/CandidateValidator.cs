@@ -17,6 +17,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
             EnsureSalesContext(candidate.SalesContext, scope);
 
             var travelers = UniqueIndex(candidate.Travelers, traveler => traveler.SourceTravellerRef, "traveler");
+            var journeys = UniqueIndex(candidate.Journeys, journey => journey.JourneyRef, "journey");
             var segments = UniqueIndex(candidate.Segments, segment => segment.SegmentRef, "segment");
             var services = UniqueIndex(candidate.Services, service => service.ServiceRef, "service");
             var items = UniqueIndex(candidate.Items, item => item.ItemRef, "item");
@@ -25,15 +26,15 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
             if (candidate.Items.Count == 0)
                 throw Mismatch("a candidate needs at least one item");
 
-            foreach (var traveler in candidate.Travelers)
+            EnsureJourneys(candidate.Journeys);
 
             foreach (var segment in candidate.Segments)
-                EnsureSegment(segment);
+                EnsureSegment(segment, journeys);
 
             EnsureServices(candidate.Services, travelers, segments);
             EnsureItems(candidate.Items, services);
             EnsurePricing(candidate, items, services, segments);
-            EnsureFareConstruction(candidate.FareConstruction, travelers, services);
+            EnsureFareConstruction(candidate.FareConstruction, travelers, services, segments);
         }
 
         private static void EnsureSource(NormalizedCandidate candidate)
@@ -62,16 +63,50 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 throw Mismatch("candidate sales context differs from the authorized sales scope");
         }
 
-        private static void EnsureSegment(CandidateSegment segment)
+        private static void EnsureJourneys(IReadOnlyList<CandidateJourney> journeys)
         {
+            if (journeys.Count == 0)
+                throw Mismatch("a candidate needs at least one journey");
+
+            var sequences = new HashSet<int>();
+
+            foreach (var journey in journeys)
+            {
+                if (journey.Sequence < 1)
+                    throw Mismatch($"journey {journey.JourneyRef} sequence must be positive");
+
+                if (!sequences.Add(journey.Sequence))
+                    throw Mismatch($"journey sequence {journey.Sequence} is repeated");
+
+                Require(journey.OriginRef, $"journey {journey.JourneyRef} origin");
+                Require(journey.DestinationRef, $"journey {journey.JourneyRef} destination");
+
+                if (journey.Direction is { } direction && !Enum.IsDefined(direction))
+                    throw Mismatch($"journey {journey.JourneyRef} direction is not defined");
+            }
+        }
+
+        private static void EnsureSegment(CandidateSegment segment, IReadOnlyDictionary<string, CandidateJourney> journeys)
+        {
+            if (!journeys.ContainsKey(segment.JourneyRef))
+                throw Mismatch($"segment {segment.SegmentRef} journey {segment.JourneyRef} is not a candidate journey");
+
             if (!Enum.IsDefined(segment.Kind))
                 throw Mismatch($"segment {segment.SegmentRef} kind is not defined");
 
             Require(segment.OriginRef, $"segment {segment.SegmentRef} origin");
             Require(segment.DestinationRef, $"segment {segment.SegmentRef} destination");
 
-            if (segment.OperationalLegRefs.Count != segment.OperationalLegRefs.Distinct(StringComparer.Ordinal).Count())
+            var legRefs = segment.Legs.Select(leg => leg.SourceLegRef).ToList();
+
+            if (legRefs.Count != legRefs.Distinct(StringComparer.Ordinal).Count())
                 throw Mismatch($"segment {segment.SegmentRef} repeats an operational leg");
+
+            var legSequences = new HashSet<int>();
+
+            foreach (var leg in segment.Legs)
+                if (leg.Sequence < 1 || !legSequences.Add(leg.Sequence))
+                    throw Mismatch($"segment {segment.SegmentRef} leg sequence {leg.Sequence} is not a unique positive sequence");
 
             switch (segment.Kind)
             {
@@ -142,11 +177,25 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
 
             Require(profile.ProfileRef, $"service {service.ServiceRef} fulfillment profile");
 
-            if (!Enum.IsDefined(profile.ReservationRequirement) || !Enum.IsDefined(profile.DocumentKind))
+            Require(profile.ProfileVersion, $"service {service.ServiceRef} fulfillment profile version");
+
+            if (!Enum.IsDefined(profile.Assurance) || !Enum.IsDefined(profile.ReservationRequirement)
+                || !Enum.IsDefined(profile.DocumentKind) || !Enum.IsDefined(profile.FundingRequirement))
                 throw Mismatch($"service {service.ServiceRef} fulfillment profile values are not defined");
 
             if (profile.CapacityUnits < 0)
                 throw Mismatch($"service {service.ServiceRef} capacity units cannot be negative");
+
+            var claimsRequirement = profile.ReservationRequirement != ReservationRequirement.Unresolved
+                || profile.DocumentKind != FulfillmentDocumentKind.Unresolved
+                || profile.FundingRequirement != FundingRequirement.Unresolved
+                || profile.CapacityUnits is not null;
+
+            if (profile.Assurance == FulfillmentProfileAssurance.NotCertified && claimsRequirement)
+                throw Mismatch($"service {service.ServiceRef} fulfillment profile is not certified and cannot claim fulfillment requirements");
+
+            if (profile.Assurance == FulfillmentProfileAssurance.Certified && !claimsRequirement)
+                throw Mismatch($"service {service.ServiceRef} certified fulfillment profile must state its fulfillment requirements");
         }
 
         private static void EnsureItems(IReadOnlyList<CandidateItem> items, IReadOnlyDictionary<string, CandidateService> services)
@@ -202,6 +251,11 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 if (line.ItemRef is not null && !items.ContainsKey(line.ItemRef))
                     throw Mismatch($"pricing line {line.LineRef} item {line.ItemRef} is not a candidate item");
 
+                if (line.CalculationKind == PricingCalculationKind.NotRecorded)
+                    throw Mismatch($"pricing line {line.LineRef} must record whether its source row was an amount or a percentage");
+
+                EnsureConversion(line);
+
                 Require(line.SourceLineRef, $"pricing line {line.LineRef} source reference");
                 Require(line.BasisRef, $"pricing line {line.LineRef} basis reference");
                 EnsureBasis(line, items, services, segments);
@@ -243,6 +297,15 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
             }
         }
 
+        private static void EnsureConversion(CandidatePricingLine line)
+        {
+            if (line.AppliedConversion is not { } conversion)
+                return;
+
+            if (!string.Equals(conversion.SourceConversionRef, line.SourceConversionRef, StringComparison.Ordinal))
+                throw Mismatch($"pricing line {line.LineRef} conversion reference differs from its source conversion reference");
+        }
+
         private static void EnsureBasis(
             CandidatePricingLine line,
             IReadOnlyDictionary<string, CandidateItem> items,
@@ -268,7 +331,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
         private static void EnsureFareConstruction(
             CandidateFareConstruction construction,
             IReadOnlyDictionary<string, CandidateTraveler> travelers,
-            IReadOnlyDictionary<string, CandidateService> services)
+            IReadOnlyDictionary<string, CandidateService> services,
+            IReadOnlyDictionary<string, CandidateSegment> segments)
         {
             if (!Enum.IsDefined(construction.Assurance))
                 throw Mismatch("fare construction assurance is not defined");
@@ -301,10 +365,14 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 {
                     Require(component.SourceFareRef, $"pricing unit {unit.SourceUnitRef} fare reference");
 
+                    foreach (var segmentRef in component.CoveredSegmentRefs)
+                        if (!segments.ContainsKey(segmentRef))
+                            throw Mismatch($"fare component {component.SourceFareRef} covers {segmentRef}, which is not a candidate segment");
+
                     if (construction.Assurance == FareConstructionAssurance.Opaque)
                     {
-                        if (component.CoveredServiceRefs.Count > 0)
-                            throw Mismatch("an opaque construction cannot claim fare component service links");
+                        if (component.CoveredServiceRefs.Count > 0 || component.CoveredSegmentRefs.Count > 0)
+                            throw Mismatch("an opaque construction cannot claim fare component coverage");
 
                         continue;
                     }

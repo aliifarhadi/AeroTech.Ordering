@@ -1,15 +1,24 @@
 using AeroTech.Messages.Ordering.Enums;
-using AeroTech.Ordering.Domain._Shared.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
     public sealed record CandidateSegment(
         string SegmentRef,
+        string JourneyRef,
         SegmentKind Kind,
         string OriginRef,
+        string? OriginTerminalRef,
         string DestinationRef,
+        string? DestinationTerminalRef,
         DateTimeOffset? SoldDeparture,
         DateTimeOffset? SoldArrival,
         string? FlightRef,
-        IReadOnlyList<string> OperationalLegRefs);
+        string? FlightNumber,
+        string? FlightVersion,
+        string? MarketingCarrierRef,
+        string? OperatingCarrierRef,
+        string? SourceCapacityRef,
+        int? Duration,
+        string? AircraftRef,
+        IReadOnlyList<CandidateSegmentLeg> Legs);
 }

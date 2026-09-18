@@ -12,13 +12,19 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         CandidateValidity Validity,
         CandidateSalesContext SalesContext,
         IReadOnlyList<CandidateTraveler> Travelers,
+        IReadOnlyList<CandidateJourney> Journeys,
         IReadOnlyList<CandidateSegment> Segments,
         IReadOnlyList<CandidateItem> Items,
         IReadOnlyList<CandidateService> Services,
         IReadOnlyList<CandidatePricingLine> PricingLines,
         Money CustomerTotal,
+        string? SaleCurrencyCode,
+        string? SourceJourneyTypeRaw,
+        JourneyType? JourneyType,
         CandidateFareConstruction FareConstruction)
     {
-        public const string CurrentSchemaVersion = "2.0";
+        public const string CurrentSchemaVersion = "3.0";
+
+        public CurrencySnapshot SaleCurrency => new(CustomerTotal.CurrencyRef, SaleCurrencyCode);
     }
 }

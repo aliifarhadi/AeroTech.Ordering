@@ -210,20 +210,22 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             await using var harness = await S1Harness.StartAsync(_fixture);
 
             var roundTripOffer = await PublishAsync(harness, (now, scope) => RoundTrip(now, scope,
-                new CandidatePricingUnit("PU-RT", FarePricingUnitType.RoundTrip, FareCombinationMethod.FiledFare, ["OUT", "IN"], null,
-                    [new CandidateFareComponent("FC-RT", "YRT", null, "Published", null, null, "Y", ["S-OUT", "S-IN"])])));
+                Unit("PU-RT", FarePricingUnitType.RoundTrip, ["OUT", "IN"], Component("FC-RT", "YRT", ["S-OUT", "S-IN"]))));
             var oneWayOffer = await PublishAsync(harness, (now, scope) => RoundTrip(now, scope,
-                new CandidatePricingUnit("PU-OUT", FarePricingUnitType.OneWay, FareCombinationMethod.FiledFare, ["OUT"], null,
-                    [new CandidateFareComponent("FC-OUT", "YOW", null, "Published", null, null, "Y", ["S-OUT"])]),
-                new CandidatePricingUnit("PU-IN", FarePricingUnitType.OneWay, FareCombinationMethod.FiledFare, ["IN"], null,
-                    [new CandidateFareComponent("FC-IN", "YOW", null, "Published", null, null, "Y", ["S-IN"])])));
+                Unit("PU-OUT", FarePricingUnitType.OneWay, ["OUT"], Component("FC-OUT", "YOW", ["S-OUT"])),
+                Unit("PU-IN", FarePricingUnitType.OneWay, ["IN"], Component("FC-IN", "YOW", ["S-IN"]))));
 
             var roundTrip = await LoadOrderAsync(harness, (await harness.SendAsync(S1Commands.Backoffice(roundTripOffer))).OrderId);
             var oneWays = await LoadOrderAsync(harness, (await harness.SendAsync(S1Commands.Backoffice(oneWayOffer))).OrderId);
 
-            Assert.Contains("\"type\":\"RoundTrip\"", roundTrip.FareConstructions.Single().PricingUnitsJson);
-            Assert.Contains("\"type\":\"OneWay\"", oneWays.FareConstructions.Single().PricingUnitsJson);
-            Assert.NotEqual(roundTrip.FareConstructions.Single().PricingUnitsJson, oneWays.FareConstructions.Single().PricingUnitsJson);
+            var roundTripUnit = Assert.Single(roundTrip.FareConstructions.Single().PricingUnits);
+            Assert.Equal(FarePricingUnitType.RoundTrip, roundTripUnit.Type);
+            Assert.Equal(["IN", "OUT"], roundTripUnit.CoveredBounds.Select(bound => bound.SourceBoundRef).OrderBy(reference => reference));
+            Assert.Equal(2, Assert.Single(roundTripUnit.Components).CoveredServices.Count);
+
+            Assert.Equal(2, oneWays.FareConstructions.Single().PricingUnits.Count);
+            Assert.All(oneWays.FareConstructions.Single().PricingUnits, unit => Assert.Equal(FarePricingUnitType.OneWay, unit.Type));
+            Assert.All(oneWays.FareConstructions.Single().FareComponents, component => Assert.Single(component.CoveredServices));
             Assert.Equal(FareConstructionAssurance.SourceProvided, roundTrip.FareConstructions.Single().Assurance);
         }
 
@@ -237,16 +239,19 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                 .AirService("S-A", "PAX-A", "SEG-1").AirService("S-B", "PAX-B", "SEG-1")
                 .Package("PACKAGE", "S-A", "S-B")
                 .Line("GROUP-FARE", "PACKAGE", PricingComponentType.Fare, 200m, "PACKAGE", basisType: PricingBasisType.OrderItem)
-                .SourceProvidedConstruction(new CandidatePricingUnit("PU-1", FarePricingUnitType.OneWay, FareCombinationMethod.FiledFare, ["OUT"],
+                .SourceProvidedConstruction(Unit("PU-1", FarePricingUnitType.OneWay, ["OUT"],
                     new CandidatePricingGroup(["PAX-A", "PAX-B"], PassengerTypeCode.ADT, 2),
-                    [new CandidateFareComponent("FC-1", "YOW", null, "Published", null, null, "Y", ["S-A", "S-B"])])));
+                    Component("FC-1", "YOW", ["S-A", "S-B"]))));
 
             var created = await harness.SendAsync(S1Commands.Backoffice(offerId, travellers: S1Commands.Travellers("PAX-A", "PAX-B")));
             var order = await LoadOrderAsync(harness, created.OrderId);
+            var group = Assert.Single(order.FareConstructions.Single().PricingGroups);
 
             Assert.Equal(200m, order.CustomerTotal.Amount);
             Assert.Equal(200m, Assert.Single(order.PricingLines).SaleValue.Amount);
-            Assert.Contains("\"quantity\":2", order.FareConstructions.Single().PricingUnitsJson);
+            Assert.Equal(2, group.Quantity);
+            Assert.Equal(2, group.Travelers.Count);
+            Assert.Equal(group.Id, Assert.Single(order.FareConstructions.Single().PricingUnits).PricingGroupId);
         }
 
         [Fact]
@@ -362,10 +367,28 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
         public static string UniqueOffer() => $"REF-OFFER-{Guid.NewGuid():N}";
 
+        private static CandidatePricingUnit Unit(
+            string sourceUnitRef,
+            FarePricingUnitType type,
+            IReadOnlyList<string> coveredBounds,
+            params CandidateFareComponent[] components)
+            => new(sourceUnitRef, null, type, FareCombinationMethod.FiledFare, coveredBounds, null, components);
+
+        private static CandidatePricingUnit Unit(
+            string sourceUnitRef,
+            FarePricingUnitType type,
+            IReadOnlyList<string> coveredBounds,
+            CandidatePricingGroup group,
+            params CandidateFareComponent[] components)
+            => new(sourceUnitRef, null, type, FareCombinationMethod.FiledFare, coveredBounds, group, components);
+
+        private static CandidateFareComponent Component(string sourceFareRef, string fareBasis, IReadOnlyList<string> coveredServiceRefs)
+            => new(sourceFareRef, fareBasis, null, "Published", null, null, "Y", null, null, null, null, null, coveredServiceRefs, []);
+
         private static CandidateBuilder RoundTrip(DateTimeOffset now, AuthorizedSalesScope scope, params CandidatePricingUnit[] units)
             => new CandidateBuilder(now, scope)
                 .Traveler("PAX-A")
-                .Segment("OUT-1").Segment("IN-1")
+                .Journey("OUT").Segment("OUT-1").Journey("IN").Segment("IN-1")
                 .AirService("S-OUT", "PAX-A", "OUT-1").AirService("S-IN", "PAX-A", "IN-1")
                 .Package("PACKAGE", "S-OUT", "S-IN")
                 .Line("FARE", "PACKAGE", PricingComponentType.Fare, 300m, "PACKAGE", basisType: PricingBasisType.OrderItem)

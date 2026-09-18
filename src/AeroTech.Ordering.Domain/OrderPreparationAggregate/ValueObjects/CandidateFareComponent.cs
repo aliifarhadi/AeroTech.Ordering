@@ -1,6 +1,3 @@
-using AeroTech.Messages.Ordering.Enums;
-using AeroTech.Ordering.Domain._Shared.ValueObjects;
-
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
     public sealed record CandidateFareComponent(
@@ -11,5 +8,11 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         string? CabinRef,
         string? RbdRef,
         string? BookingClass,
-        IReadOnlyList<string> CoveredServiceRefs);
+        int? TicketingRestrictionMinutes,
+        string? FareOwnerRef,
+        string? TariffRef,
+        string? RuleRef,
+        string? RoutingRef,
+        IReadOnlyList<string> CoveredServiceRefs,
+        IReadOnlyList<string> CoveredSegmentRefs);
 }

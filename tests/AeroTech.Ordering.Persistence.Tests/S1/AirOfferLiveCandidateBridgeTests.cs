@@ -6,7 +6,9 @@ using AeroTech.Ordering.Domain.OrderPreparationAggregate.Contracts;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
 using AeroTech.Ordering.Domain.Ports.Offers;
 using AeroTech.Ordering.Persistence.Tests._Shared;
+using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Providers.AirOffer;
+using AeroTech.Ordering.Providers.AirOffer.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -47,7 +49,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             Assert.Equal(["tickets/0/coupons/0/pricings/0", "tickets/0/coupons/0/pricings/1"], candidate.PricingLines.Select(line => line.SourceLineRef));
             Assert.Equal([PricingComponentType.Fare, PricingComponentType.Tax], candidate.PricingLines.Select(line => line.Component));
             Assert.Equal(120m, candidate.CustomerTotal.Amount);
-            Assert.Equal(2, Assert.Single(candidate.Segments).OperationalLegRefs.Count);
+            Assert.Equal(2, Assert.Single(candidate.Segments).Legs.Count);
         }
 
         [Fact]
@@ -81,7 +83,11 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             Assert.Equal(ValidityState.NotSupplied, preparation.OfferValidity.State);
             Assert.Equal(ValidityState.NotSupplied, preparation.PriceValidity.State);
             Assert.Equal(ValidityState.NotSupplied, preparation.TicketingValidity.State);
-            Assert.Contains("LastTicketingDate", preparation.TicketingValidity.Reason);
+            Assert.Contains("BD-004", preparation.TicketingValidity.Reason);
+            Assert.DoesNotContain("LastTicketingDate", preparation.TicketingValidity.Reason);
+            var observed = Assert.IsType<ObservedTimeFact>(order.ObservedTicketingDeadline);
+            Assert.Equal(AirOfferProfile.Owner, observed.SourceOwner);
+            Assert.Equal(AirOfferCandidateMapper.TicketingDeadlineSourceRef, observed.SourceRef);
             Assert.True(order.IsSandboxScoped);
             Assert.Equal(AirOfferProfile.LiveCandidateSandbox, order.AcceptedSource.AcceptanceProfile);
 

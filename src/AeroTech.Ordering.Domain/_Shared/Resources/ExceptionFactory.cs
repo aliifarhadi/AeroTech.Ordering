@@ -79,5 +79,8 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
 
         public static BusinessException ProjectionRebuildConflict(params object?[] args) =>
             new(20286, ExceptionMessages.ProjectionRebuildConflict, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceCoverageIsNotASingleSegment(params object?[] args) =>
+            new(20288, ExceptionMessages.ServiceCoverageIsNotASingleSegment, args) { HttpStatus = 422 };
     }
 }

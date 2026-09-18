@@ -1,5 +1,7 @@
 using AeroTech.Framework.Core.Domain.Entities;
 using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Ordering.Domain._Shared.Resources;
+using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderAggregate.ValueObjects;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
@@ -30,17 +32,25 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             OrderItemId = orderItemId;
             SourceServiceRef = source.ServiceRef;
             Type = source.Type;
+            ServiceCode = source.ServiceCode;
+            Name = source.Name;
+            PriceTreatment = source.PriceTreatment;
+            SupplierPartyRef = source.SupplierPartyRef;
+            DeliveryProviderRef = source.DeliveryProviderRef;
             CommercialStatus = OrderServiceCommercialStatus.Active;
             ServiceVersion = 1;
             Quantity = source.Quantity;
             QuantityUnit = source.QuantityUnit;
             DetailSchema = source.DetailSchema;
             DetailSchemaVersion = source.DetailSchemaVersion;
+            SoldTerms = source.SoldTerms;
             FulfillmentProfile = new FulfillmentProfileSnapshot(
                 source.FulfillmentProfile.ProfileRef,
+                source.FulfillmentProfile.ProfileVersion,
+                source.FulfillmentProfile.Assurance,
                 source.FulfillmentProfile.ReservationRequirement,
                 source.FulfillmentProfile.DocumentKind,
-                source.FulfillmentProfile.RequiresFunding,
+                source.FulfillmentProfile.FundingRequirement,
                 source.FulfillmentProfile.CapacityUnits);
             CreatedByChangeId = createdByChangeId;
 
@@ -55,10 +65,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
                     Detail(source, ServiceDetailSchemaRegistry.CabinRef),
                     Detail(source, ServiceDetailSchemaRegistry.RbdRef),
                     Detail(source, ServiceDetailSchemaRegistry.BookingClass),
-                    Detail(source, ServiceDetailSchemaRegistry.FlightNumber),
-                    Detail(source, ServiceDetailSchemaRegistry.FlightVersion),
-                    Detail(source, ServiceDetailSchemaRegistry.MarketingCarrierRef),
-                    Detail(source, ServiceDetailSchemaRegistry.OperatingCarrierRef));
+                    source.CheckedBaggage,
+                    source.CabinBaggage);
         }
 
         public long OrderId { get; private set; }
@@ -68,6 +76,16 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         public string SourceServiceRef { get; private set; } = null!;
 
         public OrderServiceType Type { get; private set; }
+
+        public string? ServiceCode { get; private set; }
+
+        public string? Name { get; private set; }
+
+        public ServicePriceTreatment PriceTreatment { get; private set; }
+
+        public string? SupplierPartyRef { get; private set; }
+
+        public string? DeliveryProviderRef { get; private set; }
 
         public OrderServiceCommercialStatus CommercialStatus { get; private set; }
 
@@ -81,6 +99,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 
         public int DetailSchemaVersion { get; private set; }
 
+        public SoldTermFlags SoldTerms { get; private set; } = null!;
+
         public FulfillmentProfileSnapshot FulfillmentProfile { get; private set; } = null!;
 
         public long CreatedByChangeId { get; private set; }
@@ -90,6 +110,10 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         public IReadOnlyCollection<OrderServiceBeneficiary> Beneficiaries => _beneficiaries.AsReadOnly();
 
         public IReadOnlyCollection<OrderServiceCoverage> Coverage => _coverage.AsReadOnly();
+
+        public long SoleCoveredSegmentId => _coverage.Count == 1
+            ? _coverage[0].SegmentId
+            : throw ExceptionFactory.ServiceCoverageIsNotASingleSegment(Id, _coverage.Count);
 
         private static string? Detail(CandidateService source, string key)
             => source.Details.TryGetValue(key, out var value) ? value : null;

@@ -23,12 +23,17 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             Effect = source.Effect;
             Direction = source.Direction;
             Role = source.LineRole;
+            SourceCode = source.SourceCode;
+            SourceName = source.SourceName;
+            SourceReference = source.SourceReference;
+            CalculationKind = source.CalculationKind;
             OriginalValue = source.OriginalValue;
             SaleValue = source.SaleValue;
             BasisType = source.BasisType;
             BasisId = basisId;
             SourceBasisRef = source.BasisRef;
             SourceConversionRef = source.SourceConversionRef;
+            AppliedConversion = source.AppliedConversion;
         }
 
         public long OrderId { get; private set; }
@@ -49,6 +54,14 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 
         public PricingLineRole Role { get; private set; }
 
+        public string? SourceCode { get; private set; }
+
+        public string? SourceName { get; private set; }
+
+        public string? SourceReference { get; private set; }
+
+        public PricingCalculationKind CalculationKind { get; private set; }
+
         public Money OriginalValue { get; private set; } = null!;
 
         public Money SaleValue { get; private set; } = null!;
@@ -60,6 +73,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         public string SourceBasisRef { get; private set; } = null!;
 
         public string? SourceConversionRef { get; private set; }
+
+        public AppliedConversion? AppliedConversion { get; private set; }
 
         public long? OriginalPricingLineId { get; private set; }
     }

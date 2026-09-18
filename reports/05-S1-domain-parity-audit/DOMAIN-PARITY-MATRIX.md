@@ -2,8 +2,8 @@
 
 Stage: 05-S1-domain-parity-audit
 Repository HEAD audited: `deaf6b0` (branch `k8s-stg`, clean tree) — first issued at `43df88a`, revised after the owner's answers.
-Date: 2026-09-19 (revision 2 — owner decisions applied)
-Status: `S1_DOMAIN_REPAIR_PLAN_READY_FOR_OWNER_REVIEW` — matrix and plan only, **no material domain change has been made**.
+Date: 2026-09-19 (revision 3 — owner decisions applied, `OD-P-21` closed, `OD-C-02` corrected, repairs implemented)
+Status: `S1_DOMAIN_REPAIR_READY_FOR_OWNER_REVIEW` — the approved repairs are implemented; see `REPORT.md`.
 
 Owner answers: `reports/00-decisions/S1-DOMAIN-PARITY-OPEN-DECISIONS.md`.
 Implementation plan: `IMPLEMENTATION-PLAN.md` in this folder.
@@ -36,7 +36,7 @@ The historical `k8s-stg` model is evidence of what was lost, **not** an authorit
 |---|---|---|---|---|---|---|---|
 | A1 | Order identity + reference | DOMAIN/13: unique owner+reference | `RecordLocator` VO, `Id` | `OrderReference`, snowflake `Id` | none | yes | **KEEP** |
 | A2 | Owner / financial customer / sales context | DOMAIN/01 | owner, customer, channel, office | `OwnerAirlineId`, `FinancialCustomerId`, `Channel`, `SellingOfficeId`, `BuyerActorContextType`, `BuyerActorId` | none | yes | **KEEP** |
-| A3 | `SalesChannel` used inside Domain | GOVERNANCE/05 C1 allowlist | platform enum | referenced in Domain, outside the C1 allowlist | allowlist conflict, open since stage 04 | yes | **BLOCKED_DECISION OD-C-02** |
+| A3 | `SalesChannel` used inside Domain | GOVERNANCE/05 C1 allowlist | platform enum | referenced in Domain under an explicit owner exception | none — `OD-C-02` was answered in `S1-CLEANUP-OPEN-DECISIONS.md`: "`Messages.Shared.Enums.SalesChannel` is allowed" | yes | **KEEP** (corrected in revision 3) |
 | A4 | Root / parent order | DOMAIN/12, DOMAIN/13 | `OrderLineage` VO | `RootOrderId` only | split lineage not representable | no (S2) | **DEFER-BEHAVIOR** |
 | A5 | Sale currency | DOMAIN/03 §31: source CurrencyId **and** CurrencyCode | amount + `CurrencyId` | `SaleCurrencyRef` = stringified id only | `details.CurrencyCode` discarded | yes | **REDESIGN OD-P-01** |
 | A6 | Accepted source evidence | DOMAIN/15, SLICES/S1 | `AcceptedOrderSource` VO | `AcceptedSource` VO | none; current is richer | yes | **KEEP** |
@@ -66,7 +66,7 @@ The historical `k8s-stg` model is evidence of what was lost, **not** an authorit
 |---|---|---|---|---|---|---|---|
 | C1 | `OrderService` core fields | DOMAIN/02 §19 | all present | ServiceCode, Name, PriceTreatment, SupplierPartyRef, DeliveryProviderRef **missing** | Pack-required fields absent | yes | **RESTORE OD-P-06** — structure only; `ServiceCode`/`Name` stay null for AirOffer, `PriceTreatment = SupplierOpaque`, no inferred supplier/delivery refs |
 | C2 | `FulfillmentProfileSnapshot` | DOMAIN/02 §23 (profile ID **and version**, requirement semantics, authority) | booleans on the service | VO without a version; the adapter hard-codes `FlightCapacity` / `Etkt` / `RequiresFunding` / `CapacityUnits = 1` for a source that certifies none of them | uncertified requirement semantics presented as accepted truth | yes | **REDESIGN OD-P-07** — reference profile may state exact semantics; the live AirOffer profile must represent them as not certified; live requirement semantics stay owner-blocked (BD-002/005/006) |
-| C3 | Typed air-transport detail | DOMAIN/02 | detail with checked and cabin baggage | detail without baggage | per-coupon baggage and cabin-baggage allowance discarded | yes | **RESTORE OD-P-08** |
+| C3 | Typed air-transport detail | DOMAIN/02 | detail with checked and cabin baggage | **restored**: cabin ref, RBD ref, booking class, checked and cabin baggage allowance; the three sold term flags sit on the service itself | none | yes | **RESTORE OD-P-08** — flight-level facts moved out to the segment under `OD-P-21` |
 | C4 | Seat / baggage / meal / lounge / hotel / ground / generic details | DOMAIN/02 | seven entities | absent | none for S1 | no | **DEFER-BEHAVIOR** |
 | C5 | Candidate detail as schema + string map | CLAUDE.md, DOMAIN/02 | typed entity | string map in the candidate, typed VO on accept | the candidate is an acceptance envelope, not the accepted record | yes | **KEEP** |
 | C6 | Beneficiaries | DOMAIN/13 | present | present | none | yes | **KEEP** |
@@ -80,7 +80,7 @@ The historical `k8s-stg` model is evidence of what was lost, **not** an authorit
 | # | Concept | Pack 3.8 requirement | Historical `k8s-stg` | Current @ `deaf6b0` | Gap / information loss | S1 scope | Disposition |
 |---|---|---|---|---|---|---|---|
 | D1 | **Journey** | DOMAIN/04 §15; DOMAIN/13 table group `…/Journeys/Segments` | `OrderItinerary` (bound id, sequence, direction, origin, destination) | **absent** | `airTransports[].BoundId / Direction / Sequence / Origin / Destination` and `details.JourneyType` discarded | yes | **RESTORE OD-P-09** — raw direction and journey type preserved losslessly; canonical enum mapped only where the vocabulary is known |
-| D2 | Sold segment facts | DOMAIN/04 §15 | full sold snapshot | sequence, source ref, kind, origin/destination refs, sold times, flight ref | terminals, duration, aircraft, `FlightCapacityId`, `FlightVersion`, marketing and operating carrier absent | yes | **RESTORE OD-P-10** — **cabin, RBD and booking class are NOT copied to the segment**; `FlightCapacityId` is a retained source reference, not certified capacity truth |
+| D2 | Sold segment facts | DOMAIN/04 §15 | full sold snapshot | **restored**: terminals, duration, aircraft, `SourceCapacityRef`, `FlightNumber`, `FlightVersion`, marketing and operating carrier, with the existing `FlightRef` reused as the external FlightId | none | yes | **RESTORE OD-P-10 + OD-P-21** — the segment is now the single canonical store for flight-level facts; cabin, RBD and booking class stay on the service detail; `SourceCapacityRef` is a retained source reference, not certified capacity truth |
 | D3 | Segment legs | DOMAIN/04 §19 | airports, terminals, times, stop | sequence + `SourceLegRef` only | leg airports, terminals and times dropped | yes | **RESTORE OD-P-11** — no inferred connection/protection semantics |
 | D4 | Connection / protection facts | DOMAIN/04 §19 | `FlightStopType` | `Stop` is an unparsed `JsonElement` | stop facts unread | yes if supplied | **BLOCKED_DECISION OD-P-12** — raw evidence retained, **no fake canonical `Unknown` row**, handoff prepared |
 | D5 | Traveler | DOMAIN/04 | index, name, PTC, age range, DOB, gender, nationality, residence, documents, parent | source/client refs, PTC, guardian link, identity | gender/nationality/residence not supplied by AirOffer at S1 | yes | **KEEP** |
@@ -143,21 +143,21 @@ The historical `k8s-stg` model is evidence of what was lost, **not** an authorit
 
 ## Disposition counts (recalculated after the owner's answers)
 
-| Disposition | Revision 1 | Revision 2 | Why it moved |
-|---|---|---|---|
-| KEEP | 24 | 32 | B1, D8, E1, H4 became KEEP by owner decision; the rest is the recount below |
-| RESTORE | 10 | 15 | F2–F6 counted individually; E6 left RESTORE, E7 and C1 entered it |
-| REDESIGN | 8 | 7 | E1 left REDESIGN for KEEP |
-| REMOVE | 0 | 0 | — |
-| DEFER-BEHAVIOR | 13 | 13 | E6 entered, no row left |
-| BLOCKED_DECISION | 6 | 2 | OD-P-07, OD-P-13, OD-P-18, OD-P-20 answered |
-| **Total rows** | **61 (stated)** | **69 (actual)** | revision 1's totals did not add up to its own 69 rows; revision 2 counts every row exactly once |
+| Disposition | Revision 1 | Revision 2 | Revision 3 | Why it moved |
+|---|---|---|---|---|
+| KEEP | 24 | 32 | **33** | A3 corrected: `OD-C-02` was already answered in the stage-04 register |
+| RESTORE | 10 | 15 | **15** | unchanged; `OD-P-21` changed where two `RESTORE` rows write, not whether they do |
+| REDESIGN | 8 | 7 | **7** | unchanged |
+| REMOVE | 0 | 0 | **0** | — |
+| DEFER-BEHAVIOR | 13 | 13 | **13** | unchanged |
+| BLOCKED_DECISION | 6 | 2 | **1** | only `OD-P-12` (the AirOffer `Stop` vocabulary) remains |
+| **Total rows** | 61 stated / 69 actual | 69 | **69** | every row counted exactly once |
 
-Exact per-section totals (rows counted once, in the section where they appear):
+Per-section totals:
 
 | Section | Rows | KEEP | RESTORE | REDESIGN | DEFER | BLOCKED |
 |---|---|---|---|---|---|---|
-| A | 12 | 6 | 0 | 2 | 3 | 1 |
+| A | 12 | 7 | 0 | 2 | 3 | 0 |
 | B | 8 | 3 | 2 | 1 | 2 | 0 |
 | C | 10 | 4 | 2 | 1 | 3 | 0 |
 | D | 8 | 3 | 3 | 0 | 1 | 1 |
@@ -165,11 +165,9 @@ Exact per-section totals (rows counted once, in the section where they appear):
 | F | 7 | 1 | 5 | 1 | 0 | 0 |
 | G | 6 | 5 | 0 | 0 | 1 | 0 |
 | H | 7 | 6 | 0 | 1 | 0 | 0 |
-| **Total** | **69** | **32** | **15** | **7** | **13** | **2** |
+| **Total** | **69** | **33** | **15** | **7** | **13** | **1** |
 
-The two remaining `BLOCKED_DECISION` rows are **A3 (`OD-C-02`, open since stage 04)** and **D4 (`OD-P-12`, the `Stop` vocabulary, blocked by the owner's own answer)**. No row that the owner approved is still marked blocked, and no rejected legacy-only field (E6 quantity/UoM/unit price, E1 source split, D8 contact points, B1 item quantity) is still counted as `RESTORE`.
-
-`OD-P-21` (where marketing/operating carrier and flight version live once the segment is restored) is **new and open**; it does not change a disposition, it changes where an approved `RESTORE` writes its data, so D2 and C3 stay as they are and the plan carries both paths.
+`OD-P-12` (D4, the AirOffer `Stop` vocabulary) is the only remaining domain-parity blocker. `OD-C-02` and `OD-P-21` are **not** blocked. The `Stop` question, together with the undocumented `direction` and `journeyType` vocabularies, is carried to the AirOffer owner as handoff `OR-002` in `E:\Projects\DotAir\handoffs`.
 
 ## The five findings of the audit prompt, after the owner's answers
 

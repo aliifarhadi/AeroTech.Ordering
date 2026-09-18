@@ -8,5 +8,6 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         OrderItemKind ItemKind,
         string? SourceOfferItemRef,
         IReadOnlyList<string> ServiceRefs,
-        Money AcceptedTotal);
+        Money AcceptedTotal,
+        ProductSnapshot Product);
 }

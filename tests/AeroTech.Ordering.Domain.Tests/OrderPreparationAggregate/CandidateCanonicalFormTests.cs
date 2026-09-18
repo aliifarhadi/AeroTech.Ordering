@@ -7,7 +7,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
 {
     public sealed class CandidateCanonicalFormTests
     {
-        private const string PackExampleDigest = "1cb8ac2e3b1b32419b2954f890cbcc293105f34778454ca65279462dd58e0822";
+        private const string PackExampleDigest = "2732898652d05598776a1811a5546c55aa45f8af2e782f9d1ee674c9ff9d1adb";
 
         [Fact]
         public void Pack_example_candidate_digest_is_reproduced_by_the_canonical_form()
@@ -34,7 +34,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
         [Fact]
         public void Property_outside_the_candidate_contract_is_rejected()
         {
-            var tampered = PackExamples.NormalizedCandidate.Replace("\"schemaVersion\": \"2.0\",", "\"schemaVersion\": \"2.0\", \"unexpected\": true,");
+            var tampered = PackExamples.NormalizedCandidate.Replace("\"schemaVersion\": \"3.0\",", "\"schemaVersion\": \"3.0\", \"unexpected\": true,");
 
             var exception = Assert.Throws<BusinessException>(() => NormalizedCandidateJson.Read(tampered));
 

@@ -6,6 +6,11 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
     public sealed record CandidateService(
         string ServiceRef,
         OrderServiceType Type,
+        string? ServiceCode,
+        string? Name,
+        ServicePriceTreatment PriceTreatment,
+        string? SupplierPartyRef,
+        string? DeliveryProviderRef,
         IReadOnlyList<string> BeneficiaryRefs,
         IReadOnlyList<string> SegmentRefs,
         decimal Quantity,
@@ -13,5 +18,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         string DetailSchema,
         int DetailSchemaVersion,
         IReadOnlyDictionary<string, string> Details,
+        BaggageAllowance? CheckedBaggage,
+        BaggageAllowance? CabinBaggage,
+        SoldTermFlags SoldTerms,
         CandidateFulfillmentProfile FulfillmentProfile);
 }

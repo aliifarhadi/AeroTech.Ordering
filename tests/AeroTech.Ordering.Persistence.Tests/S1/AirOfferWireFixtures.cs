@@ -16,7 +16,10 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             bool percentage = false,
             int lineCurrencyId = 978,
             decimal? equivalent = null,
-            decimal? percentageOrderCharge = null)
+            decimal? percentageOrderCharge = null,
+            bool withTerminals = false,
+            int? ticketingRestrictionMinutes = null,
+            decimal? conversionRate = null)
         {
             var couponTotal = couponFare + couponTax;
             var saleFare = lineCurrencyId == 978 ? couponFare : equivalent ?? couponFare;
@@ -57,9 +60,9 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                                     flightVersion = 4,
                                     flightNumber = "AT101",
                                     originAirportId = 11,
-                                    originAirportTerminalId = (int?)null,
+                                    originAirportTerminalId = withTerminals ? (int?)61 : null,
                                     destinationAirportId = 22,
-                                    destinationAirportTerminalId = (int?)null,
+                                    destinationAirportTerminalId = withTerminals ? (int?)62 : null,
                                     operatingAirlineId = 1,
                                     marketingAirlineId = 1,
                                     departureDateTime = "2026-09-20T08:00:00+03:30",
@@ -89,7 +92,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                             coveredBoundOfferIds = new[] { "BOUND-1" },
                             fareComponents = new[]
                             {
-                                new { airFareId = "9001", cabinClassId = (int?)3, rbdId = "44", bookingClass = "Y", fareBasis = "YOW", fareFamily = "FLEX", fareType = "Published", ticketingRestrictionMinutes = (int?)null }
+                                new { airFareId = "9001", cabinClassId = (int?)3, rbdId = "44", bookingClass = "Y", fareBasis = "YOW", fareFamily = "FLEX", fareType = "Published", ticketingRestrictionMinutes = ticketingRestrictionMinutes }
                             }
                         }
                     },
@@ -138,7 +141,13 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                             new { category = 1, name = "IR", code = "IR", reference = "ROE-70", amount = 10.0m, currencyId = 0, isPercentage = true, equivalentAmount = charge, equivalentCurrencyId = 978, rateOfExchangePeriodId = "70" }
                         }
                         : Array.Empty<object>(),
-                    ratesOfExchange = Array.Empty<object>()
+                    ratesOfExchange = lineCurrencyId == 978 && percentageOrderCharge is null
+                        ? Array.Empty<object>()
+                        : new object[]
+                        {
+                            new { rateOfExchangePeriodId = "ROE-1", fromCurrencyId = lineCurrencyId, toCurrencyId = 978, rate = conversionRate ?? 1.0m, decimalPlaces = 2, roundingFactor = 100 },
+                            new { rateOfExchangePeriodId = "70", fromCurrencyId = 978, toCurrencyId = 978, rate = 1.0m, decimalPlaces = 2, roundingFactor = 100 }
+                        }
                 },
                 errors = (object?)null
             };

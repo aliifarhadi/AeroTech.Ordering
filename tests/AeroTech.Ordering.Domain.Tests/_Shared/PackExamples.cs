@@ -4,7 +4,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
     {
         public const string NormalizedCandidate = """
 {
-  "schemaVersion": "2.0",
+  "schemaVersion": "3.0",
   "source": {
     "owner": "AirOffer",
     "offerId": "REFERENCE-PRICED-OW-001",
@@ -36,7 +36,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "owner": "Unresolved owner",
       "sourceRef": null,
       "reason": "Not supplied by source; no implied infinite validity"
-    }
+    },
+    "observedTicketingDeadline": null
   },
   "salesContext": {
     "ownerAirlineId": "1",
@@ -50,17 +51,46 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "passengerTypeCode": "ADT"
     }
   ],
+  "journeys": [
+    {
+      "journeyRef": "BOUND-1",
+      "sequence": 1,
+      "sourceDirectionRaw": "Outbound",
+      "direction": null,
+      "originRef": "AIRPORT-A",
+      "destinationRef": "AIRPORT-B"
+    }
+  ],
   "segments": [
     {
       "segmentRef": "SEG-A",
+      "journeyRef": "BOUND-1",
       "kind": "ScheduledAir",
       "originRef": "AIRPORT-A",
+      "originTerminalRef": "TERMINAL-1",
       "destinationRef": "AIRPORT-B",
+      "destinationTerminalRef": "TERMINAL-2",
       "soldDeparture": "2026-10-15T09:00:00Z",
       "soldArrival": "2026-10-15T11:00:00Z",
       "flightRef": "REFERENCE-FLIGHT-A",
-      "operationalLegRefs": [
-        "LEG-A"
+      "flightNumber": "RF100",
+      "flightVersion": "1",
+      "marketingCarrierRef": "CARRIER-M",
+      "operatingCarrierRef": "CARRIER-O",
+      "sourceCapacityRef": "CAPACITY-A",
+      "duration": 120,
+      "aircraftRef": "AIRCRAFT-1",
+      "legs": [
+        {
+          "sourceLegRef": "LEG-A",
+          "sequence": 1,
+          "originRef": "AIRPORT-A",
+          "originTerminalRef": "TERMINAL-1",
+          "destinationRef": "AIRPORT-B",
+          "destinationTerminalRef": "TERMINAL-2",
+          "departure": "2026-10-15T09:00:00Z",
+          "arrival": "2026-10-15T11:00:00Z"
+        }
       ]
     }
   ],
@@ -75,6 +105,16 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "acceptedTotal": {
         "amount": "120.00",
         "currencyRef": "EUR"
+      },
+      "product": {
+        "sourceSystem": "AirOffer",
+        "sourceOfferId": "REFERENCE-PRICED-OW-001",
+        "sourceOfferItemRef": null,
+        "productCode": null,
+        "productName": null,
+        "brandCode": null,
+        "brandName": null,
+        "productVersion": null
       }
     }
   ],
@@ -82,6 +122,11 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
     {
       "serviceRef": "SERVICE-A",
       "type": "AirTransport",
+      "serviceCode": null,
+      "name": null,
+      "priceTreatment": "SupplierOpaque",
+      "supplierPartyRef": null,
+      "deliveryProviderRef": null,
       "beneficiaryRefs": [
         "PAX-A"
       ],
@@ -91,16 +136,33 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "quantity": "1",
       "quantityUnit": "PassengerSegment",
       "detailSchema": "AirTransport",
-      "detailSchemaVersion": 1,
+      "detailSchemaVersion": 2,
       "details": {
         "cabinRef": "ECONOMY",
         "bookingClass": "Y"
       },
+      "checkedBaggage": {
+        "pieces": 1,
+        "weight": "23",
+        "weightUnit": "Kg"
+      },
+      "cabinBaggage": {
+        "pieces": 1,
+        "weight": null,
+        "weightUnit": null
+      },
+      "soldTerms": {
+        "refundable": true,
+        "changeable": true,
+        "upgradable": false
+      },
       "fulfillmentProfile": {
         "profileRef": "REFERENCE-AIR-ETKT",
+        "profileVersion": "1",
+        "assurance": "Certified",
         "reservationRequirement": "FlightCapacity",
         "documentKind": "ETKT",
-        "requiresFunding": true,
+        "fundingRequirement": "Required",
         "capacityUnits": 1
       }
     }
@@ -113,6 +175,10 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "effect": "CustomerBalance",
       "direction": "Debit",
       "lineRole": "Original",
+      "sourceCode": null,
+      "sourceName": null,
+      "sourceReference": null,
+      "calculationKind": "Amount",
       "originalValue": {
         "amount": "100.00",
         "currencyRef": "EUR"
@@ -124,7 +190,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "sourceLineRef": "tickets/0/coupons/0/pricings/0",
       "basisType": "OrderService",
       "basisRef": "SERVICE-A",
-      "sourceConversionRef": null
+      "sourceConversionRef": null,
+      "appliedConversion": null
     },
     {
       "lineRef": "PRICE-TAX",
@@ -133,6 +200,10 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "effect": "CustomerBalance",
       "direction": "Debit",
       "lineRole": "Original",
+      "sourceCode": "YQ",
+      "sourceName": "Carrier imposed charge",
+      "sourceReference": null,
+      "calculationKind": "Amount",
       "originalValue": {
         "amount": "20.00",
         "currencyRef": "EUR"
@@ -144,13 +215,17 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "sourceLineRef": "tickets/0/coupons/0/pricings/1",
       "basisType": "OrderService",
       "basisRef": "SERVICE-A",
-      "sourceConversionRef": null
+      "sourceConversionRef": null,
+      "appliedConversion": null
     }
   ],
   "customerTotal": {
     "amount": "120.00",
     "currencyRef": "EUR"
   },
+  "saleCurrencyCode": "EUR",
+  "sourceJourneyTypeRaw": "OneWay",
+  "journeyType": null,
   "fareConstruction": {
     "assurance": "Opaque",
     "sourceContextRef": "REFERENCE-CONTEXT-001",
@@ -161,7 +236,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
 
         public const string IncorrectTotal = """
 {
-  "schemaVersion": "2.0",
+  "schemaVersion": "3.0",
   "source": {
     "owner": "AirOffer",
     "offerId": "REFERENCE-PRICED-OW-001",
@@ -193,7 +268,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "owner": "Unresolved owner",
       "sourceRef": null,
       "reason": "Not supplied by source; no implied infinite validity"
-    }
+    },
+    "observedTicketingDeadline": null
   },
   "salesContext": {
     "ownerAirlineId": "1",
@@ -207,17 +283,46 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "passengerTypeCode": "ADT"
     }
   ],
+  "journeys": [
+    {
+      "journeyRef": "BOUND-1",
+      "sequence": 1,
+      "sourceDirectionRaw": "Outbound",
+      "direction": null,
+      "originRef": "AIRPORT-A",
+      "destinationRef": "AIRPORT-B"
+    }
+  ],
   "segments": [
     {
       "segmentRef": "SEG-A",
+      "journeyRef": "BOUND-1",
       "kind": "ScheduledAir",
       "originRef": "AIRPORT-A",
+      "originTerminalRef": "TERMINAL-1",
       "destinationRef": "AIRPORT-B",
+      "destinationTerminalRef": "TERMINAL-2",
       "soldDeparture": "2026-10-15T09:00:00Z",
       "soldArrival": "2026-10-15T11:00:00Z",
       "flightRef": "REFERENCE-FLIGHT-A",
-      "operationalLegRefs": [
-        "LEG-A"
+      "flightNumber": "RF100",
+      "flightVersion": "1",
+      "marketingCarrierRef": "CARRIER-M",
+      "operatingCarrierRef": "CARRIER-O",
+      "sourceCapacityRef": "CAPACITY-A",
+      "duration": 120,
+      "aircraftRef": "AIRCRAFT-1",
+      "legs": [
+        {
+          "sourceLegRef": "LEG-A",
+          "sequence": 1,
+          "originRef": "AIRPORT-A",
+          "originTerminalRef": "TERMINAL-1",
+          "destinationRef": "AIRPORT-B",
+          "destinationTerminalRef": "TERMINAL-2",
+          "departure": "2026-10-15T09:00:00Z",
+          "arrival": "2026-10-15T11:00:00Z"
+        }
       ]
     }
   ],
@@ -232,6 +337,16 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "acceptedTotal": {
         "amount": "120.00",
         "currencyRef": "EUR"
+      },
+      "product": {
+        "sourceSystem": "AirOffer",
+        "sourceOfferId": "REFERENCE-PRICED-OW-001",
+        "sourceOfferItemRef": null,
+        "productCode": null,
+        "productName": null,
+        "brandCode": null,
+        "brandName": null,
+        "productVersion": null
       }
     }
   ],
@@ -239,6 +354,11 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
     {
       "serviceRef": "SERVICE-A",
       "type": "AirTransport",
+      "serviceCode": null,
+      "name": null,
+      "priceTreatment": "SupplierOpaque",
+      "supplierPartyRef": null,
+      "deliveryProviderRef": null,
       "beneficiaryRefs": [
         "PAX-A"
       ],
@@ -248,16 +368,33 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "quantity": "1",
       "quantityUnit": "PassengerSegment",
       "detailSchema": "AirTransport",
-      "detailSchemaVersion": 1,
+      "detailSchemaVersion": 2,
       "details": {
         "cabinRef": "ECONOMY",
         "bookingClass": "Y"
       },
+      "checkedBaggage": {
+        "pieces": 1,
+        "weight": "23",
+        "weightUnit": "Kg"
+      },
+      "cabinBaggage": {
+        "pieces": 1,
+        "weight": null,
+        "weightUnit": null
+      },
+      "soldTerms": {
+        "refundable": true,
+        "changeable": true,
+        "upgradable": false
+      },
       "fulfillmentProfile": {
         "profileRef": "REFERENCE-AIR-ETKT",
+        "profileVersion": "1",
+        "assurance": "Certified",
         "reservationRequirement": "FlightCapacity",
         "documentKind": "ETKT",
-        "requiresFunding": true,
+        "fundingRequirement": "Required",
         "capacityUnits": 1
       }
     }
@@ -270,6 +407,10 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "effect": "CustomerBalance",
       "direction": "Debit",
       "lineRole": "Original",
+      "sourceCode": null,
+      "sourceName": null,
+      "sourceReference": null,
+      "calculationKind": "Amount",
       "originalValue": {
         "amount": "100.00",
         "currencyRef": "EUR"
@@ -281,7 +422,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "sourceLineRef": "tickets/0/coupons/0/pricings/0",
       "basisType": "OrderService",
       "basisRef": "SERVICE-A",
-      "sourceConversionRef": null
+      "sourceConversionRef": null,
+      "appliedConversion": null
     },
     {
       "lineRef": "PRICE-TAX",
@@ -290,6 +432,10 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "effect": "CustomerBalance",
       "direction": "Debit",
       "lineRole": "Original",
+      "sourceCode": "YQ",
+      "sourceName": "Carrier imposed charge",
+      "sourceReference": null,
+      "calculationKind": "Amount",
       "originalValue": {
         "amount": "20.00",
         "currencyRef": "EUR"
@@ -301,13 +447,17 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "sourceLineRef": "tickets/0/coupons/0/pricings/1",
       "basisType": "OrderService",
       "basisRef": "SERVICE-A",
-      "sourceConversionRef": null
+      "sourceConversionRef": null,
+      "appliedConversion": null
     }
   ],
   "customerTotal": {
     "amount": "121.00",
     "currencyRef": "EUR"
   },
+  "saleCurrencyCode": "EUR",
+  "sourceJourneyTypeRaw": "OneWay",
+  "journeyType": null,
   "fareConstruction": {
     "assurance": "Opaque",
     "sourceContextRef": "REFERENCE-CONTEXT-001",
@@ -318,7 +468,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
 
         public const string MissingBeneficiary = """
 {
-  "schemaVersion": "2.0",
+  "schemaVersion": "3.0",
   "source": {
     "owner": "AirOffer",
     "offerId": "REFERENCE-PRICED-OW-001",
@@ -350,7 +500,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "owner": "Unresolved owner",
       "sourceRef": null,
       "reason": "Not supplied by source; no implied infinite validity"
-    }
+    },
+    "observedTicketingDeadline": null
   },
   "salesContext": {
     "ownerAirlineId": "1",
@@ -364,17 +515,46 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "passengerTypeCode": "ADT"
     }
   ],
+  "journeys": [
+    {
+      "journeyRef": "BOUND-1",
+      "sequence": 1,
+      "sourceDirectionRaw": "Outbound",
+      "direction": null,
+      "originRef": "AIRPORT-A",
+      "destinationRef": "AIRPORT-B"
+    }
+  ],
   "segments": [
     {
       "segmentRef": "SEG-A",
+      "journeyRef": "BOUND-1",
       "kind": "ScheduledAir",
       "originRef": "AIRPORT-A",
+      "originTerminalRef": "TERMINAL-1",
       "destinationRef": "AIRPORT-B",
+      "destinationTerminalRef": "TERMINAL-2",
       "soldDeparture": "2026-10-15T09:00:00Z",
       "soldArrival": "2026-10-15T11:00:00Z",
       "flightRef": "REFERENCE-FLIGHT-A",
-      "operationalLegRefs": [
-        "LEG-A"
+      "flightNumber": "RF100",
+      "flightVersion": "1",
+      "marketingCarrierRef": "CARRIER-M",
+      "operatingCarrierRef": "CARRIER-O",
+      "sourceCapacityRef": "CAPACITY-A",
+      "duration": 120,
+      "aircraftRef": "AIRCRAFT-1",
+      "legs": [
+        {
+          "sourceLegRef": "LEG-A",
+          "sequence": 1,
+          "originRef": "AIRPORT-A",
+          "originTerminalRef": "TERMINAL-1",
+          "destinationRef": "AIRPORT-B",
+          "destinationTerminalRef": "TERMINAL-2",
+          "departure": "2026-10-15T09:00:00Z",
+          "arrival": "2026-10-15T11:00:00Z"
+        }
       ]
     }
   ],
@@ -389,6 +569,16 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "acceptedTotal": {
         "amount": "120.00",
         "currencyRef": "EUR"
+      },
+      "product": {
+        "sourceSystem": "AirOffer",
+        "sourceOfferId": "REFERENCE-PRICED-OW-001",
+        "sourceOfferItemRef": null,
+        "productCode": null,
+        "productName": null,
+        "brandCode": null,
+        "brandName": null,
+        "productVersion": null
       }
     }
   ],
@@ -396,6 +586,11 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
     {
       "serviceRef": "SERVICE-A",
       "type": "AirTransport",
+      "serviceCode": null,
+      "name": null,
+      "priceTreatment": "SupplierOpaque",
+      "supplierPartyRef": null,
+      "deliveryProviderRef": null,
       "beneficiaryRefs": [
         "MISSING"
       ],
@@ -405,16 +600,33 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "quantity": "1",
       "quantityUnit": "PassengerSegment",
       "detailSchema": "AirTransport",
-      "detailSchemaVersion": 1,
+      "detailSchemaVersion": 2,
       "details": {
         "cabinRef": "ECONOMY",
         "bookingClass": "Y"
       },
+      "checkedBaggage": {
+        "pieces": 1,
+        "weight": "23",
+        "weightUnit": "Kg"
+      },
+      "cabinBaggage": {
+        "pieces": 1,
+        "weight": null,
+        "weightUnit": null
+      },
+      "soldTerms": {
+        "refundable": true,
+        "changeable": true,
+        "upgradable": false
+      },
       "fulfillmentProfile": {
         "profileRef": "REFERENCE-AIR-ETKT",
+        "profileVersion": "1",
+        "assurance": "Certified",
         "reservationRequirement": "FlightCapacity",
         "documentKind": "ETKT",
-        "requiresFunding": true,
+        "fundingRequirement": "Required",
         "capacityUnits": 1
       }
     }
@@ -427,6 +639,10 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "effect": "CustomerBalance",
       "direction": "Debit",
       "lineRole": "Original",
+      "sourceCode": null,
+      "sourceName": null,
+      "sourceReference": null,
+      "calculationKind": "Amount",
       "originalValue": {
         "amount": "100.00",
         "currencyRef": "EUR"
@@ -438,7 +654,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "sourceLineRef": "tickets/0/coupons/0/pricings/0",
       "basisType": "OrderService",
       "basisRef": "SERVICE-A",
-      "sourceConversionRef": null
+      "sourceConversionRef": null,
+      "appliedConversion": null
     },
     {
       "lineRef": "PRICE-TAX",
@@ -447,6 +664,10 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "effect": "CustomerBalance",
       "direction": "Debit",
       "lineRole": "Original",
+      "sourceCode": "YQ",
+      "sourceName": "Carrier imposed charge",
+      "sourceReference": null,
+      "calculationKind": "Amount",
       "originalValue": {
         "amount": "20.00",
         "currencyRef": "EUR"
@@ -458,13 +679,17 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "sourceLineRef": "tickets/0/coupons/0/pricings/1",
       "basisType": "OrderService",
       "basisRef": "SERVICE-A",
-      "sourceConversionRef": null
+      "sourceConversionRef": null,
+      "appliedConversion": null
     }
   ],
   "customerTotal": {
     "amount": "120.00",
     "currencyRef": "EUR"
   },
+  "saleCurrencyCode": "EUR",
+  "sourceJourneyTypeRaw": "OneWay",
+  "journeyType": null,
   "fareConstruction": {
     "assurance": "Opaque",
     "sourceContextRef": "REFERENCE-CONTEXT-001",
@@ -475,7 +700,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
 
         public const string SettlementTax = """
 {
-  "schemaVersion": "2.0",
+  "schemaVersion": "3.0",
   "source": {
     "owner": "AirOffer",
     "offerId": "REFERENCE-PRICED-OW-001",
@@ -507,7 +732,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "owner": "Unresolved owner",
       "sourceRef": null,
       "reason": "Not supplied by source; no implied infinite validity"
-    }
+    },
+    "observedTicketingDeadline": null
   },
   "salesContext": {
     "ownerAirlineId": "1",
@@ -521,17 +747,46 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "passengerTypeCode": "ADT"
     }
   ],
+  "journeys": [
+    {
+      "journeyRef": "BOUND-1",
+      "sequence": 1,
+      "sourceDirectionRaw": "Outbound",
+      "direction": null,
+      "originRef": "AIRPORT-A",
+      "destinationRef": "AIRPORT-B"
+    }
+  ],
   "segments": [
     {
       "segmentRef": "SEG-A",
+      "journeyRef": "BOUND-1",
       "kind": "ScheduledAir",
       "originRef": "AIRPORT-A",
+      "originTerminalRef": "TERMINAL-1",
       "destinationRef": "AIRPORT-B",
+      "destinationTerminalRef": "TERMINAL-2",
       "soldDeparture": "2026-10-15T09:00:00Z",
       "soldArrival": "2026-10-15T11:00:00Z",
       "flightRef": "REFERENCE-FLIGHT-A",
-      "operationalLegRefs": [
-        "LEG-A"
+      "flightNumber": "RF100",
+      "flightVersion": "1",
+      "marketingCarrierRef": "CARRIER-M",
+      "operatingCarrierRef": "CARRIER-O",
+      "sourceCapacityRef": "CAPACITY-A",
+      "duration": 120,
+      "aircraftRef": "AIRCRAFT-1",
+      "legs": [
+        {
+          "sourceLegRef": "LEG-A",
+          "sequence": 1,
+          "originRef": "AIRPORT-A",
+          "originTerminalRef": "TERMINAL-1",
+          "destinationRef": "AIRPORT-B",
+          "destinationTerminalRef": "TERMINAL-2",
+          "departure": "2026-10-15T09:00:00Z",
+          "arrival": "2026-10-15T11:00:00Z"
+        }
       ]
     }
   ],
@@ -546,6 +801,16 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "acceptedTotal": {
         "amount": "120.00",
         "currencyRef": "EUR"
+      },
+      "product": {
+        "sourceSystem": "AirOffer",
+        "sourceOfferId": "REFERENCE-PRICED-OW-001",
+        "sourceOfferItemRef": null,
+        "productCode": null,
+        "productName": null,
+        "brandCode": null,
+        "brandName": null,
+        "productVersion": null
       }
     }
   ],
@@ -553,6 +818,11 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
     {
       "serviceRef": "SERVICE-A",
       "type": "AirTransport",
+      "serviceCode": null,
+      "name": null,
+      "priceTreatment": "SupplierOpaque",
+      "supplierPartyRef": null,
+      "deliveryProviderRef": null,
       "beneficiaryRefs": [
         "PAX-A"
       ],
@@ -562,16 +832,33 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "quantity": "1",
       "quantityUnit": "PassengerSegment",
       "detailSchema": "AirTransport",
-      "detailSchemaVersion": 1,
+      "detailSchemaVersion": 2,
       "details": {
         "cabinRef": "ECONOMY",
         "bookingClass": "Y"
       },
+      "checkedBaggage": {
+        "pieces": 1,
+        "weight": "23",
+        "weightUnit": "Kg"
+      },
+      "cabinBaggage": {
+        "pieces": 1,
+        "weight": null,
+        "weightUnit": null
+      },
+      "soldTerms": {
+        "refundable": true,
+        "changeable": true,
+        "upgradable": false
+      },
       "fulfillmentProfile": {
         "profileRef": "REFERENCE-AIR-ETKT",
+        "profileVersion": "1",
+        "assurance": "Certified",
         "reservationRequirement": "FlightCapacity",
         "documentKind": "ETKT",
-        "requiresFunding": true,
+        "fundingRequirement": "Required",
         "capacityUnits": 1
       }
     }
@@ -584,6 +871,10 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "effect": "CustomerBalance",
       "direction": "Debit",
       "lineRole": "Original",
+      "sourceCode": null,
+      "sourceName": null,
+      "sourceReference": null,
+      "calculationKind": "Amount",
       "originalValue": {
         "amount": "100.00",
         "currencyRef": "EUR"
@@ -595,7 +886,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "sourceLineRef": "tickets/0/coupons/0/pricings/0",
       "basisType": "OrderService",
       "basisRef": "SERVICE-A",
-      "sourceConversionRef": null
+      "sourceConversionRef": null,
+      "appliedConversion": null
     },
     {
       "lineRef": "PRICE-TAX",
@@ -604,6 +896,10 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "effect": "SettlementOnly",
       "direction": "Debit",
       "lineRole": "Original",
+      "sourceCode": "YQ",
+      "sourceName": "Carrier imposed charge",
+      "sourceReference": null,
+      "calculationKind": "Amount",
       "originalValue": {
         "amount": "20.00",
         "currencyRef": "EUR"
@@ -615,13 +911,17 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
       "sourceLineRef": "tickets/0/coupons/0/pricings/1",
       "basisType": "OrderService",
       "basisRef": "SERVICE-A",
-      "sourceConversionRef": null
+      "sourceConversionRef": null,
+      "appliedConversion": null
     }
   ],
   "customerTotal": {
     "amount": "120.00",
     "currencyRef": "EUR"
   },
+  "saleCurrencyCode": "EUR",
+  "sourceJourneyTypeRaw": "OneWay",
+  "journeyType": null,
   "fareConstruction": {
     "assurance": "Opaque",
     "sourceContextRef": "REFERENCE-CONTEXT-001",

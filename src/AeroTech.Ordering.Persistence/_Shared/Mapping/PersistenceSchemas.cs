@@ -7,6 +7,8 @@ namespace AeroTech.Ordering.Persistence._Shared.Mapping
 
         public const int ReferenceLength = 128;
         public const int CurrencyRefLength = 32;
+
+        public const int CurrencyCodeLength = 8;
         public const int DigestLength = 64;
         public const int OwnerNameLength = 64;
         public const int ProfileLength = 64;

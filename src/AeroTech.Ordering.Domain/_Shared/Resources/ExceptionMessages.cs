@@ -52,5 +52,7 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
         public const string AuthorizedScopeRequired = "The caller has no authorized scope for {0}.";
 
         public const string ProjectionRebuildConflict = "Order '{0}' changed during projection rebuild; retry.";
+
+        public const string ServiceCoverageIsNotASingleSegment = "Air service '{0}' covers {1} passenger segments; exactly one is required.";
     }
 }

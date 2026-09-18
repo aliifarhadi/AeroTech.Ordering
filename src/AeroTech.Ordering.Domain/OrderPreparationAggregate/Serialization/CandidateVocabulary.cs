@@ -24,7 +24,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             [FulfillmentDocumentKind.None] = "None",
             [FulfillmentDocumentKind.Etkt] = "ETKT",
             [FulfillmentDocumentKind.EmdA] = "EMDA",
-            [FulfillmentDocumentKind.EmdS] = "EMDS"
+            [FulfillmentDocumentKind.EmdS] = "EMDS",
+            [FulfillmentDocumentKind.Unresolved] = "Unresolved"
         };
 
         public static readonly IReadOnlyDictionary<SalesChannel, string> Channels = new Dictionary<SalesChannel, string>

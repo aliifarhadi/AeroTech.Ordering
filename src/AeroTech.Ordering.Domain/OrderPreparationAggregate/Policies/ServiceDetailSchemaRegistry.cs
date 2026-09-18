@@ -6,15 +6,11 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
     public static class ServiceDetailSchemaRegistry
     {
         public const string AirTransportSchema = "AirTransport";
-        public const int AirTransportSchemaVersion = 1;
+        public const int AirTransportSchemaVersion = 2;
 
         public const string CabinRef = "cabinRef";
         public const string RbdRef = "rbdRef";
         public const string BookingClass = "bookingClass";
-        public const string FlightNumber = "flightNumber";
-        public const string FlightVersion = "flightVersion";
-        public const string MarketingCarrierRef = "marketingCarrierRef";
-        public const string OperatingCarrierRef = "operatingCarrierRef";
 
         private static readonly IReadOnlyDictionary<(OrderServiceType Type, string Schema, int Version), IReadOnlySet<string>> Registered =
             new Dictionary<(OrderServiceType, string, int), IReadOnlySet<string>>
@@ -23,11 +19,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 {
                     CabinRef,
                     RbdRef,
-                    BookingClass,
-                    FlightNumber,
-                    FlightVersion,
-                    MarketingCarrierRef,
-                    OperatingCarrierRef
+                    BookingClass
                 }
             };
 

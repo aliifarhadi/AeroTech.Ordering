@@ -34,7 +34,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
             var candidate = builder.Build();
             var unregistered = candidate with
             {
-                Services = [candidate.Services[0] with { DetailSchemaVersion = 2 }]
+                Services = [candidate.Services[0] with { DetailSchemaVersion = 3 }]
             };
 
             AssertCode(UnsupportedCapability, () => CandidateValidator.EnsureValid(unregistered, builder.SalesScope));
@@ -82,8 +82,8 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
         public void Opaque_construction_cannot_claim_component_links()
         {
             var builder = CandidateBuilder.OneWayFare100Tax20(Now)
-                .OpaqueUnits(new CandidatePricingUnit("PU-1", FarePricingUnitType.OneWay, FareCombinationMethod.ProviderDefined, ["BOUND-1"], null,
-                    [new CandidateFareComponent("FARE-1", "YOW", null, "Published", null, null, "Y", ["SERVICE-A"])]));
+                .OpaqueUnits(new CandidatePricingUnit("PU-1", null, FarePricingUnitType.OneWay, FareCombinationMethod.Unspecified, ["BOUND-1"], null,
+                    [new CandidateFareComponent("FARE-1", "YOW", null, "Published", null, null, "Y", null, null, null, null, null, ["SERVICE-A"], [])]));
 
             AssertMessage("opaque construction", () => CandidateValidator.EnsureValid(builder.Build(), builder.SalesScope));
         }

@@ -89,35 +89,48 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         public void Round_trip_and_two_one_way_constructions_are_retained_as_supplied()
         {
             var roundTrip = Accept(RoundTripBuilder(
-                new CandidatePricingUnit("PU-RT", FarePricingUnitType.RoundTrip, FareCombinationMethod.FiledFare, ["OUT", "IN"], null,
-                    [new CandidateFareComponent("FC-RT", "YRT", null, "Published", null, null, "Y", ["S-OUT", "S-IN"])])), Bind("PAX-A"));
+                Unit("PU-RT", FarePricingUnitType.RoundTrip, ["OUT", "IN"], null,
+                    Component("FC-RT", "YRT", ["S-OUT", "S-IN"]))), Bind("PAX-A"));
 
             var twoOneWays = Accept(RoundTripBuilder(
-                new CandidatePricingUnit("PU-OUT", FarePricingUnitType.OneWay, FareCombinationMethod.FiledFare, ["OUT"], null,
-                    [new CandidateFareComponent("FC-OUT", "YOW", null, "Published", null, null, "Y", ["S-OUT"])]),
-                new CandidatePricingUnit("PU-IN", FarePricingUnitType.OneWay, FareCombinationMethod.FiledFare, ["IN"], null,
-                    [new CandidateFareComponent("FC-IN", "YOW", null, "Published", null, null, "Y", ["S-IN"])])), Bind("PAX-A"));
+                Unit("PU-OUT", FarePricingUnitType.OneWay, ["OUT"], null, Component("FC-OUT", "YOW", ["S-OUT"])),
+                Unit("PU-IN", FarePricingUnitType.OneWay, ["IN"], null, Component("FC-IN", "YOW", ["S-IN"]))), Bind("PAX-A"));
 
             Assert.Equal(twoOneWays.Segments.Select(segment => segment.SourceSegmentRef), roundTrip.Segments.Select(segment => segment.SourceSegmentRef));
             Assert.Equal(FareConstructionAssurance.SourceProvided, roundTrip.FareConstructions.Single().Assurance);
-            Assert.Contains("\"type\":\"RoundTrip\"", roundTrip.FareConstructions.Single().PricingUnitsJson);
-            Assert.DoesNotContain("\"type\":\"OneWay\"", roundTrip.FareConstructions.Single().PricingUnitsJson);
-            Assert.Equal(2, CountOccurrences(twoOneWays.FareConstructions.Single().PricingUnitsJson, "\"type\":\"OneWay\""));
+
+            var roundTripUnit = Assert.Single(roundTrip.FareConstructions.Single().PricingUnits);
+            Assert.Equal(FarePricingUnitType.RoundTrip, roundTripUnit.Type);
+            Assert.Equal(FareCombinationMethod.FiledFare, roundTripUnit.CombinationMethod);
+            Assert.Equal(["IN", "OUT"], roundTripUnit.CoveredBounds.Select(bound => bound.SourceBoundRef).OrderBy(reference => reference));
+            Assert.Equal(2, Assert.Single(roundTripUnit.Components).CoveredServices.Count);
+
+            Assert.Equal(2, twoOneWays.FareConstructions.Single().PricingUnits.Count);
+            Assert.All(twoOneWays.FareConstructions.Single().PricingUnits, unit => Assert.Equal(FarePricingUnitType.OneWay, unit.Type));
+            Assert.All(twoOneWays.FareConstructions.Single().FareComponents, component => Assert.Single(component.CoveredServices));
         }
 
         [Fact]
         public void Opaque_context_is_retained_without_invented_links()
         {
             var builder = CandidateBuilder.OneWayFare100Tax20(Now)
-                .OpaqueUnits(new CandidatePricingUnit("PU-1", FarePricingUnitType.Unspecified, FareCombinationMethod.ProviderDefined, ["BOUND-1"], null,
-                    [new CandidateFareComponent("AIRFARE-77", "YOW", "FLEX", "Published", "CABIN-1", "RBD-1", "Y", [])]));
+                .OpaqueUnits(new CandidatePricingUnit("PU-1", "OpaqueKind", FarePricingUnitType.Unspecified, FareCombinationMethod.Unspecified, ["BOUND-1"], null,
+                    [new CandidateFareComponent("AIRFARE-77", "YOW", "FLEX", "Published", "CABIN-1", "RBD-1", "Y", 45, null, null, null, null, [], [])]));
 
             var order = Accept(builder, Bind("PAX-A"));
             var construction = order.FareConstructions.Single();
+            var unit = Assert.Single(construction.PricingUnits);
+            var component = Assert.Single(unit.Components);
 
             Assert.Equal(FareConstructionAssurance.Opaque, construction.Assurance);
-            Assert.Contains("\"sourceFareRef\":\"AIRFARE-77\"", construction.PricingUnitsJson);
-            Assert.Contains("\"coveredServiceRefs\":[]", construction.PricingUnitsJson);
+            Assert.Empty(construction.PricingGroups);
+            Assert.Equal("OpaqueKind", unit.SourceKindRaw);
+            Assert.Equal(FareCombinationMethod.Unspecified, unit.CombinationMethod);
+            Assert.Equal("AIRFARE-77", component.SourceFareRef);
+            Assert.Equal(45, component.TicketingRestrictionMinutes);
+            Assert.Empty(component.CoveredServices);
+            Assert.Empty(component.CoveredSegments);
+            Assert.Equal(order.Items.Single().Id, Assert.Single(construction.Items).OrderItemId);
         }
 
         [Fact]
@@ -131,15 +144,18 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
                 .AirService("S-B", "PAX-B", "SEG-1")
                 .Package("PACKAGE", "S-A", "S-B")
                 .Line("GROUP-FARE", "PACKAGE", PricingComponentType.Fare, 200m, "PACKAGE", basisType: PricingBasisType.OrderItem)
-                .SourceProvidedConstruction(new CandidatePricingUnit("PU-1", FarePricingUnitType.OneWay, FareCombinationMethod.FiledFare, ["OUT"],
+                .SourceProvidedConstruction(Unit("PU-1", FarePricingUnitType.OneWay, ["OUT"],
                     new CandidatePricingGroup(["PAX-A", "PAX-B"], PassengerTypeCode.ADT, 2),
-                    [new CandidateFareComponent("FC-1", "YOW", null, "Published", null, null, "Y", ["S-A", "S-B"])]));
+                    Component("FC-1", "YOW", ["S-A", "S-B"])));
 
             var order = Accept(builder, Bind("PAX-A"), Bind("PAX-B"));
+            var group = Assert.Single(order.FareConstructions.Single().PricingGroups);
 
             Assert.Equal(200m, order.CustomerTotal.Amount);
             Assert.Equal(200m, order.PricingLines.Single().SaleValue.Amount);
-            Assert.Contains("\"quantity\":2", order.FareConstructions.Single().PricingUnitsJson);
+            Assert.Equal(2, group.Quantity);
+            Assert.Equal(2, group.Travelers.Count);
+            Assert.Equal(group.Id, Assert.Single(order.FareConstructions.Single().PricingUnits).PricingGroupId);
         }
 
         [Fact]
@@ -227,10 +243,23 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
             Assert.Equal(adult.Id, infant.InfantParentTravelerId);
         }
 
+        private static CandidatePricingUnit Unit(
+            string sourceUnitRef,
+            FarePricingUnitType type,
+            IReadOnlyList<string> coveredBounds,
+            CandidatePricingGroup? group,
+            params CandidateFareComponent[] components)
+            => new(sourceUnitRef, null, type, FareCombinationMethod.FiledFare, coveredBounds, group, components);
+
+        private static CandidateFareComponent Component(string sourceFareRef, string fareBasis, IReadOnlyList<string> coveredServiceRefs)
+            => new(sourceFareRef, fareBasis, null, "Published", null, null, "Y", null, null, null, null, null, coveredServiceRefs, []);
+
         private static CandidateBuilder RoundTripBuilder(params CandidatePricingUnit[] units)
             => new CandidateBuilder(Now)
                 .Traveler("PAX-A")
+                .Journey("OUT")
                 .Segment("OUT-1")
+                .Journey("IN")
                 .Segment("IN-1")
                 .AirService("S-OUT", "PAX-A", "OUT-1")
                 .AirService("S-IN", "PAX-A", "IN-1")
@@ -259,8 +288,5 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         public static TravelerBinding Bind(string sourceRef, string? clientRef = null, PassengerTypeCode passengerType = PassengerTypeCode.ADT, string? guardian = null)
             => new(sourceRef, clientRef ?? $"CLIENT-{sourceRef}", "Sample", "Traveler", passengerType,
                 passengerType == PassengerTypeCode.INF ? new DateOnly(2026, 1, 1) : new DateOnly(1990, 1, 1), guardian);
-
-        private static int CountOccurrences(string text, string fragment)
-            => (text.Length - text.Replace(fragment, string.Empty).Length) / fragment.Length;
     }
 }

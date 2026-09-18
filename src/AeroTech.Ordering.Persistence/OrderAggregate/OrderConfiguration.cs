@@ -24,13 +24,15 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.Ignore(order => order.IsSandboxScoped);
 
             builder.Property(order => order.OrderReference).HasMaxLength(PersistenceSchemas.OwnerNameLength).IsRequired();
-            builder.Property(order => order.SaleCurrencyRef).HasMaxLength(PersistenceSchemas.CurrencyRefLength).IsRequired();
+            builder.OwnsOne(order => order.SaleCurrency, currency => currency.MapCurrency("SaleCurrency"));
             builder.Property(order => order.ClientReference).HasMaxLength(PersistenceSchemas.ReferenceLength);
 
             builder.OwnsOne(order => order.CustomerTotal, money => money.MapMoney("CustomerTotal"));
             builder.OwnsOne(order => order.OfferValidity, validity => validity.MapValidity("OfferValidity"));
             builder.OwnsOne(order => order.PriceValidity, validity => validity.MapValidity("PriceValidity"));
             builder.OwnsOne(order => order.TicketingValidity, validity => validity.MapValidity("TicketingValidity"));
+            builder.OwnsOne(order => order.ObservedTicketingDeadline, observed => observed.MapObservedTime("ObservedTicketingDeadline"));
+            builder.Property(order => order.SourceJourneyTypeRaw).HasMaxLength(PersistenceSchemas.ReferenceLength);
 
             builder.OwnsOne(order => order.AcceptedSource, source =>
             {
@@ -68,6 +70,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
         {
             builder.HasMany(order => order.Travelers).WithOne().HasForeignKey(child => child.OrderId).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(order => order.Contacts).WithOne().HasForeignKey(child => child.OrderId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasMany(order => order.Journeys).WithOne().HasForeignKey(child => child.OrderId).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(order => order.Segments).WithOne().HasForeignKey(child => child.OrderId).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(order => order.Items).WithOne().HasForeignKey(child => child.OrderId).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(order => order.Services).WithOne().HasForeignKey(child => child.OrderId).OnDelete(DeleteBehavior.Restrict);
@@ -80,7 +83,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
 
             foreach (var navigation in new[]
                      {
-                         nameof(Order.Travelers), nameof(Order.Contacts), nameof(Order.Segments), nameof(Order.Items), nameof(Order.Services),
+                         nameof(Order.Travelers), nameof(Order.Contacts), nameof(Order.Journeys), nameof(Order.Segments), nameof(Order.Items), nameof(Order.Services),
                          nameof(Order.ItemServiceLinks), nameof(Order.Changes), nameof(Order.PriceChangeSets), nameof(Order.PricingLines),
                          nameof(Order.FareConstructions), nameof(Order.FundingObligations)
                      })

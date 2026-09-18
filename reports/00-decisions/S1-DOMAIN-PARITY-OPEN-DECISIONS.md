@@ -2,8 +2,8 @@
 
 Raised by: `reports/05-S1-domain-parity-audit/DOMAIN-PARITY-MATRIX.md`
 Owner answers recorded: 2026-09-19, on repository HEAD `deaf6b0` (branch `k8s-stg`, clean tree).
-Status: OD-P-01 … OD-P-20 are **answered**. OD-P-12 stays blocked by the owner's own answer. OD-P-21 is **new and open**.
-No production, domain or persistence code has been changed in this run.
+Status: OD-P-01 … OD-P-21 are **answered**. `OD-P-12` stays blocked by the owner's own answer and is the only remaining domain-parity blocker.
+The approved repairs were implemented on 2026-09-19; see `reports/05-S1-domain-parity-audit/REPORT.md`.
 
 Legend: **Recommendation** was my position as architect when the item was raised. **Answer** is the owner's decision and is binding. Where the owner overruled me the correction is stated in the answer, and the parity matrix was corrected accordingly.
 
@@ -194,17 +194,30 @@ Disposition corrected from `BLOCKED_DECISION` to `KEEP`.
 
 ## New, raised while planning
 
-### OD-P-21 — where marketing/operating carrier and flight version live once the segment is restored — **OPEN**
+### OD-P-21 — where flight-level facts live once the segment is restored — **ANSWERED**
 `OD-P-10` puts marketing carrier ref, operating carrier ref and `FlightVersion` on the sold segment. All three are **already** carried per passenger on the typed air-transport service detail (`AirTransportDetail.MarketingCarrierRef`, `.OperatingCarrierRef`, `.FlightVersion`, registered in `ServiceDetailSchemaRegistry`) and two of them are published in the ratified public projection as `airTransport.marketingAirlineRef` and `.operatingAirlineRef`.
 Applying OD-P-10 as written therefore creates two stores of the same source fact for the same flight. Removing them from the service detail removes fields from a ratified public response, which I will not do without an answer; keeping both leaves duplicated truth that a later servicing slice can desynchronise.
 `CabinRef`, `RbdRef` and `BookingClass` are not affected — OD-P-10 explicitly leaves them on the service detail.
-**Recommendation:** put the flight-level facts (marketing carrier, operating carrier, flight version, flight id, capacity ref, terminals, duration, aircraft) on the **segment** as the single accepted store, keep the service detail to passenger-specific facts (cabin, RBD, booking class, baggage allowance, the three term flags), and keep the public `airTransport.marketingAirlineRef` / `.operatingAirlineRef` fields in the response by reading them from the segment — the wire contract does not change, only where the projector reads from.
-**Answer:**
+**Recommendation:** put the flight-level facts on the **segment** as the single accepted store, keep the service detail to passenger-specific facts, and keep the public fields by reading them from the segment.
+**Answer: APPROVED WITH EXPANSION.** `OrderSegment` is the single canonical accepted store for **flight-level** sold facts: external/source `FlightId`, `FlightNumber`, `FlightVersion`, `MarketingCarrierRef`, `OperatingCarrierRef`, origin/destination airport refs, origin/destination terminal refs, sold departure/arrival, duration, aircraft ref, and the source `FlightCapacityId` / capacity reference.
+`AirTransportDetail` is the traveler/service-level sold detail and retains cabin ref, RBD ref, booking class, checked baggage allowance, cabin baggage allowance, and the exact source refundable/changeable/upgradable display flags; other future facts only when they are truly traveler/service-level and approved.
+- **`FlightNumber` is part of this decision**: it was duplicated at the service-detail level and is a flight-level fact, so its canonical storage moves to `OrderSegment` too.
+- **Current-model correction:** `OrderSegment.FlightRef` already holds the AirOffer `FlightId`. Do **not** add a second `SourceFlightRef` column for the same value — keep the existing property/column and document that it is the external/source FlightId.
+- **Public API compatibility:** `OrderAirTransportDto.FlightNumber`, `.MarketingAirlineRef` and `.OperatingAirlineRef` stay in the ratified response, populated in the read mapping from the **single covered OrderSegment**. That is denormalized presentation, not duplicate domain persistence. `FlightVersion` is not public and is not added.
+- **Required invariant:** an accepted `AirTransportation` service has exactly one beneficiary traveler and exactly one covered passenger segment, enforced in candidate/domain validation. A projection that meets an air service without exactly one covered segment fails deterministically instead of choosing one.
+Disposition: `RESTORE/REDESIGN`, fully decided. OD-P-21 is **not** blocked.
 
 ---
+
+## Correction: OD-C-02 was never open
+
+The revision-2 matrix counted `OD-C-02` as a blocker. That was wrong. `reports/00-decisions/S1-CLEANUP-OPEN-DECISIONS.md` already carries the owner's answer:
+
+> `Messages.Shared.Enums.SalesChannel` is allowed
+
+So `SalesChannel` stays in the Domain under an explicit owner exception to the GOVERNANCE/05 C1 allowlist, the allowlist test keeps asserting exactly that exception, and no alternative channel type is invented. Matrix row A3 is `KEEP`, not `BLOCKED_DECISION`.
 
 ## Still open from stage 04 (unchanged, repeated so nothing is lost)
 
 - **OD-C-01b** — schema for `CommandReceipts` (order tables are `Order`, answered).
-- **OD-C-02** — `SalesChannel` is used inside Domain although GOVERNANCE/05 C1 allows only the Ordering enums plus three caller-context types. Either the allowlist gains `SalesChannel` or the Domain stops referencing it.
 - **OD-C-03 … OD-C-10** — as recorded in `S1-CLEANUP-OPEN-DECISIONS.md`.

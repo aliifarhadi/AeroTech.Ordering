@@ -13,6 +13,10 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.HasKey(leg => leg.Id);
             builder.Property(leg => leg.Id).ValueGeneratedNever();
             builder.Property(leg => leg.SourceLegRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();
+            builder.Property(leg => leg.OriginRef).HasMaxLength(PersistenceSchemas.ReferenceLength);
+            builder.Property(leg => leg.OriginTerminalRef).HasMaxLength(PersistenceSchemas.ReferenceLength);
+            builder.Property(leg => leg.DestinationRef).HasMaxLength(PersistenceSchemas.ReferenceLength);
+            builder.Property(leg => leg.DestinationTerminalRef).HasMaxLength(PersistenceSchemas.ReferenceLength);
             builder.HasIndex(leg => new { leg.SegmentId, leg.Sequence }).IsUnique();
         }
     }

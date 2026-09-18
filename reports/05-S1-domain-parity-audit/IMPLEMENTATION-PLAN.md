@@ -3,7 +3,7 @@
 Stage: 05-S1-domain-parity-audit
 Planned against HEAD `deaf6b0` (branch `k8s-stg`, clean tree).
 Authority: `reports/00-decisions/S1-DOMAIN-PARITY-OPEN-DECISIONS.md` (OD-P-01 … OD-P-20 answered) and Pack 3.8.
-Status: plan only. **No production, domain or persistence code was changed in this run.**
+Status: **executed on 2026-09-19**. The corrections in §22 were applied to this plan before implementation; the result is reported in `REPORT.md`.
 
 ---
 
@@ -420,3 +420,55 @@ Two tests will legitimately need new expected values because the canonical candi
 `FareConstruction` is the largest single item: eight new entities, eight configurations and a data migration. Everything else is additive columns on existing tables.
 
 Status: `S1_DOMAIN_REPAIR_PLAN_READY_FOR_OWNER_REVIEW`. `S2_NOT_STARTED`.
+
+---
+
+## 22. Corrections applied before execution
+
+The owner reviewed this plan and corrected it. Every item below overrides what the section above it says.
+
+### 22.1 No synthetic legacy Journey (corrects §17.2)
+
+`OrderSegments.JourneyId` is **nullable**. A pre-repair segment whose bound grouping was never persisted keeps `JourneyId = NULL` and **no** `UNKNOWN` journey row is created. `OrderJourneys` is empty after a legacy upgrade. Journey grouping is never reconstructed from `PreparationSourceEvidence` (that would re-interpret the source payload after acceptance) and never inferred from segment ordering. Every new schema-3 accepted segment gets its real `JourneyId` from the candidate, which the validator requires.
+
+### 22.2 No false `Amount` backfill (corrects §17.2)
+
+`PricingCalculationKind` is `NotRecorded = 1`, `Amount = 2`, `Percentage = 3`. Pre-repair rows are backfilled as **`NotRecorded`**, because some of them may have come from `isPercentage = true` and that fact was discarded. `Amount` for a legacy row would be a false statement. New accepted rows may never be `NotRecorded` — `CandidateValidator` rejects a candidate line that does not state its kind.
+
+### 22.3 The existing `Segment.FlightRef` is reused (corrects §10)
+
+`OrderSegments.FlightRef` already holds the AirOffer `FlightId`. No `SourceFlightRef` column is added; the existing property and column are kept and documented as the external/source FlightId. The same value is never persisted twice.
+
+### 22.4 `FlightNumber` moves to segment ownership (`OD-P-21`)
+
+`OrderSegment` is the single canonical store for flight-level sold facts: `FlightRef`, `FlightNumber`, `FlightVersion`, `MarketingCarrierRef`, `OperatingCarrierRef`, origin/destination airport and terminal refs, sold departure/arrival, `Duration`, `AircraftRef`, `SourceCapacityRef`. `AirTransportDetail` keeps only traveler/service-level facts: cabin ref, RBD ref, booking class, checked and cabin baggage. The three sold term flags live on `OrderService` itself so that non-air services can carry them later without an air-only detail.
+
+The public `OrderAirTransportDto.FlightNumber`, `.MarketingAirlineRef` and `.OperatingAirlineRef` stay in the ratified response, read by `OrderProjectionMapper` from the service's single covered segment. `FlightVersion` is not exposed. An air service without exactly one covered segment fails deterministically (`ExceptionFactory.ServiceCoverageIsNotASingleSegment`, code 20288) instead of `FirstOrDefault()`.
+
+### 22.5 Detail-to-segment migration validation (corrects §17)
+
+The flight facts already accepted into `AirTransportServiceDetails` are migrated into `OrderSegments` through `OrderServiceCoverage`. Before any write, the migration fails if the air services covering one segment disagree on any of the four values (`THROW 51001`) or if a stored `FlightVersion` is not an invariant integer (`THROW 51002`). No first-value-wins. The four detail columns are dropped only in the separate gated migration, after the equivalence assertions are green.
+
+### 22.6 `ProductSnapshot` and terms timestamps (corrects §4 and §5)
+
+`ProductSnapshot` carries **no** `AcceptedAt`: Pack 3.8 does not require it and the Order already persists `AcceptedSource.PricedAt / CapturedAt / ClientAcceptedAt / AcceptedAt` plus the change timestamps. `CommercialTermsSnapshot.TermsCapturedAt` is the already-persisted `AcceptedSource.CapturedAt`, never `Order.CreatedAt` and never the candidate capture clock under another name.
+
+### 22.7 Internal typed projection, separate from the public DTO (new)
+
+The read model previously stored the public `OrderDto` directly, so preserving the new canonical facts through the projection and leaving the ratified API unchanged were mutually exclusive. They are now separate:
+
+- `Query/OrderAggregate/Projection/OrderProjectionDocument.cs` — a strongly typed internal document (no dictionaries, no untyped JSON) holding every approved S1 canonical fact.
+- `Query/OrderAggregate/Projection/OrderProjectionJson.cs` — `SchemaVersion = 3`.
+- `Synchronizer/OrderAggregate/OrderProjectionBuilder.cs` — builds it from the aggregate; replaces `OrderDtoBuilder`, which is deleted.
+- `Query/OrderAggregate/Projection/OrderProjectionMapper.cs` — maps the document to the unchanged public `OrderDto`.
+- `OrderDtoReader` dispatches on `ProjectionSchemaVersion`: 3 through the mapper, 2 through the legacy `OrderDtoJson`, anything else is an unsupported capability. A rebuild replaces a schema-2 row with schema 3 deterministically.
+
+No second generic or dynamic read-model framework is introduced.
+
+### 22.8 `OD-C-02` is not a blocker (corrects §16 and the matrix)
+
+`Messages.Shared.Enums.SalesChannel` in the Domain is an explicit owner exception already recorded in `S1-CLEANUP-OPEN-DECISIONS.md`. It is not reopened, `SalesChannel` is not removed, and no alternative channel type is invented.
+
+### 22.9 Applied conversion is preserved, not correlated (corrects §2)
+
+§2 assumed the referenced rate row converts the line's currency into the sale currency. The recorded live AirOffer response disproves that. The rate row is preserved exactly as the source states it, with no cross-check against the line's currencies; a referenced period absent from `ratesOfExchange` leaves the snapshot null while the reference itself is still preserved. See `INFORMATION-PRESERVATION.md` §3.

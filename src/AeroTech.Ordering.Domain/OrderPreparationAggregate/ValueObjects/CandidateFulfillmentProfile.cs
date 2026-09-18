@@ -1,12 +1,13 @@
 using AeroTech.Messages.Ordering.Enums;
-using AeroTech.Ordering.Domain._Shared.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
     public sealed record CandidateFulfillmentProfile(
         string ProfileRef,
+        string ProfileVersion,
+        FulfillmentProfileAssurance Assurance,
         ReservationRequirement ReservationRequirement,
         FulfillmentDocumentKind DocumentKind,
-        bool RequiresFunding,
-        int CapacityUnits);
+        FundingRequirement FundingRequirement,
+        int? CapacityUnits);
 }
