@@ -22,6 +22,36 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.HasKey(order => order.Id);
             builder.Property(order => order.Id).ValueGeneratedNever();
             builder.Ignore(order => order.IsSandboxScoped);
+            builder.Ignore(order => order.Channel);
+            builder.Ignore(order => order.SellingOfficeKind);
+            builder.Ignore(order => order.SellingOfficeId);
+
+            builder.OwnsOne(order => order.SalesContext, sales =>
+            {
+                sales.Property(value => value.Channel).HasColumnName("Channel").IsRequired();
+                sales.Property(value => value.SellerContextType).HasColumnName("SellerContextType");
+                sales.Property(value => value.SellerId).HasColumnName("SellerId");
+                sales.Property(value => value.SellingOfficeKind).HasColumnName("SellingOfficeKind");
+                sales.Property(value => value.SellingOfficeId).HasColumnName("SellingOfficeId");
+                sales.Ignore(value => value.HasSeller);
+                sales.Ignore(value => value.HasSellingOffice);
+            });
+            builder.Navigation(order => order.SalesContext).IsRequired();
+
+            builder.OwnsOne(order => order.Buyer, buyer =>
+            {
+                buyer.Property(value => value.ContextType).HasColumnName("BuyerContextType");
+                buyer.Property(value => value.BuyerId).HasColumnName("BuyerId");
+                buyer.Ignore(value => value.IsSupplied);
+            });
+            builder.Navigation(order => order.Buyer).IsRequired();
+
+            builder.OwnsOne(order => order.InitiatingActor, actor =>
+            {
+                actor.Property(value => value.ContextType).HasColumnName("InitiatingActorContextType").IsRequired();
+                actor.Property(value => value.ActorId).HasColumnName("InitiatingActorId");
+            });
+            builder.Navigation(order => order.InitiatingActor).IsRequired();
 
             builder.Property(order => order.OrderReference).HasMaxLength(PersistenceSchemas.OwnerNameLength).IsRequired();
             builder.OwnsOne(order => order.SaleCurrency, currency => currency.MapCurrency("SaleCurrency"));
@@ -80,12 +110,13 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.HasMany(order => order.PricingLines).WithOne().HasForeignKey(child => child.OrderId).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(order => order.FareConstructions).WithOne().HasForeignKey(child => child.OrderIdAtCreation).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(order => order.FundingObligations).WithOne().HasForeignKey(child => child.OrderId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasMany(order => order.ComponentTotals).WithOne().HasForeignKey(child => child.OrderId).OnDelete(DeleteBehavior.Restrict);
 
             foreach (var navigation in new[]
                      {
                          nameof(Order.Travelers), nameof(Order.Contacts), nameof(Order.Journeys), nameof(Order.Segments), nameof(Order.Items), nameof(Order.Services),
                          nameof(Order.ItemServiceLinks), nameof(Order.Changes), nameof(Order.PriceChangeSets), nameof(Order.PricingLines),
-                         nameof(Order.FareConstructions), nameof(Order.FundingObligations)
+                         nameof(Order.FareConstructions), nameof(Order.FundingObligations), nameof(Order.ComponentTotals)
                      })
                 builder.Navigation(navigation).UsePropertyAccessMode(PropertyAccessMode.Field);
         }

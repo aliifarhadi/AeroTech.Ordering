@@ -19,6 +19,10 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
                 table.HasCheckConstraint("CK_PricingLines_OtherInformational", $"[Component] <> {(int)PricingComponentType.Other} OR [Effect] = {(int)PricingEffect.Informational}");
                 table.HasCheckConstraint("CK_PricingLines_Direction", $"[Direction] IN ({(int)OrderPricingLineDirection.Debit}, {(int)OrderPricingLineDirection.Credit})");
                 table.HasCheckConstraint("CK_PricingLines_ReversalReference", $"[Role] <> {(int)PricingLineRole.Reversal} OR [OriginalPricingLineId] IS NOT NULL");
+                table.HasCheckConstraint(
+                    "CK_PricingLines_SettlementAttribution",
+                    $"([Effect] = {(int)PricingEffect.SettlementOnly} AND [SettlementPartyRef] IS NOT NULL AND [SettlementCategoryCode] IS NOT NULL)"
+                    + $" OR ([Effect] <> {(int)PricingEffect.SettlementOnly} AND [SettlementPartyRef] IS NULL AND [SettlementCategoryCode] IS NULL)");
             });
             builder.HasKey(line => line.Id);
             builder.Property(line => line.Id).ValueGeneratedNever();
@@ -32,6 +36,11 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.OwnsOne(line => line.OriginalValue, money => money.MapMoney("OriginalValue"));
             builder.OwnsOne(line => line.SaleValue, money => money.MapMoney("SaleValue"));
             builder.OwnsOne(line => line.AppliedConversion, conversion => conversion.MapAppliedConversion("Conversion"));
+            builder.OwnsOne(line => line.SettlementAttribution, attribution =>
+            {
+                attribution.Property(value => value.PartyRef).HasColumnName("SettlementPartyRef").HasMaxLength(PersistenceSchemas.ReferenceLength);
+                attribution.Property(value => value.CategoryCode).HasColumnName("SettlementCategoryCode").HasMaxLength(PersistenceSchemas.ReferenceLength);
+            });
             builder.HasOne<PriceChangeSet>().WithMany().HasForeignKey(line => line.PriceChangeSetId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<OrderItem>().WithMany().HasForeignKey(line => line.OrderItemId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<PricingLine>().WithMany().HasForeignKey(line => line.OriginalPricingLineId).OnDelete(DeleteBehavior.Restrict);

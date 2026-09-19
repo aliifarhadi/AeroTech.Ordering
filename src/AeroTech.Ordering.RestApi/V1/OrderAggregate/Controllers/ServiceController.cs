@@ -30,7 +30,8 @@ namespace AeroTech.Ordering.RestApi.V1.OrderAggregate.Controllers
         {
             var command = new ServiceCreateOrderFromOfferCommand(
                 request.CustomerId,
-                request.AirlineOfficeId,
+                request.SellingOfficeId,
+                request.SellingOfficeKind,
                 request.OfferId,
                 request.Travellers.ToInputs(),
                 request.Contacts.ToInputs(),

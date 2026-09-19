@@ -2,6 +2,7 @@ using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
+using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Application;
 using AeroTech.Ordering.Application._Shared.Authorization;
 using AeroTech.Ordering.Domain._Shared.Contracts;
@@ -137,41 +138,47 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
             => new(
                 OwnerAirlineId,
                 customerId,
-                SalesChannel.BackOffice,
-                AirlineOfficeId,
+                new SalesContextSnapshot(
+                    SalesChannel.BackOffice,
+                    BusinessContextType.Airline,
+                    OwnerAirlineId,
+                    SellingOfficeKind.AirlineOffice,
+                    AirlineOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Backoffice, customerId, AirlineOfficeId, CallerScopeKey.None),
-                BusinessContextType.Airline,
-                actorId);
+                new InitiatingActorSnapshot(BusinessContextType.Airline, actorId));
 
         public static Domain._Shared.ValueObjects.AuthorizedSalesScope ServiceScope(long customerId = CustomerId)
             => new(
                 OwnerAirlineId,
                 customerId,
-                SalesChannel.System,
-                null,
+                SalesContextSnapshot.SellerNotSupplied(SalesChannel.System, null, null),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Service, customerId, null, CallerScopeKey.None),
-                BusinessContextType.Service,
-                null);
+                new InitiatingActorSnapshot(BusinessContextType.Service, null));
 
         public static Domain._Shared.ValueObjects.AuthorizedSalesScope OtaPanelScope(long customerId = AgencyCustomerId)
             => new(
                 OwnerAirlineId,
                 customerId,
-                SalesChannel.AgencyPanel,
-                AgencyOfficeId,
+                new SalesContextSnapshot(
+                    SalesChannel.AgencyPanel,
+                    BusinessContextType.TravelAgency,
+                    TravelAgencyId,
+                    SellingOfficeKind.TravelAgencyOffice,
+                    AgencyOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.OtaPanel, customerId, AgencyOfficeId, CallerScopeKey.Agency(TravelAgencyId)),
-                BusinessContextType.TravelAgency,
-                AgencyUserId);
+                new InitiatingActorSnapshot(BusinessContextType.TravelAgency, AgencyUserId));
 
         public static Domain._Shared.ValueObjects.AuthorizedSalesScope OtaScope(long customerId = OtherCustomerId)
             => new(
                 OwnerAirlineId,
                 customerId,
-                SalesChannel.PartnerAPI,
-                null,
+                SalesContextSnapshot.SellerNotSupplied(SalesChannel.PartnerAPI, null, null),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Ota, customerId, null, CallerScopeKey.Partner(PartnerApiAccessProfileId)),
-                BusinessContextType.PartnerApi,
-                PartnerApiAccessProfileId);
+                new InitiatingActorSnapshot(BusinessContextType.PartnerApi, PartnerApiAccessProfileId));
 
         public async ValueTask DisposeAsync() => await _provider.DisposeAsync();
 

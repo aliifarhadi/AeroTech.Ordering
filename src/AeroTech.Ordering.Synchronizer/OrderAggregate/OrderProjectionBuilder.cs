@@ -1,3 +1,4 @@
+using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderAggregate;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
@@ -16,7 +17,12 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
             order.AcceptedSource.SourceOfferId,
             order.Channel,
             order.FinancialCustomerId,
-            order.SellingOfficeId,
+            new ProjectedSalesContext(
+                Party(order.SalesContext.SellerContextType, order.SalesContext.SellerId),
+                order.SalesContext.SellingOfficeKind,
+                order.SalesContext.SellingOfficeId),
+            Party(order.Buyer.ContextType, order.Buyer.BuyerId),
+            new ProjectedActor(order.InitiatingActor.ContextType, order.InitiatingActor.ActorId),
             Money(order.CustomerTotal),
             order.SaleCurrency.CurrencyRef,
             order.SaleCurrency.CurrencyCode,
@@ -30,6 +36,7 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
             Segments(order),
             Items(order),
             Pricing(order),
+            ComponentTotals(order),
             FareConstructions(order),
             ItemServiceLinks(order),
             order.CreatedAt);
@@ -150,8 +157,13 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                         service.FulfillmentProfile.Assurance,
                         service.FulfillmentProfile.ReservationRequirement,
                         service.FulfillmentProfile.DocumentKind,
+                        service.FulfillmentProfile.DocumentAuthority,
                         service.FulfillmentProfile.FundingRequirement,
-                        service.FulfillmentProfile.CapacityUnits),
+                        service.FulfillmentProfile.CapacityUnits,
+                        service.FulfillmentProfile.ResourceUnitPolicyRef,
+                        service.FulfillmentProfile.DeliveryControlPolicyRef,
+                        service.FulfillmentProfile.DependencyTreatmentPolicyRef,
+                        service.FulfillmentProfile.PartialFulfillmentSupported),
                     AirTransport(service)))
                 .ToList();
 
@@ -202,7 +214,25 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                             DecimalRepresentation.Text(conversion.Rate),
                             conversion.DecimalPlaces,
                             conversion.RoundingToken)
+                        : null,
+                    line.SettlementAttribution is { } attribution
+                        ? new ProjectedSettlementAttribution(attribution.PartyRef, attribution.CategoryCode)
                         : null))
+                .ToList();
+
+        private static ProjectedParty? Party(BusinessContextType? contextType, long? partyId)
+            => contextType is null || partyId is null ? null : new ProjectedParty(contextType.Value, partyId.Value);
+
+        private static IReadOnlyList<ProjectedComponentTotal> ComponentTotals(Order order)
+            => order.ComponentTotals
+                .OrderBy(total => total.Component)
+                .ThenBy(total => total.Effect)
+                .Select(total => new ProjectedComponentTotal(
+                    total.Component,
+                    total.Effect,
+                    DecimalRepresentation.Text(total.DebitAmount),
+                    DecimalRepresentation.Text(total.CreditAmount),
+                    total.CurrencyRef))
                 .ToList();
 
         private static IReadOnlyList<ProjectedFareConstruction> FareConstructions(Order order)

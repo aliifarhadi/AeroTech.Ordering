@@ -17,7 +17,8 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
 
         public async Task<CreateOrderFromOfferResult> Handle(ServiceCreateOrderFromOfferCommand command, CancellationToken cancellationToken)
         {
-            var scope = await _scopeResolver.ServiceSaleAsync(command.CustomerId, command.AirlineOfficeId, cancellationToken);
+            var scope = await _scopeResolver.ServiceSaleAsync(
+                command.CustomerId, command.SellingOfficeId, command.SellingOfficeKind, cancellationToken);
 
             return await _service.ExecuteAsync(
                 new CreateOrderFromOfferArgs(

@@ -54,5 +54,17 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
         public const string ProjectionRebuildConflict = "Order '{0}' changed during projection rebuild; retry.";
 
         public const string ServiceCoverageIsNotASingleSegment = "Air service '{0}' covers {1} passenger segments; exactly one is required.";
+
+        public const string SalesContextIncomplete = "Accepted sales context is incomplete: {0} must be supplied together.";
+
+        public const string SettlementAttributionIncomplete = "Settlement attribution is incomplete: {0} is required.";
+
+        public const string SettlementAttributionNotAllowed = "A {0} pricing line cannot carry settlement attribution; only settlement-only lines can.";
+
+        public const string SettlementAttributionRequired = "A settlement-only pricing line requires a settlement party reference and category code.";
+
+        public const string FundingObligationScopeInvalid = "Funding obligation scope is invalid: {0} must be a positive identifier.";
+
+        public const string ComponentTotalInvalid = "Component total is invalid: {0}.";
     }
 }

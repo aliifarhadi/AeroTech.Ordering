@@ -23,7 +23,9 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         JourneyType? JourneyType,
         CandidateFareConstruction FareConstruction)
     {
-        public const string CurrentSchemaVersion = "3.0";
+        public const string CurrentSchemaVersion = "4.0";
+
+        public const string LegacySchemaVersion = "3.0";
 
         public CurrencySnapshot SaleCurrency => new(CustomerTotal.CurrencyRef, SaleCurrencyCode);
     }

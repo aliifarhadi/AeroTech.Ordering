@@ -82,5 +82,23 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
 
         public static BusinessException ServiceCoverageIsNotASingleSegment(params object?[] args) =>
             new(20288, ExceptionMessages.ServiceCoverageIsNotASingleSegment, args) { HttpStatus = 422 };
+
+        public static BusinessException SalesContextIncomplete(params object?[] args) =>
+            new(20289, ExceptionMessages.SalesContextIncomplete, args) { HttpStatus = 422 };
+
+        public static BusinessException SettlementAttributionIncomplete(params object?[] args) =>
+            new(20290, ExceptionMessages.SettlementAttributionIncomplete, args) { HttpStatus = 422 };
+
+        public static BusinessException SettlementAttributionNotAllowed(params object?[] args) =>
+            new(20291, ExceptionMessages.SettlementAttributionNotAllowed, args) { HttpStatus = 422 };
+
+        public static BusinessException SettlementAttributionRequired(params object?[] args) =>
+            new(20292, ExceptionMessages.SettlementAttributionRequired, args) { HttpStatus = 422 };
+
+        public static BusinessException FundingObligationScopeInvalid(params object?[] args) =>
+            new(20293, ExceptionMessages.FundingObligationScopeInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException ComponentTotalInvalid(params object?[] args) =>
+            new(20294, ExceptionMessages.ComponentTotalInvalid, args) { HttpStatus = 422 };
     }
 }

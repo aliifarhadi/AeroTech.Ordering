@@ -38,8 +38,13 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
                 profile.Property(value => value.Assurance).HasColumnName("FulfillmentProfileAssurance");
                 profile.Property(value => value.ReservationRequirement).HasColumnName("ReservationRequirement");
                 profile.Property(value => value.DocumentKind).HasColumnName("DocumentKind");
+                profile.Property(value => value.DocumentAuthority).HasColumnName("DocumentAuthority");
                 profile.Property(value => value.FundingRequirement).HasColumnName("FundingRequirement");
                 profile.Property(value => value.CapacityUnits).HasColumnName("CapacityUnits");
+                profile.Property(value => value.ResourceUnitPolicyRef).HasColumnName("ResourceUnitPolicyRef").HasMaxLength(PersistenceSchemas.ReferenceLength);
+                profile.Property(value => value.DeliveryControlPolicyRef).HasColumnName("DeliveryControlPolicyRef").HasMaxLength(PersistenceSchemas.ReferenceLength);
+                profile.Property(value => value.DependencyTreatmentPolicyRef).HasColumnName("DependencyTreatmentPolicyRef").HasMaxLength(PersistenceSchemas.ReferenceLength);
+                profile.Property(value => value.PartialFulfillmentSupported).HasColumnName("PartialFulfillmentSupported");
                 profile.Ignore(value => value.IsCertified);
             });
             builder.OwnsOne(service => service.AirTransport, detail =>

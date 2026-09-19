@@ -458,6 +458,12 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.Property<long?>("OrderItemId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("OrderServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PricingLineId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Purpose")
                         .HasColumnType("int");
 
@@ -478,6 +484,10 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                     b.HasIndex("OrderItemId");
 
+                    b.HasIndex("OrderServiceId");
+
+                    b.HasIndex("PricingLineId");
+
                     b.HasIndex("SupersededObligationId");
 
                     b.HasIndex("OrderId", "Id", "Version")
@@ -486,6 +496,8 @@ namespace AeroTech.Ordering.Persistence.Migrations
                     b.ToTable("FundingObligations", "Order", t =>
                         {
                             t.HasCheckConstraint("CK_FundingObligations_Amount", "[AmountAmount] >= 0");
+
+                            t.HasCheckConstraint("CK_FundingObligations_ExactlyOneScope", "(CASE WHEN [OrderItemId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [OrderServiceId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [PricingLineId] IS NULL THEN 0 ELSE 1 END) = 1");
 
                             t.HasCheckConstraint("CK_FundingObligations_Version", "[Version] >= 1");
                         });
@@ -531,6 +543,50 @@ namespace AeroTech.Ordering.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("OrderChanges", "Order");
+                });
+
+            modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderComponentTotal", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Component")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CreditAmount")
+                        .HasPrecision(28, 8)
+                        .HasColumnType("decimal(28,8)");
+
+                    b.Property<string>("CurrencyRef")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<decimal>("DebitAmount")
+                        .HasPrecision(28, 8)
+                        .HasColumnType("decimal(28,8)");
+
+                    b.Property<int>("Effect")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId", "Component", "Effect")
+                        .IsUnique();
+
+                    b.ToTable("OrderComponentTotals", "Order", t =>
+                        {
+                            t.HasCheckConstraint("CK_OrderComponentTotals_Magnitudes", "[DebitAmount] >= 0 AND [CreditAmount] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderContact", b =>
@@ -1245,6 +1301,8 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_PricingLines_SaleMagnitude", "[SaleValueAmount] >= 0");
 
+                            t.HasCheckConstraint("CK_PricingLines_SettlementAttribution", "([Effect] = 2 AND [SettlementPartyRef] IS NOT NULL AND [SettlementCategoryCode] IS NOT NULL) OR ([Effect] <> 2 AND [SettlementPartyRef] IS NULL AND [SettlementCategoryCode] IS NULL)");
+
                             t.HasCheckConstraint("CK_PricingLines_TaxNotSettlement", "NOT ([Component] = 3 AND [Effect] = 2)");
                         });
                 });
@@ -1253,15 +1311,6 @@ namespace AeroTech.Ordering.Persistence.Migrations
                 {
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
-
-                    b.Property<int>("BuyerActorContextType")
-                        .HasColumnType("int");
-
-                    b.Property<long?>("BuyerActorId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("int");
 
                     b.Property<string>("ClientReference")
                         .HasMaxLength(128)
@@ -1313,9 +1362,6 @@ namespace AeroTech.Ordering.Persistence.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
-
-                    b.Property<long?>("SellingOfficeId")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("SourceJourneyTypeRaw")
                         .HasMaxLength(128)
@@ -1776,6 +1822,16 @@ namespace AeroTech.Ordering.Persistence.Migrations
                         .HasForeignKey("OrderItemId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderService", null)
+                        .WithMany()
+                        .HasForeignKey("OrderServiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AeroTech.Ordering.Domain.OrderAggregate.Entities.PricingLine", null)
+                        .WithMany()
+                        .HasForeignKey("PricingLineId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AeroTech.Ordering.Domain.OrderAggregate.Entities.FundingObligation", null)
                         .WithMany()
                         .HasForeignKey("SupersededObligationId")
@@ -1813,6 +1869,15 @@ namespace AeroTech.Ordering.Persistence.Migrations
                 {
                     b.HasOne("AeroTech.Ordering.Domain.OrderAggregate.Order", null)
                         .WithMany("Changes")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Entities.OrderComponentTotal", b =>
+                {
+                    b.HasOne("AeroTech.Ordering.Domain.OrderAggregate.Order", null)
+                        .WithMany("ComponentTotals")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -2097,6 +2162,20 @@ namespace AeroTech.Ordering.Persistence.Migrations
                                 .HasColumnType("int")
                                 .HasColumnName("CapacityUnits");
 
+                            b1.Property<string>("DeliveryControlPolicyRef")
+                                .HasMaxLength(128)
+                                .HasColumnType("nvarchar(128)")
+                                .HasColumnName("DeliveryControlPolicyRef");
+
+                            b1.Property<string>("DependencyTreatmentPolicyRef")
+                                .HasMaxLength(128)
+                                .HasColumnType("nvarchar(128)")
+                                .HasColumnName("DependencyTreatmentPolicyRef");
+
+                            b1.Property<int?>("DocumentAuthority")
+                                .HasColumnType("int")
+                                .HasColumnName("DocumentAuthority");
+
                             b1.Property<int>("DocumentKind")
                                 .HasColumnType("int")
                                 .HasColumnName("DocumentKind");
@@ -2104,6 +2183,10 @@ namespace AeroTech.Ordering.Persistence.Migrations
                             b1.Property<int>("FundingRequirement")
                                 .HasColumnType("int")
                                 .HasColumnName("FundingRequirement");
+
+                            b1.Property<bool?>("PartialFulfillmentSupported")
+                                .HasColumnType("bit")
+                                .HasColumnName("PartialFulfillmentSupported");
 
                             b1.Property<string>("ProfileRef")
                                 .IsRequired()
@@ -2120,6 +2203,11 @@ namespace AeroTech.Ordering.Persistence.Migrations
                             b1.Property<int>("ReservationRequirement")
                                 .HasColumnType("int")
                                 .HasColumnName("ReservationRequirement");
+
+                            b1.Property<string>("ResourceUnitPolicyRef")
+                                .HasMaxLength(128)
+                                .HasColumnType("nvarchar(128)")
+                                .HasColumnName("ResourceUnitPolicyRef");
 
                             b1.HasKey("OrderServiceId");
 
@@ -2449,6 +2537,31 @@ namespace AeroTech.Ordering.Persistence.Migrations
                                 .HasForeignKey("PricingLineId");
                         });
 
+                    b.OwnsOne("AeroTech.Ordering.Domain._Shared.ValueObjects.SettlementAttribution", "SettlementAttribution", b1 =>
+                        {
+                            b1.Property<long>("PricingLineId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("CategoryCode")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("nvarchar(128)")
+                                .HasColumnName("SettlementCategoryCode");
+
+                            b1.Property<string>("PartyRef")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("nvarchar(128)")
+                                .HasColumnName("SettlementPartyRef");
+
+                            b1.HasKey("PricingLineId");
+
+                            b1.ToTable("PricingLines", "Order");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PricingLineId");
+                        });
+
                     b.Navigation("AppliedConversion");
 
                     b.Navigation("OriginalValue")
@@ -2456,6 +2569,8 @@ namespace AeroTech.Ordering.Persistence.Migrations
 
                     b.Navigation("SaleValue")
                         .IsRequired();
+
+                    b.Navigation("SettlementAttribution");
                 });
 
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Order", b =>
@@ -2687,6 +2802,27 @@ namespace AeroTech.Ordering.Persistence.Migrations
                                 .HasForeignKey("OrderId");
                         });
 
+                    b.OwnsOne("AeroTech.Ordering.Domain._Shared.ValueObjects.BuyerSnapshot", "Buyer", b1 =>
+                        {
+                            b1.Property<long>("OrderId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<long?>("BuyerId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("BuyerId");
+
+                            b1.Property<int?>("ContextType")
+                                .HasColumnType("int")
+                                .HasColumnName("BuyerContextType");
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("Orders", "Order");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
                     b.OwnsOne("AeroTech.Ordering.Domain._Shared.ValueObjects.CurrencySnapshot", "SaleCurrency", b1 =>
                         {
                             b1.Property<long>("OrderId")
@@ -2702,6 +2838,27 @@ namespace AeroTech.Ordering.Persistence.Migrations
                                 .HasMaxLength(32)
                                 .HasColumnType("nvarchar(32)")
                                 .HasColumnName("SaleCurrencyRef");
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("Orders", "Order");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ordering.Domain._Shared.ValueObjects.InitiatingActorSnapshot", "InitiatingActor", b1 =>
+                        {
+                            b1.Property<long>("OrderId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<long?>("ActorId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("InitiatingActorId");
+
+                            b1.Property<int>("ContextType")
+                                .HasColumnType("int")
+                                .HasColumnName("InitiatingActorContextType");
 
                             b1.HasKey("OrderId");
 
@@ -2740,10 +2897,49 @@ namespace AeroTech.Ordering.Persistence.Migrations
                                 .HasForeignKey("OrderId");
                         });
 
+                    b.OwnsOne("AeroTech.Ordering.Domain._Shared.ValueObjects.SalesContextSnapshot", "SalesContext", b1 =>
+                        {
+                            b1.Property<long>("OrderId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("Channel")
+                                .HasColumnType("int")
+                                .HasColumnName("Channel");
+
+                            b1.Property<int?>("SellerContextType")
+                                .HasColumnType("int")
+                                .HasColumnName("SellerContextType");
+
+                            b1.Property<long?>("SellerId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("SellerId");
+
+                            b1.Property<long?>("SellingOfficeId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("SellingOfficeId");
+
+                            b1.Property<int?>("SellingOfficeKind")
+                                .HasColumnType("int")
+                                .HasColumnName("SellingOfficeKind");
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("Orders", "Order");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
                     b.Navigation("AcceptedSource")
                         .IsRequired();
 
+                    b.Navigation("Buyer")
+                        .IsRequired();
+
                     b.Navigation("CustomerTotal")
+                        .IsRequired();
+
+                    b.Navigation("InitiatingActor")
                         .IsRequired();
 
                     b.Navigation("ObservedTicketingDeadline");
@@ -2755,6 +2951,9 @@ namespace AeroTech.Ordering.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("SaleCurrency")
+                        .IsRequired();
+
+                    b.Navigation("SalesContext")
                         .IsRequired();
 
                     b.Navigation("TicketingValidity")
@@ -2943,6 +3142,8 @@ namespace AeroTech.Ordering.Persistence.Migrations
             modelBuilder.Entity("AeroTech.Ordering.Domain.OrderAggregate.Order", b =>
                 {
                     b.Navigation("Changes");
+
+                    b.Navigation("ComponentTotals");
 
                     b.Navigation("Contacts");
 

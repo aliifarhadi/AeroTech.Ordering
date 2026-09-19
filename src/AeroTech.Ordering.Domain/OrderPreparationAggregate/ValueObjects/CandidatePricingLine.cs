@@ -20,5 +20,6 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         PricingBasisType BasisType,
         string BasisRef,
         string? SourceConversionRef,
-        AppliedConversion? AppliedConversion);
+        AppliedConversion? AppliedConversion,
+        SettlementAttribution? SettlementAttribution);
 }

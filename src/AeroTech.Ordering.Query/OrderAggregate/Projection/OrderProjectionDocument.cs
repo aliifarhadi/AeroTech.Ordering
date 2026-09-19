@@ -1,3 +1,4 @@
+using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
 
@@ -12,7 +13,9 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         string OfferId,
         SalesChannel Channel,
         long CustomerId,
-        long? AirlineOfficeId,
+        ProjectedSalesContext SalesContext,
+        ProjectedParty? Buyer,
+        ProjectedActor InitiatingActor,
         ProjectedMoney GrandTotal,
         string SaleCurrencyRef,
         string? SaleCurrencyCode,
@@ -24,9 +27,26 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         IReadOnlyList<ProjectedSegment> Segments,
         IReadOnlyList<ProjectedItem> Items,
         IReadOnlyList<ProjectedPricingLine> Pricing,
+        IReadOnlyList<ProjectedComponentTotal> ComponentTotals,
         IReadOnlyList<ProjectedFareConstruction> FareConstructions,
         IReadOnlyList<ProjectedItemServiceLink> ItemServiceLinks,
         DateTimeOffset CreationDate);
+
+    public sealed record ProjectedSalesContext(
+        ProjectedParty? Seller,
+        SellingOfficeKind? SellingOfficeKind,
+        long? SellingOfficeId);
+
+    public sealed record ProjectedParty(BusinessContextType ContextType, long PartyId);
+
+    public sealed record ProjectedActor(BusinessContextType ContextType, long? ActorId);
+
+    public sealed record ProjectedComponentTotal(
+        PricingComponentType Component,
+        PricingEffect Effect,
+        string DebitAmount,
+        string CreditAmount,
+        string CurrencyRef);
 
     public sealed record ProjectedMoney(string Amount, string CurrencyRef);
 
@@ -136,8 +156,13 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         FulfillmentProfileAssurance Assurance,
         ReservationRequirement ReservationRequirement,
         FulfillmentDocumentKind DocumentKind,
+        DocumentAuthority? DocumentAuthority,
         FundingRequirement FundingRequirement,
-        int? CapacityUnits);
+        int? CapacityUnits,
+        string? ResourceUnitPolicyRef,
+        string? DeliveryControlPolicyRef,
+        string? DependencyTreatmentPolicyRef,
+        bool? PartialFulfillmentSupported);
 
     public sealed record ProjectedAirTransport(
         string? CabinRef,
@@ -166,7 +191,10 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         long? BasisId,
         string SourceBasisRef,
         string? SourceConversionRef,
-        ProjectedConversion? AppliedConversion);
+        ProjectedConversion? AppliedConversion,
+        ProjectedSettlementAttribution? SettlementAttribution);
+
+    public sealed record ProjectedSettlementAttribution(string PartyRef, string CategoryCode);
 
     public sealed record ProjectedConversion(
         string SourceConversionRef,

@@ -12,7 +12,8 @@ namespace AeroTech.Ordering.RestApi.V1.OrderAggregate.Requests
 
     public sealed record ServiceCreateOrderFromOfferRequest(
         long CustomerId,
-        long? AirlineOfficeId,
+        long? SellingOfficeId,
+        SellingOfficeKind? SellingOfficeKind,
         string OfferId,
         IReadOnlyList<OrderTravellerRequest> Travellers,
         IReadOnlyList<OrderContactRequest> Contacts,

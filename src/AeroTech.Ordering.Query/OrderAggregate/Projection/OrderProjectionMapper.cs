@@ -19,19 +19,10 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
                 document.OfferId,
                 document.Channel,
                 document.CustomerId,
-                document.AirlineOfficeId,
-                new MoneyDto(document.GrandTotal.Amount, document.GrandTotal.CurrencyRef),
-                document.Travellers
-                    .Select(traveller => new OrderTravellerDto(
-                        traveller.TravellerId,
-                        traveller.TravellerRef,
-                        traveller.OfferTravellerRef,
-                        traveller.PassengerType,
-                        traveller.GuardianTravellerId,
-                        null,
-                        null,
-                        null))
-                    .ToList(),
+                document.SalesContext.SellingOfficeId,
+                document.SalesContext.SellingOfficeKind,
+                Money(document.GrandTotal),
+                document.Travellers.Select(Traveller).ToList(),
                 [],
                 document.Segments.Select(Segment).ToList(),
                 document.Items.Select(item => Item(item, segments)).ToList(),
@@ -39,7 +30,19 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
                 document.CreationDate);
         }
 
-        private static OrderSegmentDto Segment(ProjectedSegment segment) => new(
+        internal static MoneyDto Money(ProjectedMoney money) => new(money.Amount, money.CurrencyRef);
+
+        internal static OrderTravellerDto Traveller(ProjectedTraveller traveller) => new(
+            traveller.TravellerId,
+            traveller.TravellerRef,
+            traveller.OfferTravellerRef,
+            traveller.PassengerType,
+            traveller.GuardianTravellerId,
+            null,
+            null,
+            null);
+
+        internal static OrderSegmentDto Segment(ProjectedSegment segment) => new(
             segment.SegmentId,
             segment.Sequence,
             segment.OriginRef,
@@ -49,11 +52,11 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
             segment.FlightRef,
             segment.Legs.Select(leg => new OrderSegmentLegDto(leg.Sequence, leg.SourceLegRef)).ToList());
 
-        private static OrderItemDto Item(ProjectedItem item, IReadOnlyDictionary<long, ProjectedSegment> segments) => new(
+        internal static OrderItemDto Item(ProjectedItem item, IReadOnlyDictionary<long, ProjectedSegment> segments) => new(
             item.ItemId,
             item.Kind,
             item.Status,
-            new MoneyDto(item.AcceptedTotal.Amount, item.AcceptedTotal.CurrencyRef),
+            Money(item.AcceptedTotal),
             item.Services.Select(service => Service(service, segments)).ToList());
 
         private static OrderServiceDto Service(ProjectedService service, IReadOnlyDictionary<long, ProjectedSegment> segments) => new(
@@ -92,13 +95,13 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
                 : throw ExceptionFactory.ServiceCoverageIsNotASingleSegment(service.ServiceId, 0);
         }
 
-        private static OrderPriceLineDto Pricing(ProjectedPricingLine line) => new(
+        internal static OrderPriceLineDto Pricing(ProjectedPricingLine line) => new(
             line.LineId,
             line.ItemId,
             line.Component,
             line.Effect,
             line.Direction,
-            new MoneyDto(line.SaleValue.Amount, line.SaleValue.CurrencyRef),
-            new MoneyDto(line.OriginalValue.Amount, line.OriginalValue.CurrencyRef));
+            Money(line.SaleValue),
+            Money(line.OriginalValue));
     }
 }

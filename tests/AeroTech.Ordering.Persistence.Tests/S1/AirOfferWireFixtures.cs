@@ -19,7 +19,8 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             decimal? percentageOrderCharge = null,
             bool withTerminals = false,
             int? ticketingRestrictionMinutes = null,
-            decimal? conversionRate = null)
+            decimal? conversionRate = null,
+            string? offerId = "SYNTHETIC-PRICED-OFFER")
         {
             var couponTotal = couponFare + couponTax;
             var saleFare = lineCurrencyId == 978 ? couponFare : equivalent ?? couponFare;
@@ -29,7 +30,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             {
                 data = new
                 {
-                    offerId = "SYNTHETIC-PRICED-OFFER",
+                    offerId,
                     pricedAt = "2026-09-08T09:59:00+00:00",
                     lastTicketingDate = "2026-09-10T12:00:00+03:30",
                     currencyId = 978,

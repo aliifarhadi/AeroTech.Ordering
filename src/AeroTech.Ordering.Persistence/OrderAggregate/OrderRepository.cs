@@ -34,6 +34,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
                 .Include(order => order.FareConstructions).ThenInclude(construction => construction.PricingUnits).ThenInclude(unit => unit.Components).ThenInclude(component => component.CoveredServices)
                 .Include(order => order.FareConstructions).ThenInclude(construction => construction.PricingUnits).ThenInclude(unit => unit.Components).ThenInclude(component => component.CoveredSegments)
                 .Include(order => order.FundingObligations)
+                .Include(order => order.ComponentTotals)
                 .SingleOrDefaultAsync(order => order.Id == orderId && order.OwnerAirlineId == ownerAirlineId, cancellationToken);
     }
 }

@@ -34,6 +34,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             SourceBasisRef = source.BasisRef;
             SourceConversionRef = source.SourceConversionRef;
             AppliedConversion = source.AppliedConversion;
+            SettlementAttribution = source.SettlementAttribution;
         }
 
         public long OrderId { get; private set; }
@@ -75,6 +76,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         public string? SourceConversionRef { get; private set; }
 
         public AppliedConversion? AppliedConversion { get; private set; }
+
+        public SettlementAttribution? SettlementAttribution { get; private set; }
 
         public long? OriginalPricingLineId { get; private set; }
     }

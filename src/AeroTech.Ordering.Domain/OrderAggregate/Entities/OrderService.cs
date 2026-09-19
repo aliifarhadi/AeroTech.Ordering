@@ -50,8 +50,13 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
                 source.FulfillmentProfile.Assurance,
                 source.FulfillmentProfile.ReservationRequirement,
                 source.FulfillmentProfile.DocumentKind,
+                source.FulfillmentProfile.DocumentAuthority,
                 source.FulfillmentProfile.FundingRequirement,
-                source.FulfillmentProfile.CapacityUnits);
+                source.FulfillmentProfile.CapacityUnits,
+                source.FulfillmentProfile.ResourceUnitPolicyRef,
+                source.FulfillmentProfile.DeliveryControlPolicyRef,
+                source.FulfillmentProfile.DependencyTreatmentPolicyRef,
+                source.FulfillmentProfile.PartialFulfillmentSupported);
             CreatedByChangeId = createdByChangeId;
 
             foreach (var beneficiary in source.BeneficiaryRefs)

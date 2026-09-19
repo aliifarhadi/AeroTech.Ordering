@@ -13,6 +13,9 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
     public sealed class AirOfferLiveOwnerTests
     {
         public const string RecordedResponse = "S1/LiveFixtures/airoffer-live-details.json";
+
+        public const string RecordedOfferId =
+            "1|0|0;1544009211417985747~1469435200688619520_1550116065948729689~1469436768104218624;3|1543368160932003840||70|1789647027";
         public const string LiveBaseUrlVariable = "ORDERING_LIVE_AIROFFER_BASEURL";
         public const string LiveOfferVariable = "ORDERING_LIVE_AIROFFER_OFFERID";
 
@@ -36,7 +39,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                 services => services.ConfigureHttpClientDefaults(client => client.ConfigurePrimaryHttpMessageHandler(() => handler)),
                 useReferenceOffers: false);
 
-            var created = await harness.SendAsync(S1Commands.Backoffice("LIVE-RECORDED-OFFER", travellers: S1Commands.Travellers("ADT-1")));
+            var created = await harness.SendAsync(S1Commands.Backoffice(RecordedOfferId, travellers: S1Commands.Travellers("ADT-1")));
             var order = await CreateOrderFromOfferTests.LoadOrderAsync(harness, created.OrderId);
             var candidate = await AirOfferLiveCandidateBridgeTests.AcceptedCandidateAsync(harness, created.OrderId);
             var charge = candidate.PricingLines.Single(line => line.SourceLineRef == "orderCharges/0");

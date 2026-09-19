@@ -1,3 +1,4 @@
+using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer;
 using MediatR;
 
@@ -5,7 +6,8 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
 {
     public sealed record ServiceCreateOrderFromOfferCommand(
         long CustomerId,
-        long? AirlineOfficeId,
+        long? SellingOfficeId,
+        SellingOfficeKind? SellingOfficeKind,
         string OfferId,
         IReadOnlyList<CreateOrderTravellerInput> Travellers,
         IReadOnlyList<CreateOrderContactInput> Contacts,

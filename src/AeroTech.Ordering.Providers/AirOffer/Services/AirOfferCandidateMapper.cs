@@ -39,6 +39,8 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
             string sourcePayloadHash,
             DateTimeOffset capturedAt)
         {
+            EnsureRespondedOffer(requestedOfferId, details.OfferId);
+
             var saleCurrency = Currency(details.CurrencyId);
             var mismatches = new List<string>();
 
@@ -151,7 +153,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                     details.LastTicketingDate is { } lastTicketingDate
                         ? new ObservedTimeFact(lastTicketingDate, AirOfferProfile.Owner, TicketingDeadlineSourceRef)
                         : null),
-                new CandidateSalesContext(scope.OwnerAirlineId, scope.FinancialCustomerId, scope.Channel, scope.SellingOfficeId),
+                new CandidateSalesContext(scope.OwnerAirlineId, scope.FinancialCustomerId, scope.SalesContext, scope.Buyer),
                 details.Tickets.Select(ticket => new CandidateTraveler(ticket.TravellerRef, PassengerType(ticket.PassengerTypeCode))).ToList(),
                 journeys,
                 segments,
@@ -258,8 +260,23 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                     FulfillmentProfileAssurance.NotCertified,
                     ReservationRequirement.Unresolved,
                     FulfillmentDocumentKind.Unresolved,
+                    null,
                     FundingRequirement.Unresolved,
+                    null,
+                    null,
+                    null,
+                    null,
                     null));
+        }
+
+        private static void EnsureRespondedOffer(string requestedOfferId, string? respondedOfferId)
+        {
+            if (string.IsNullOrWhiteSpace(respondedOfferId))
+                throw new AirOfferContractMismatchException("details supply no offer id; the priced offer cannot be proven");
+
+            if (!string.Equals(requestedOfferId, respondedOfferId, StringComparison.Ordinal))
+                throw new AirOfferContractMismatchException(
+                    $"details price offer {respondedOfferId} but offer {requestedOfferId} was requested");
         }
 
         private static BaggageAllowance? Baggage(string path, int pieces, int weight, string? unit)
@@ -341,6 +358,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                     basisType,
                     basisRef,
                     Text(row.RateOfExchangePeriodId),
+                    null,
                     null);
             }
 
@@ -374,7 +392,8 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 basisType,
                 basisRef,
                 conversionRef,
-                conversionRef is null ? null : Conversion(path, conversionRef, rates));
+                conversionRef is null ? null : Conversion(path, conversionRef, rates),
+                null);
         }
 
         private static AppliedConversion? Conversion(

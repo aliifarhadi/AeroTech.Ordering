@@ -56,11 +56,13 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
         [Fact]
         public void Pack_negative_examples_are_rejected_with_their_rule()
         {
-            var scope = CandidateBuilder.Scope(channel: SalesChannel.BackOffice);
+            var incorrectTotal = PackCandidate(PackExamples.IncorrectTotal);
+            var missingBeneficiary = PackCandidate(PackExamples.MissingBeneficiary);
+            var settlementTax = PackCandidate(PackExamples.SettlementTax);
 
-            AssertMessage("differs from the pricing lines", () => CandidateValidator.EnsureValid(NormalizedCandidateJson.Read(PackExamples.IncorrectTotal), scope));
-            AssertMessage("is not a candidate traveler", () => CandidateValidator.EnsureValid(NormalizedCandidateJson.Read(PackExamples.MissingBeneficiary), scope));
-            AssertCode(PricingRuleViolated, () => CandidateValidator.EnsureValid(NormalizedCandidateJson.Read(PackExamples.SettlementTax), scope));
+            AssertMessage("differs from the pricing lines", () => CandidateValidator.EnsureValid(incorrectTotal.Candidate, incorrectTotal.Scope));
+            AssertMessage("is not a candidate traveler", () => CandidateValidator.EnsureValid(missingBeneficiary.Candidate, missingBeneficiary.Scope));
+            AssertCode(PricingRuleViolated, () => CandidateValidator.EnsureValid(settlementTax.Candidate, settlementTax.Scope));
         }
 
         [Fact]
@@ -125,6 +127,22 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
                 .Line("FARE-2", "ITEM-A", PricingComponentType.Fare, 10m, "SERVICE-A", original: new Money(11m, CandidateBuilder.SaleCurrency));
 
             AssertMessage("two different values in one currency", () => CandidateValidator.EnsureValid(builder.Build(), builder.SalesScope));
+        }
+
+        private static (NormalizedCandidate Candidate, AuthorizedSalesScope Scope) PackCandidate(string packJson)
+        {
+            var legacy = NormalizedCandidateJson.Read(packJson);
+            var candidate = legacy with { SchemaVersion = NormalizedCandidate.CurrentSchemaVersion };
+
+            var scope = new AuthorizedSalesScope(
+                candidate.SalesContext.OwnerAirlineId,
+                candidate.SalesContext.FinancialCustomerId,
+                candidate.SalesContext.Sales,
+                candidate.SalesContext.Buyer,
+                "pack-example",
+                new InitiatingActorSnapshot(AeroTech.Messages.Aegis.Enums.BusinessContextType.Airline, 1));
+
+            return (candidate, scope);
         }
 
         private static void AssertCode(int code, Action action)

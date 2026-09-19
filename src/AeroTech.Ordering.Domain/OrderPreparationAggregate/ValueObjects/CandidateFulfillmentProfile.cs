@@ -8,6 +8,11 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         FulfillmentProfileAssurance Assurance,
         ReservationRequirement ReservationRequirement,
         FulfillmentDocumentKind DocumentKind,
+        DocumentAuthority? DocumentAuthority,
         FundingRequirement FundingRequirement,
-        int? CapacityUnits);
+        int? CapacityUnits,
+        string? ResourceUnitPolicyRef,
+        string? DeliveryControlPolicyRef,
+        string? DependencyTreatmentPolicyRef,
+        bool? PartialFulfillmentSupported);
 }

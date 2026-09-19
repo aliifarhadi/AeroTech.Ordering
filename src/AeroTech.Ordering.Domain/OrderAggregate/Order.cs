@@ -29,6 +29,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
         private readonly List<PricingLine> _pricingLines = new();
         private readonly List<FareConstruction> _fareConstructions = new();
         private readonly List<FundingObligation> _fundingObligations = new();
+        private readonly List<OrderComponentTotal> _componentTotals = new();
 
         private Order()
         {
@@ -42,13 +43,17 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
 
         public long FinancialCustomerId { get; private set; }
 
-        public SalesChannel Channel { get; private set; }
+        public SalesContextSnapshot SalesContext { get; private set; } = null!;
 
-        public long? SellingOfficeId { get; private set; }
+        public BuyerSnapshot Buyer { get; private set; } = null!;
 
-        public BusinessContextType BuyerActorContextType { get; private set; }
+        public InitiatingActorSnapshot InitiatingActor { get; private set; } = null!;
 
-        public long? BuyerActorId { get; private set; }
+        public SalesChannel Channel => SalesContext.Channel;
+
+        public SellingOfficeKind? SellingOfficeKind => SalesContext.SellingOfficeKind;
+
+        public long? SellingOfficeId => SalesContext.SellingOfficeId;
 
         public CurrencySnapshot SaleCurrency { get; private set; } = null!;
 
@@ -108,6 +113,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
 
         public IReadOnlyCollection<FundingObligation> FundingObligations => _fundingObligations.AsReadOnly();
 
+        public IReadOnlyCollection<OrderComponentTotal> ComponentTotals => _componentTotals.AsReadOnly();
+
         public static Order AcceptOriginalSale(AcceptOriginalSaleArgs args, IIdGenerator ids)
         {
             var preparation = args.Preparation;
@@ -130,10 +137,9 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
                 RootOrderId = args.OrderId,
                 OwnerAirlineId = preparation.OwnerAirlineId,
                 FinancialCustomerId = preparation.FinancialCustomerId,
-                Channel = preparation.Channel,
-                SellingOfficeId = preparation.SellingOfficeId,
-                BuyerActorContextType = args.AcceptingScope.ActorContextType,
-                BuyerActorId = args.AcceptingScope.ActorId,
+                SalesContext = candidate.SalesContext.Sales,
+                Buyer = candidate.SalesContext.Buyer,
+                InitiatingActor = args.AcceptingScope.InitiatingActor,
                 SaleCurrency = candidate.SaleCurrency,
                 SourcePreparationId = preparation.Id,
                 AcceptedSource = new AcceptedSource(
@@ -185,6 +191,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
             order.AddPricing(candidate, priceSet.Id, itemIds, serviceIds, segmentIds, ids);
             order.AddFareConstruction(candidate, change.Id, itemIds, travelerIds, serviceIds, segmentIds, ids);
 
+            order.AddComponentTotals(ids);
             order.AddOriginalSaleObligations(change.Id, decisionRef, ids);
 
             order.CommercialSummary = order._items.Any(item => item.CommercialStatus == OrderItemCommercialStatus.Active)
@@ -355,19 +362,53 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
                 _contacts.Add(new OrderContact(ids.NewId(), Id, index + 1, contacts[index]));
         }
 
+        private void AddComponentTotals(IIdGenerator ids)
+        {
+            var totals = _pricingLines
+                .GroupBy(line => (line.Component, line.Effect))
+                .OrderBy(group => group.Key.Component)
+                .ThenBy(group => group.Key.Effect);
+
+            foreach (var group in totals)
+            {
+                var debit = group.Where(line => line.Direction == OrderPricingLineDirection.Debit).Sum(line => line.SaleValue.Amount);
+                var credit = group.Where(line => line.Direction == OrderPricingLineDirection.Credit).Sum(line => line.SaleValue.Amount);
+
+                _componentTotals.Add(new OrderComponentTotal(
+                    ids.NewId(),
+                    Id,
+                    group.Key.Component,
+                    group.Key.Effect,
+                    debit,
+                    credit,
+                    SaleCurrency.CurrencyRef));
+            }
+        }
+
         private void AddOriginalSaleObligations(long changeId, string decisionRef, IIdGenerator ids)
         {
-            foreach (var group in _pricingLines.GroupBy(line => line.OrderItemId))
-            {
-                var amount = PricingArithmetic.CustomerTotal(
-                    group.Select(line => new PricedAmount(line.Effect, line.Direction, line.SaleValue)),
-                    SaleCurrency.CurrencyRef);
+            var customerLines = _pricingLines.Where(line => line.Effect == PricingEffect.CustomerBalance).ToList();
 
-                if (group.All(line => line.Effect != PricingEffect.CustomerBalance))
-                    continue;
+            foreach (var group in customerLines.Where(line => line.OrderItemId is not null).GroupBy(line => line.OrderItemId!.Value))
+                AddOriginalSaleObligation(FundingObligationScope.ForItem(group.Key), group, changeId, decisionRef, ids);
 
-                _fundingObligations.Add(new FundingObligation(ids.NewId(), Id, FundingObligationPurpose.OriginalSale, amount, group.Key, changeId, decisionRef));
-            }
+            foreach (var line in customerLines.Where(line => line.OrderItemId is null))
+                AddOriginalSaleObligation(FundingObligationScope.ForPricingLine(line.Id), [line], changeId, decisionRef, ids);
+        }
+
+        private void AddOriginalSaleObligation(
+            FundingObligationScope scope,
+            IEnumerable<PricingLine> lines,
+            long changeId,
+            string decisionRef,
+            IIdGenerator ids)
+        {
+            var amount = PricingArithmetic.CustomerTotal(
+                lines.Select(line => new PricedAmount(line.Effect, line.Direction, line.SaleValue)),
+                SaleCurrency.CurrencyRef);
+
+            _fundingObligations.Add(new FundingObligation(
+                ids.NewId(), Id, FundingObligationPurpose.OriginalSale, amount, scope, changeId, decisionRef));
         }
     }
 }

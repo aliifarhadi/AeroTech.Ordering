@@ -8,8 +8,13 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.ValueObjects
         FulfillmentProfileAssurance Assurance,
         ReservationRequirement ReservationRequirement,
         FulfillmentDocumentKind DocumentKind,
+        DocumentAuthority? DocumentAuthority,
         FundingRequirement FundingRequirement,
-        int? CapacityUnits)
+        int? CapacityUnits,
+        string? ResourceUnitPolicyRef,
+        string? DeliveryControlPolicyRef,
+        string? DependencyTreatmentPolicyRef,
+        bool? PartialFulfillmentSupported)
     {
         public bool IsCertified => Assurance == FulfillmentProfileAssurance.Certified;
     }

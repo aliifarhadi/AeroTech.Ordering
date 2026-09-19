@@ -5,7 +5,9 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
 {
     public static class OrderProjectionJson
     {
-        public const int SchemaVersion = 3;
+        public const int SchemaVersion = 4;
+
+        public const int LegacyInternalSchemaVersion = 3;
 
         private static readonly JsonSerializerOptions Options = new()
         {

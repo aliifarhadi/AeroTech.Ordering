@@ -9,11 +9,10 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
         public AuthorizedSalesScope(
             long ownerAirlineId,
             long financialCustomerId,
-            SalesChannel channel,
-            long? sellingOfficeId,
+            SalesContextSnapshot salesContext,
+            BuyerSnapshot buyer,
             string callerScope,
-            BusinessContextType actorContextType,
-            long? actorId)
+            InitiatingActorSnapshot initiatingActor)
         {
             if (ownerAirlineId <= 0)
                 throw ExceptionFactory.AuthorizedScopeRequired("owner airline");
@@ -24,33 +23,32 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
             if (string.IsNullOrWhiteSpace(callerScope))
                 throw ExceptionFactory.AuthorizedScopeRequired("caller scope");
 
-            if (sellingOfficeId is <= 0)
-                throw ExceptionFactory.AuthorizedScopeRequired("selling office");
-
-            if (actorId is <= 0)
-                throw ExceptionFactory.AuthorizedScopeRequired("actor");
-
             OwnerAirlineId = ownerAirlineId;
             FinancialCustomerId = financialCustomerId;
-            Channel = channel;
-            SellingOfficeId = sellingOfficeId;
+            SalesContext = salesContext;
+            Buyer = buyer;
             CallerScope = callerScope;
-            ActorContextType = actorContextType;
-            ActorId = actorId;
+            InitiatingActor = initiatingActor;
         }
 
         public long OwnerAirlineId { get; }
 
         public long FinancialCustomerId { get; }
 
-        public SalesChannel Channel { get; }
+        public SalesContextSnapshot SalesContext { get; }
 
-        public long? SellingOfficeId { get; }
+        public BuyerSnapshot Buyer { get; }
 
         public string CallerScope { get; }
 
-        public BusinessContextType ActorContextType { get; }
+        public InitiatingActorSnapshot InitiatingActor { get; }
 
-        public long? ActorId { get; }
+        public SalesChannel Channel => SalesContext.Channel;
+
+        public long? SellingOfficeId => SalesContext.SellingOfficeId;
+
+        public BusinessContextType ActorContextType => InitiatingActor.ContextType;
+
+        public long? ActorId => InitiatingActor.ActorId;
     }
 }

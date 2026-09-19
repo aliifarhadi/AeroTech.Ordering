@@ -68,6 +68,52 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
         }
 
         [Fact]
+        public async Task A_response_that_prices_another_offer_is_refused_and_persists_nothing()
+        {
+            var handler = new AirOfferWireFixtures.StubHandler(() => AirOfferWireFixtures.Details(offerId: "SOME-OTHER-OFFER"));
+            await using var harness = await StartAsync(handler);
+            var key = S1Commands.NewKey("offer-mismatch");
+
+            var exception = await Assert.ThrowsAsync<BusinessException>(() =>
+                harness.SendAsync(S1Commands.Backoffice(OfferId, key: key, travellers: S1Commands.Travellers("T1"))));
+
+            Assert.Equal(20272, exception.Code);
+            Assert.Contains("SOME-OTHER-OFFER", exception.Message);
+            Assert.Contains(OfferId, exception.Message);
+            Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<Domain.CommandReceiptAggregate.CommandReceipt>(harness, receipt => receipt.IdempotencyKey == key));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task A_response_without_a_usable_offer_id_is_refused_and_persists_nothing(string? respondedOfferId)
+        {
+            var handler = new AirOfferWireFixtures.StubHandler(() => AirOfferWireFixtures.Details(offerId: respondedOfferId));
+            await using var harness = await StartAsync(handler);
+            var key = S1Commands.NewKey("offer-missing");
+
+            var exception = await Assert.ThrowsAsync<BusinessException>(() =>
+                harness.SendAsync(S1Commands.Backoffice(OfferId, key: key, travellers: S1Commands.Travellers("T1"))));
+
+            Assert.Equal(20272, exception.Code);
+            Assert.Contains("no offer id", exception.Message);
+            Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<Domain.CommandReceiptAggregate.CommandReceipt>(harness, receipt => receipt.IdempotencyKey == key));
+        }
+
+        [Fact]
+        public async Task An_exactly_matching_offer_id_is_accepted()
+        {
+            var handler = new AirOfferWireFixtures.StubHandler(() => AirOfferWireFixtures.Details(offerId: OfferId));
+            await using var harness = await StartAsync(handler);
+
+            var created = await harness.SendAsync(S1Commands.Backoffice(OfferId, travellers: S1Commands.Travellers("T1")));
+            var order = await CreateOrderFromOfferTests.LoadOrderAsync(harness, created.OrderId);
+
+            Assert.Equal(OfferId, order.AcceptedSource.SourceOfferId);
+        }
+
+        [Fact]
         public async Task SC_S1_018_live_candidate_keeps_not_supplied_validity_and_is_refused_in_production()
         {
             var handler = new AirOfferWireFixtures.StubHandler(() => AirOfferWireFixtures.Details());

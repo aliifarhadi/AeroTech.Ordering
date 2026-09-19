@@ -7,6 +7,13 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
     public sealed record CandidateSalesContext(
         long OwnerAirlineId,
         long FinancialCustomerId,
-        SalesChannel Channel,
-        long? SellingOfficeId);
+        SalesContextSnapshot Sales,
+        BuyerSnapshot Buyer)
+    {
+        public SalesChannel Channel => Sales.Channel;
+
+        public long? SellingOfficeId => Sales.SellingOfficeId;
+
+        public SellingOfficeKind? SellingOfficeKind => Sales.SellingOfficeKind;
+    }
 }

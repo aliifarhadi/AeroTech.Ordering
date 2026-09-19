@@ -14,6 +14,11 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             {
                 table.HasCheckConstraint("CK_FundingObligations_Version", "[Version] >= 1");
                 table.HasCheckConstraint("CK_FundingObligations_Amount", "[AmountAmount] >= 0");
+                table.HasCheckConstraint(
+                    "CK_FundingObligations_ExactlyOneScope",
+                    "(CASE WHEN [OrderItemId] IS NULL THEN 0 ELSE 1 END)"
+                    + " + (CASE WHEN [OrderServiceId] IS NULL THEN 0 ELSE 1 END)"
+                    + " + (CASE WHEN [PricingLineId] IS NULL THEN 0 ELSE 1 END) = 1");
             });
             builder.HasKey(obligation => obligation.Id);
             builder.Property(obligation => obligation.Id).ValueGeneratedNever();
@@ -21,6 +26,8 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.OwnsOne(obligation => obligation.Amount, money => money.MapMoney("Amount"));
             builder.HasOne<OrderChange>().WithMany().HasForeignKey(obligation => obligation.ChangeId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<OrderItem>().WithMany().HasForeignKey(obligation => obligation.OrderItemId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderService>().WithMany().HasForeignKey(obligation => obligation.OrderServiceId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<PricingLine>().WithMany().HasForeignKey(obligation => obligation.PricingLineId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<FundingObligation>().WithMany().HasForeignKey(obligation => obligation.SupersededObligationId).OnDelete(DeleteBehavior.Restrict);
             builder.HasIndex(obligation => new { obligation.OrderId, obligation.Id, obligation.Version }).IsUnique();
         }

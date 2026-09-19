@@ -1,5 +1,6 @@
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.Resources;
+using AeroTech.Ordering.Domain._Shared.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.OrderAggregate.Policies
 {
@@ -9,7 +10,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Policies
             PricingComponentType component,
             PricingEffect effect,
             OrderPricingLineDirection direction,
-            PricingLineRole role)
+            PricingLineRole role,
+            SettlementAttribution? settlementAttribution)
         {
             if (!Enum.IsDefined(component) || !Enum.IsDefined(effect) || !Enum.IsDefined(direction) || !Enum.IsDefined(role))
                 throw ExceptionFactory.PricingRuleViolated("component, effect, direction and role must be defined");
@@ -23,6 +25,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Policies
             if (component == PricingComponentType.Commission && effect == PricingEffect.CustomerBalance)
                 throw ExceptionFactory.PricingRuleViolated("Commission is not a customer charge");
 
+            EnsureSettlementAttribution(effect, settlementAttribution);
+
             if (effect != PricingEffect.CustomerBalance || role != PricingLineRole.Original)
                 return;
 
@@ -30,6 +34,15 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Policies
 
             if (normal is not null && normal != direction)
                 throw ExceptionFactory.PricingRuleViolated($"{component} customer line must be {normal}");
+        }
+
+        public static void EnsureSettlementAttribution(PricingEffect effect, SettlementAttribution? settlementAttribution)
+        {
+            if (effect == PricingEffect.SettlementOnly && settlementAttribution is null)
+                throw ExceptionFactory.SettlementAttributionRequired();
+
+            if (effect != PricingEffect.SettlementOnly && settlementAttribution is not null)
+                throw ExceptionFactory.SettlementAttributionNotAllowed(effect);
         }
 
         public static OrderPricingLineDirection? NormalCustomerDirection(PricingComponentType component) => component switch

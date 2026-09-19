@@ -1,4 +1,5 @@
 using AeroTech.Messages.Aegis.Enums;
+using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
 using AeroTech.Ordering.Domain._Shared.Contracts;
 using AeroTech.Ordering.Domain._Shared.Resources;
@@ -31,14 +32,20 @@ namespace AeroTech.Ordering.Application._Shared.Authorization
 
             await EnsureActiveCustomerAsync(financialCustomerId, cancellationToken);
 
+            var ownerAirlineId = await OwnerAirlineIdAsync(cancellationToken);
+
             return new AuthorizedSalesScope(
-                await OwnerAirlineIdAsync(cancellationToken),
+                ownerAirlineId,
                 financialCustomerId,
-                SalesChannel.BackOffice,
-                sellingOfficeId,
+                new SalesContextSnapshot(
+                    SalesChannel.BackOffice,
+                    BusinessContextType.Airline,
+                    ownerAirlineId,
+                    SellingOfficeKind.AirlineOffice,
+                    sellingOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Backoffice, financialCustomerId, sellingOfficeId, CallerScopeKey.None),
-                BusinessContextType.Airline,
-                _caller.AirlineUserId);
+                new InitiatingActorSnapshot(BusinessContextType.Airline, _caller.AirlineUserId));
         }
 
         public async Task<AuthorizedSalesScope> OtaPanelSaleAsync(CancellationToken cancellationToken)
@@ -52,11 +59,15 @@ namespace AeroTech.Ordering.Application._Shared.Authorization
             return new AuthorizedSalesScope(
                 await OwnerAirlineIdAsync(cancellationToken),
                 financialCustomerId,
-                SalesChannel.AgencyPanel,
-                sellingOfficeId,
+                new SalesContextSnapshot(
+                    SalesChannel.AgencyPanel,
+                    BusinessContextType.TravelAgency,
+                    travelAgencyId,
+                    SellingOfficeKind.TravelAgencyOffice,
+                    sellingOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.OtaPanel, financialCustomerId, sellingOfficeId, CallerScopeKey.Agency(travelAgencyId)),
-                BusinessContextType.TravelAgency,
-                _caller.TravelAgencyUserId);
+                new InitiatingActorSnapshot(BusinessContextType.TravelAgency, _caller.TravelAgencyUserId));
         }
 
         public async Task<AuthorizedSalesScope> OtaSaleAsync(CancellationToken cancellationToken)
@@ -75,25 +86,36 @@ namespace AeroTech.Ordering.Application._Shared.Authorization
             return new AuthorizedSalesScope(
                 await OwnerAirlineIdAsync(cancellationToken),
                 financialCustomerId,
-                SalesChannel.PartnerAPI,
-                sellingOfficeId,
+                SalesContextSnapshot.SellerNotSupplied(
+                    SalesChannel.PartnerAPI,
+                    sellingOfficeId is null ? null : SellingOfficeKind.TravelAgencyOffice,
+                    sellingOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Ota, financialCustomerId, sellingOfficeId, principalScope),
-                BusinessContextType.PartnerApi,
-                _caller.PartnerApiAccessProfileId);
+                new InitiatingActorSnapshot(BusinessContextType.PartnerApi, _caller.PartnerApiAccessProfileId));
         }
 
-        public async Task<AuthorizedSalesScope> ServiceSaleAsync(long financialCustomerId, long? sellingOfficeId, CancellationToken cancellationToken)
+        public async Task<AuthorizedSalesScope> ServiceSaleAsync(
+            long financialCustomerId,
+            long? sellingOfficeId,
+            SellingOfficeKind? sellingOfficeKind,
+            CancellationToken cancellationToken)
         {
+            if (sellingOfficeId is null != sellingOfficeKind is null)
+                throw ExceptionFactory.AuthorizedScopeRequired("a selling office identifier together with its kind");
+
+            if (sellingOfficeKind == SellingOfficeKind.NotRecorded)
+                throw ExceptionFactory.AuthorizedScopeRequired("a recorded selling office kind");
+
             await EnsureActiveCustomerAsync(financialCustomerId, cancellationToken);
 
             return new AuthorizedSalesScope(
                 await OwnerAirlineIdAsync(cancellationToken),
                 financialCustomerId,
-                SalesChannel.System,
-                sellingOfficeId,
+                SalesContextSnapshot.SellerNotSupplied(SalesChannel.System, sellingOfficeKind, sellingOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Service, financialCustomerId, sellingOfficeId, CallerScopeKey.None),
-                BusinessContextType.Service,
-                _caller.IsAuthenticated ? _caller.ActorId : null);
+                new InitiatingActorSnapshot(BusinessContextType.Service, _caller.IsAuthenticated ? _caller.ActorId : null));
         }
 
         public async Task<AuthorizedReadScope> BackofficeReadAsync(CancellationToken cancellationToken)

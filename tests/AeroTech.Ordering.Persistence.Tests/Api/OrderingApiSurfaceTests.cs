@@ -270,7 +270,8 @@ namespace AeroTech.Ordering.Persistence.Tests.Api
             => new Dictionary<string, object?>
             {
                 ["customerId"] = customerId.ToString(),
-                ["airlineOfficeId"] = null,
+                ["sellingOfficeId"] = null,
+                ["sellingOfficeKind"] = null,
                 ["offerId"] = offerId,
                 ["travellers"] = Travellers(),
                 ["contacts"] = Contacts(),

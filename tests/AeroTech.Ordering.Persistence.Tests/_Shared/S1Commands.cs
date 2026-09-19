@@ -29,12 +29,14 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
         public static ServiceCreateOrderFromOfferCommand Service(
             string offerId,
             long customerId = S1Harness.CustomerId,
-            long? airlineOfficeId = null,
+            long? sellingOfficeId = null,
+            SellingOfficeKind? sellingOfficeKind = null,
             string? key = null,
             IReadOnlyList<CreateOrderTravellerInput>? travellers = null)
             => new(
                 customerId,
-                airlineOfficeId,
+                sellingOfficeId,
+                sellingOfficeKind,
                 offerId,
                 travellers ?? Travellers("PAX-A"),
                 Contacts(),

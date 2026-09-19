@@ -58,8 +58,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
         {
             if (context.OwnerAirlineId != scope.OwnerAirlineId
                 || context.FinancialCustomerId != scope.FinancialCustomerId
-                || context.Channel != scope.Channel
-                || context.SellingOfficeId != scope.SellingOfficeId)
+                || context.Sales != scope.SalesContext
+                || context.Buyer != scope.Buyer)
                 throw Mismatch("candidate sales context differs from the authorized sales scope");
         }
 
@@ -243,7 +243,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
 
             foreach (var line in candidate.PricingLines)
             {
-                PricingLineMatrix.EnsureAllowed(line.Component, line.Effect, line.Direction, line.LineRole);
+                PricingLineMatrix.EnsureAllowed(line.Component, line.Effect, line.Direction, line.LineRole, line.SettlementAttribution);
 
                 if (line.LineRole != PricingLineRole.Original)
                     throw Mismatch($"pricing line {line.LineRef} of an original sale must have role Original");

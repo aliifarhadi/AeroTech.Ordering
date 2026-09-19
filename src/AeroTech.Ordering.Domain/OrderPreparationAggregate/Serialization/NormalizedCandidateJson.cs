@@ -1,8 +1,10 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
+using AeroTech.Ordering.Domain._Shared.Policies;
 using AeroTech.Ordering.Domain._Shared.Resources;
 using AeroTech.Ordering.Domain._Shared.Serialization;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
@@ -16,7 +18,17 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
 
         public static string Digest(NormalizedCandidate candidate) => CanonicalJson.Sha256Hex(Write(candidate));
 
-        public static IReadOnlyDictionary<string, object?> ToNode(NormalizedCandidate candidate) => Map(
+        public static IReadOnlyDictionary<string, object?> ToNode(NormalizedCandidate candidate)
+            => ToNode(candidate, IsCurrentSchema(candidate.SchemaVersion));
+
+        private static bool IsCurrentSchema(string schemaVersion) => schemaVersion switch
+        {
+            NormalizedCandidate.CurrentSchemaVersion => true,
+            NormalizedCandidate.LegacySchemaVersion => false,
+            _ => throw Mismatch($"candidate schema version {schemaVersion} is not supported")
+        };
+
+        private static IReadOnlyDictionary<string, object?> ToNode(NormalizedCandidate candidate, bool current) => Map(
             ("schemaVersion", candidate.SchemaVersion),
             ("source", Map(
                 ("owner", candidate.Source.Owner),
@@ -32,11 +44,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 ("price", Validity(candidate.Validity.Price)),
                 ("ticketing", Validity(candidate.Validity.Ticketing)),
                 ("observedTicketingDeadline", ObservedNode(candidate.Validity.ObservedTicketingDeadline)))),
-            ("salesContext", Map(
-                ("ownerAirlineId", CanonicalJson.Identifier(candidate.SalesContext.OwnerAirlineId)),
-                ("financialCustomerId", CanonicalJson.Identifier(candidate.SalesContext.FinancialCustomerId)),
-                ("channel", CandidateVocabulary.Name(candidate.SalesContext.Channel)),
-                ("sellingOfficeId", CanonicalJson.Identifier(candidate.SalesContext.SellingOfficeId)))),
+            ("salesContext", SalesContextNode(candidate.SalesContext, current)),
             ("travelers", candidate.Travelers.Select(traveler => (object?)Map(
                 ("sourceTravellerRef", traveler.SourceTravellerRef),
                 ("passengerTypeCode", CandidateVocabulary.Name(traveler.PassengerTypeCode)))).ToList()),
@@ -110,32 +118,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                     ("refundable", service.SoldTerms.Refundable),
                     ("changeable", service.SoldTerms.Changeable),
                     ("upgradable", service.SoldTerms.Upgradable))),
-                ("fulfillmentProfile", Map(
-                    ("profileRef", service.FulfillmentProfile.ProfileRef),
-                    ("profileVersion", service.FulfillmentProfile.ProfileVersion),
-                    ("assurance", CandidateVocabulary.Name(service.FulfillmentProfile.Assurance)),
-                    ("reservationRequirement", CandidateVocabulary.Name(service.FulfillmentProfile.ReservationRequirement)),
-                    ("documentKind", CandidateVocabulary.Name(service.FulfillmentProfile.DocumentKind)),
-                    ("fundingRequirement", CandidateVocabulary.Name(service.FulfillmentProfile.FundingRequirement)),
-                    ("capacityUnits", service.FulfillmentProfile.CapacityUnits))))).ToList()),
-            ("pricingLines", candidate.PricingLines.Select(line => (object?)Map(
-                ("lineRef", line.LineRef),
-                ("itemRef", line.ItemRef),
-                ("component", CandidateVocabulary.Name(line.Component)),
-                ("effect", CandidateVocabulary.Name(line.Effect)),
-                ("direction", CandidateVocabulary.Name(line.Direction)),
-                ("lineRole", CandidateVocabulary.Name(line.LineRole)),
-                ("sourceCode", line.SourceCode),
-                ("sourceName", line.SourceName),
-                ("sourceReference", line.SourceReference),
-                ("calculationKind", CandidateVocabulary.Name(line.CalculationKind)),
-                ("originalValue", MoneyNode(line.OriginalValue)),
-                ("saleValue", MoneyNode(line.SaleValue)),
-                ("sourceLineRef", line.SourceLineRef),
-                ("basisType", CandidateVocabulary.Name(line.BasisType)),
-                ("basisRef", line.BasisRef),
-                ("sourceConversionRef", line.SourceConversionRef),
-                ("appliedConversion", ConversionNode(line.AppliedConversion)))).ToList()),
+                ("fulfillmentProfile", FulfillmentProfileNode(service.FulfillmentProfile, current)))).ToList()),
+            ("pricingLines", candidate.PricingLines.Select(line => (object?)PricingLineNode(line, current)).ToList()),
             ("customerTotal", MoneyNode(candidate.CustomerTotal)),
             ("saleCurrencyCode", candidate.SaleCurrencyCode),
             ("sourceJourneyTypeRaw", candidate.SourceJourneyTypeRaw),
@@ -174,7 +158,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             try
             {
                 using var document = JsonDocument.Parse(json);
-                return ReadCandidate(new Node(document.RootElement, "candidate"));
+                var root = new Node(document.RootElement, "candidate");
+                return ReadCandidate(root, IsCurrentSchema(root.String("schemaVersion")));
             }
             catch (JsonException exception)
             {
@@ -182,7 +167,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             }
         }
 
-        private static NormalizedCandidate ReadCandidate(Node root)
+        private static NormalizedCandidate ReadCandidate(Node root, bool current)
         {
             root.Only("schemaVersion", "source", "acceptanceAssurance", "pricedAt", "capturedAt", "validity", "salesContext",
                 "travelers", "journeys", "segments", "items", "services", "pricingLines", "customerTotal", "saleCurrencyCode",
@@ -195,7 +180,6 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             validity.Only("offer", "price", "ticketing", "observedTicketingDeadline");
 
             var sales = root.Object("salesContext");
-            sales.Only("ownerAirlineId", "financialCustomerId", "channel", "sellingOfficeId");
 
             var construction = root.Object("fareConstruction");
             construction.Only("assurance", "sourceContextRef", "pricingUnits");
@@ -216,11 +200,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                     ReadValidity(validity.Object("price")),
                     ReadValidity(validity.Object("ticketing")),
                     ReadObserved(validity.NullableObject("observedTicketingDeadline"))),
-                new CandidateSalesContext(
-                    sales.Identifier("ownerAirlineId"),
-                    sales.Identifier("financialCustomerId"),
-                    CandidateVocabulary.Parse<SalesChannel>(sales.String("channel"), "salesContext.channel"),
-                    sales.NullableIdentifier("sellingOfficeId")),
+                ReadSalesContext(sales, current),
                 root.Array("travelers").Select(traveler =>
                 {
                     traveler.Only("sourceTravellerRef", "passengerTypeCode");
@@ -231,8 +211,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 root.Array("journeys").Select(ReadJourney).ToList(),
                 root.Array("segments").Select(ReadSegment).ToList(),
                 root.Array("items").Select(ReadItem).ToList(),
-                root.Array("services").Select(ReadService).ToList(),
-                root.Array("pricingLines").Select(ReadPricingLine).ToList(),
+                root.Array("services").Select(service => ReadService(service, current)).ToList(),
+                root.Array("pricingLines").Select(line => ReadPricingLine(line, current)).ToList(),
                 ReadMoney(root.Object("customerTotal")),
                 root.NullableString("saleCurrencyCode"),
                 root.NullableString("sourceJourneyTypeRaw"),
@@ -324,7 +304,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                     product.NullableString("productVersion")));
         }
 
-        private static CandidateService ReadService(Node service)
+        private static CandidateService ReadService(Node service, bool current)
         {
             service.Only("serviceRef", "type", "serviceCode", "name", "priceTreatment", "supplierPartyRef", "deliveryProviderRef",
                 "beneficiaryRefs", "segmentRefs", "quantity", "quantityUnit", "detailSchema", "detailSchemaVersion", "details",
@@ -334,8 +314,6 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             terms.Only("refundable", "changeable", "upgradable");
 
             var profile = service.Object("fulfillmentProfile");
-            profile.Only("profileRef", "profileVersion", "assurance", "reservationRequirement", "documentKind",
-                "fundingRequirement", "capacityUnits");
 
             return new CandidateService(
                 service.String("serviceRef"),
@@ -358,21 +336,16 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                     terms.NullableBoolean("refundable"),
                     terms.NullableBoolean("changeable"),
                     terms.NullableBoolean("upgradable")),
-                new CandidateFulfillmentProfile(
-                    profile.String("profileRef"),
-                    profile.String("profileVersion"),
-                    profile.Enum<FulfillmentProfileAssurance>("assurance"),
-                    profile.Enum<ReservationRequirement>("reservationRequirement"),
-                    profile.Enum<FulfillmentDocumentKind>("documentKind"),
-                    profile.Enum<FundingRequirement>("fundingRequirement"),
-                    profile.NullableInteger("capacityUnits")));
+                ReadFulfillmentProfile(profile, current));
         }
 
-        private static CandidatePricingLine ReadPricingLine(Node line)
+        private static CandidatePricingLine ReadPricingLine(Node line, bool current)
         {
-            line.Only("lineRef", "itemRef", "component", "effect", "direction", "lineRole", "sourceCode", "sourceName",
+            string[] legacyNames = ["lineRef", "itemRef", "component", "effect", "direction", "lineRole", "sourceCode", "sourceName",
                 "sourceReference", "calculationKind", "originalValue", "saleValue", "sourceLineRef", "basisType", "basisRef",
-                "sourceConversionRef", "appliedConversion");
+                "sourceConversionRef", "appliedConversion"];
+
+            line.Only(current ? [.. legacyNames, "settlementAttribution"] : legacyNames);
 
             return new CandidatePricingLine(
                 line.String("lineRef"),
@@ -391,7 +364,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 line.Enum<PricingBasisType>("basisType"),
                 line.String("basisRef"),
                 line.NullableString("sourceConversionRef"),
-                ReadConversion(line.NullableObject("appliedConversion")));
+                ReadConversion(line.NullableObject("appliedConversion")),
+                current ? ReadAttribution(line.NullableObject("settlementAttribution")) : null);
         }
 
         private static CandidatePricingUnit ReadPricingUnit(Node unit)
@@ -508,6 +482,190 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             ("owner", fact.Owner),
             ("sourceRef", fact.SourceRef),
             ("reason", fact.Reason));
+
+        private static IReadOnlyDictionary<string, object?> PricingLineNode(CandidatePricingLine line, bool current)
+        {
+            var common = new (string Key, object? Value)[]
+            {
+                ("lineRef", line.LineRef),
+                ("itemRef", line.ItemRef),
+                ("component", CandidateVocabulary.Name(line.Component)),
+                ("effect", CandidateVocabulary.Name(line.Effect)),
+                ("direction", CandidateVocabulary.Name(line.Direction)),
+                ("lineRole", CandidateVocabulary.Name(line.LineRole)),
+                ("sourceCode", line.SourceCode),
+                ("sourceName", line.SourceName),
+                ("sourceReference", line.SourceReference),
+                ("calculationKind", CandidateVocabulary.Name(line.CalculationKind)),
+                ("originalValue", MoneyNode(line.OriginalValue)),
+                ("saleValue", MoneyNode(line.SaleValue)),
+                ("sourceLineRef", line.SourceLineRef),
+                ("basisType", CandidateVocabulary.Name(line.BasisType)),
+                ("basisRef", line.BasisRef),
+                ("sourceConversionRef", line.SourceConversionRef),
+                ("appliedConversion", ConversionNode(line.AppliedConversion))
+            };
+
+            return current
+                ? Map([.. common, ("settlementAttribution", (object?)AttributionNode(line.SettlementAttribution))])
+                : Map(common);
+        }
+
+        private static IReadOnlyDictionary<string, object?> SalesContextNode(CandidateSalesContext context, bool current)
+        {
+            if (!current)
+                return Map(
+                    ("ownerAirlineId", CanonicalJson.Identifier(context.OwnerAirlineId)),
+                    ("financialCustomerId", CanonicalJson.Identifier(context.FinancialCustomerId)),
+                    ("channel", CandidateVocabulary.Name(context.Channel)),
+                    ("sellingOfficeId", CanonicalJson.Identifier(context.SellingOfficeId)));
+
+            return Map(
+                ("ownerAirlineId", CanonicalJson.Identifier(context.OwnerAirlineId)),
+                ("financialCustomerId", CanonicalJson.Identifier(context.FinancialCustomerId)),
+                ("channel", CandidateVocabulary.Name(context.Channel)),
+                ("seller", PartyNode(context.Sales.SellerContextType, context.Sales.SellerId)),
+                ("sellingOffice", context.Sales.HasSellingOffice
+                    ? Map(
+                        ("kind", CandidateVocabulary.Name(context.Sales.SellingOfficeKind!.Value)),
+                        ("officeId", CanonicalJson.Identifier(context.Sales.SellingOfficeId!.Value)))
+                    : null),
+                ("buyer", PartyNode(context.Buyer.ContextType, context.Buyer.BuyerId)));
+        }
+
+        private static IReadOnlyDictionary<string, object?>? PartyNode(BusinessContextType? contextType, long? partyId)
+            => partyId is null || contextType is null
+                ? null
+                : Map(
+                    ("contextType", CandidateVocabulary.Name(contextType.Value)),
+                    ("partyId", CanonicalJson.Identifier(partyId.Value)));
+
+        private static CandidateSalesContext ReadSalesContext(Node sales, bool current)
+        {
+            if (!current)
+            {
+                sales.Only("ownerAirlineId", "financialCustomerId", "channel", "sellingOfficeId");
+
+                var legacyChannel = CandidateVocabulary.Parse<SalesChannel>(sales.String("channel"), "salesContext.channel");
+                var legacyOfficeId = sales.NullableIdentifier("sellingOfficeId");
+
+                return new CandidateSalesContext(
+                    sales.Identifier("ownerAirlineId"),
+                    sales.Identifier("financialCustomerId"),
+                    new SalesContextSnapshot(
+                        legacyChannel,
+                        null,
+                        null,
+                        LegacySellingOfficePolicy.KindOf(legacyChannel, legacyOfficeId),
+                        legacyOfficeId),
+                    BuyerSnapshot.NotSupplied);
+            }
+
+            sales.Only("ownerAirlineId", "financialCustomerId", "channel", "seller", "sellingOffice", "buyer");
+
+            var seller = sales.NullableObject("seller");
+            var office = sales.NullableObject("sellingOffice");
+            var buyer = sales.NullableObject("buyer");
+
+            seller?.Only("contextType", "partyId");
+            office?.Only("kind", "officeId");
+            buyer?.Only("contextType", "partyId");
+
+            return new CandidateSalesContext(
+                sales.Identifier("ownerAirlineId"),
+                sales.Identifier("financialCustomerId"),
+                new SalesContextSnapshot(
+                    CandidateVocabulary.Parse<SalesChannel>(sales.String("channel"), "salesContext.channel"),
+                    seller?.Enum<BusinessContextType>("contextType"),
+                    seller?.Identifier("partyId"),
+                    office?.Enum<SellingOfficeKind>("kind"),
+                    office?.Identifier("officeId")),
+                new BuyerSnapshot(
+                    buyer?.Enum<BusinessContextType>("contextType"),
+                    buyer?.Identifier("partyId")));
+        }
+
+        private static IReadOnlyDictionary<string, object?> FulfillmentProfileNode(CandidateFulfillmentProfile profile, bool current)
+        {
+            if (!current)
+                return Map(
+                    ("profileRef", profile.ProfileRef),
+                    ("profileVersion", profile.ProfileVersion),
+                    ("assurance", CandidateVocabulary.Name(profile.Assurance)),
+                    ("reservationRequirement", CandidateVocabulary.Name(profile.ReservationRequirement)),
+                    ("documentKind", CandidateVocabulary.Name(profile.DocumentKind)),
+                    ("fundingRequirement", CandidateVocabulary.Name(profile.FundingRequirement)),
+                    ("capacityUnits", profile.CapacityUnits));
+
+            return Map(
+                ("profileRef", profile.ProfileRef),
+                ("profileVersion", profile.ProfileVersion),
+                ("assurance", CandidateVocabulary.Name(profile.Assurance)),
+                ("reservationRequirement", CandidateVocabulary.Name(profile.ReservationRequirement)),
+                ("documentKind", CandidateVocabulary.Name(profile.DocumentKind)),
+                ("documentAuthority", OptionalName(profile.DocumentAuthority)),
+                ("fundingRequirement", CandidateVocabulary.Name(profile.FundingRequirement)),
+                ("capacityUnits", profile.CapacityUnits),
+                ("resourceUnitPolicyRef", profile.ResourceUnitPolicyRef),
+                ("deliveryControlPolicyRef", profile.DeliveryControlPolicyRef),
+                ("dependencyTreatmentPolicyRef", profile.DependencyTreatmentPolicyRef),
+                ("partialFulfillmentSupported", profile.PartialFulfillmentSupported));
+        }
+
+        private static CandidateFulfillmentProfile ReadFulfillmentProfile(Node profile, bool current)
+        {
+            if (!current)
+            {
+                profile.Only("profileRef", "profileVersion", "assurance", "reservationRequirement", "documentKind",
+                    "fundingRequirement", "capacityUnits");
+
+                return new CandidateFulfillmentProfile(
+                    profile.String("profileRef"),
+                    profile.String("profileVersion"),
+                    profile.Enum<FulfillmentProfileAssurance>("assurance"),
+                    profile.Enum<ReservationRequirement>("reservationRequirement"),
+                    profile.Enum<FulfillmentDocumentKind>("documentKind"),
+                    null,
+                    profile.Enum<FundingRequirement>("fundingRequirement"),
+                    profile.NullableInteger("capacityUnits"),
+                    null,
+                    null,
+                    null,
+                    null);
+            }
+
+            profile.Only("profileRef", "profileVersion", "assurance", "reservationRequirement", "documentKind",
+                "documentAuthority", "fundingRequirement", "capacityUnits", "resourceUnitPolicyRef",
+                "deliveryControlPolicyRef", "dependencyTreatmentPolicyRef", "partialFulfillmentSupported");
+
+            return new CandidateFulfillmentProfile(
+                profile.String("profileRef"),
+                profile.String("profileVersion"),
+                profile.Enum<FulfillmentProfileAssurance>("assurance"),
+                profile.Enum<ReservationRequirement>("reservationRequirement"),
+                profile.Enum<FulfillmentDocumentKind>("documentKind"),
+                profile.NullableEnum<DocumentAuthority>("documentAuthority"),
+                profile.Enum<FundingRequirement>("fundingRequirement"),
+                profile.NullableInteger("capacityUnits"),
+                profile.NullableString("resourceUnitPolicyRef"),
+                profile.NullableString("deliveryControlPolicyRef"),
+                profile.NullableString("dependencyTreatmentPolicyRef"),
+                profile.NullableBoolean("partialFulfillmentSupported"));
+        }
+
+        private static IReadOnlyDictionary<string, object?>? AttributionNode(SettlementAttribution? attribution) => attribution is null ? null : Map(
+            ("partyRef", attribution.PartyRef),
+            ("categoryCode", attribution.CategoryCode));
+
+        private static SettlementAttribution? ReadAttribution(Node? node)
+        {
+            if (node is not { } attribution)
+                return null;
+
+            attribution.Only("partyRef", "categoryCode");
+
+            return new SettlementAttribution(attribution.String("partyRef"), attribution.String("categoryCode"));
+        }
 
         private static IReadOnlyDictionary<string, object?>? ObservedNode(ObservedTimeFact? fact) => fact is null ? null : Map(
             ("value", CanonicalJson.Instant(fact.Value)),

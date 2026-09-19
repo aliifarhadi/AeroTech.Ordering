@@ -42,8 +42,25 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             _scope = scope ?? Scope();
         }
 
-        public static AuthorizedSalesScope Scope(long customerId = 100, string callerScope = "customer:100/actor:1", long ownerAirlineId = 1, SalesChannel channel = SalesChannel.BackOffice)
-            => new(ownerAirlineId, customerId, channel, 10, callerScope, BusinessContextType.Airline, 1);
+        public static AuthorizedSalesScope Scope(
+            long customerId = 100,
+            string callerScope = "customer:100/actor:1",
+            long ownerAirlineId = 1,
+            SalesChannel channel = SalesChannel.BackOffice,
+            SalesContextSnapshot? salesContext = null,
+            BuyerSnapshot? buyer = null)
+            => new(
+                ownerAirlineId,
+                customerId,
+                salesContext ?? new SalesContextSnapshot(
+                    channel,
+                    BusinessContextType.Airline,
+                    ownerAirlineId,
+                    SellingOfficeKind.AirlineOffice,
+                    10),
+                buyer ?? BuyerSnapshot.NotSupplied,
+                callerScope,
+                new InitiatingActorSnapshot(BusinessContextType.Airline, 1));
 
         public AuthorizedSalesScope SalesScope => _scope;
 
@@ -179,8 +196,13 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 FulfillmentProfileAssurance.Certified,
                 ReservationRequirement.FlightCapacity,
                 FulfillmentDocumentKind.Etkt,
+                DocumentAuthority.Local,
                 FundingRequirement.Required,
-                1);
+                1,
+                null,
+                null,
+                null,
+                true);
 
         public static CandidateFulfillmentProfile UncertifiedProfile(string profileRef, string version = "1")
             => new(
@@ -189,7 +211,12 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 FulfillmentProfileAssurance.NotCertified,
                 ReservationRequirement.Unresolved,
                 FulfillmentDocumentKind.Unresolved,
+                null,
                 FundingRequirement.Unresolved,
+                null,
+                null,
+                null,
+                null,
                 null);
 
         public CandidateBuilder Service(CandidateService service)
@@ -224,7 +251,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             string? sourceName = null,
             string? sourceReference = null,
             PricingCalculationKind calculationKind = PricingCalculationKind.Amount,
-            AppliedConversion? appliedConversion = null)
+            AppliedConversion? appliedConversion = null,
+            SettlementAttribution? settlementAttribution = null)
         {
             var originalValue = original ?? new Money(amount, SaleCurrency);
             var conversionRef = appliedConversion?.SourceConversionRef
@@ -247,7 +275,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 basisType,
                 basisRef,
                 conversionRef,
-                appliedConversion));
+                appliedConversion,
+                settlementAttribution));
             return this;
         }
 
@@ -315,7 +344,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                     _priceValidity ?? new ValidityFact(ValidityState.Known, _now.AddMinutes(5), "AirPrice", $"PRICE-{_offerId}", null),
                     _ticketingValidity ?? new ValidityFact(ValidityState.NotSupplied, null, "Unresolved owner", null, "Not supplied by source; no implied infinite validity"),
                     _observedTicketingDeadline),
-                new CandidateSalesContext(_scope.OwnerAirlineId, _scope.FinancialCustomerId, _scope.Channel, _scope.SellingOfficeId),
+                new CandidateSalesContext(_scope.OwnerAirlineId, _scope.FinancialCustomerId, _scope.SalesContext, _scope.Buyer),
                 _travelers.ToList(),
                 _journeys.ToList(),
                 _segments.ToList(),

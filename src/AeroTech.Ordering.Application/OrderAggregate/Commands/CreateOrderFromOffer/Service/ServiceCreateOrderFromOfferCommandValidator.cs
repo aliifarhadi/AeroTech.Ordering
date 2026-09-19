@@ -7,7 +7,12 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
         public ServiceCreateOrderFromOfferCommandValidator()
         {
             RuleFor(command => command.CustomerId).GreaterThan(0);
-            RuleFor(command => command.AirlineOfficeId).GreaterThan(0).When(command => command.AirlineOfficeId is not null);
+            RuleFor(command => command.SellingOfficeId).GreaterThan(0).When(command => command.SellingOfficeId is not null);
+            RuleFor(command => command.SellingOfficeKind).NotNull().When(command => command.SellingOfficeId is not null);
+            RuleFor(command => command.SellingOfficeId).NotNull().When(command => command.SellingOfficeKind is not null);
+            RuleFor(command => command.SellingOfficeKind)
+                .NotEqual(AeroTech.Messages.Ordering.Enums.SellingOfficeKind.NotRecorded)
+                .When(command => command.SellingOfficeKind is not null);
             RuleFor(command => command.OfferId).NotEmpty();
             RuleFor(command => command.IdempotencyKey).NotEmpty();
             RuleFor(command => command.Travellers).NotEmpty();

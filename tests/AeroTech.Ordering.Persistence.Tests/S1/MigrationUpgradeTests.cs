@@ -149,12 +149,50 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
                     Assert.Equal(1, await ScalarAsync(context,
                         "SELECT COUNT(1) FROM [Order].[OrderPreparations] WHERE [Id] = " + LegacyOrderFixture.PreparationId));
+
+                    await AssertClosureBackfillIsHonestAsync(context);
                 }
             }
             finally
             {
                 await DropAsync(database);
             }
+        }
+
+        private static async Task AssertClosureBackfillIsHonestAsync(OrderingDbContext context)
+        {
+            Assert.Equal(0, await ScalarAsync(context,
+                "SELECT COUNT(1) FROM sys.columns WHERE [object_id] = OBJECT_ID(N'[Order].[Orders]')"
+                + " AND [name] IN (N'BuyerActorContextType', N'BuyerActorId')"));
+
+            Assert.Equal(1, await ScalarAsync(context,
+                "SELECT COUNT(1) FROM [Order].[Orders] WHERE [InitiatingActorContextType] = 1"));
+
+            Assert.Equal(1, await ScalarAsync(context,
+                "SELECT COUNT(1) FROM [Order].[Orders] WHERE [BuyerContextType] IS NULL AND [BuyerId] IS NULL"));
+
+            Assert.Equal(1, await ScalarAsync(context,
+                "SELECT COUNT(1) FROM [Order].[Orders] WHERE [Channel] = 1 AND [SellerContextType] = 1 AND [SellerId] = [OwnerAirlineId]"));
+
+            Assert.Equal(1, await ScalarAsync(context,
+                "SELECT COUNT(1) FROM [Order].[Orders] WHERE [SellingOfficeId] IS NULL AND [SellingOfficeKind] IS NULL"));
+
+            Assert.Equal(0, await ScalarAsync(context,
+                "SELECT COUNT(1) FROM [Order].[PricingLines] WHERE [SettlementPartyRef] IS NOT NULL OR [SettlementCategoryCode] IS NOT NULL"));
+
+            Assert.Equal(0, await ScalarAsync(context,
+                "SELECT COUNT(1) FROM [Order].[OrderServices] WHERE [DocumentAuthority] IS NOT NULL"
+                + " OR [PartialFulfillmentSupported] IS NOT NULL OR [ResourceUnitPolicyRef] IS NOT NULL"
+                + " OR [DeliveryControlPolicyRef] IS NOT NULL OR [DependencyTreatmentPolicyRef] IS NOT NULL"));
+
+            Assert.Equal(1, await ScalarAsync(context,
+                "SELECT COUNT(1) FROM [Order].[OrderComponentTotals] total INNER JOIN [Order].[PricingLines] line"
+                + " ON line.[OrderId] = total.[OrderId] AND line.[Component] = total.[Component] AND line.[Effect] = total.[Effect]"
+                + " WHERE total.[DebitAmount] = line.[SaleValueAmount] AND total.[CreditAmount] = 0"
+                + " AND total.[CurrencyRef] = line.[SaleValueCurrencyRef]"));
+
+            Assert.Equal(0, await ScalarAsync(context,
+                "SELECT COUNT(1) FROM [Order].[FundingObligations] WHERE [OrderServiceId] IS NOT NULL OR [PricingLineId] IS NOT NULL"));
         }
 
         private static async Task ExecuteAsync(OrderingDbContext context, string sql)
