@@ -31,7 +31,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
             Assert.Equal(20.00m, commission.SaleValue.Amount);
             Assert.Equal("agency:77", commission.SettlementAttribution!.PartyRef);
             Assert.Equal("COMMISSION", commission.SettlementAttribution.CategoryCode);
-            Assert.Equal(commission.SaleValue.CurrencyId, order.SaleCurrency.CurrencyId);
+            Assert.Equal(commission.SaleValue.CurrencyId, order.CurrencyId);
         }
 
         [Fact]
@@ -139,7 +139,6 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
                 PricingComponentType.Commission,
                 PricingEffect.CustomerBalance,
                 OrderPricingLineDirection.Debit,
-                PricingLineRole.Original,
                 AgencyCommission));
         }
 

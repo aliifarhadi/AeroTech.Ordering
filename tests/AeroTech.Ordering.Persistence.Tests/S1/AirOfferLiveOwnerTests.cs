@@ -1,4 +1,4 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization;
 using AeroTech.Ordering.Persistence.Tests._Shared;
 using AeroTech.Ordering.Providers.AirOffer;
@@ -42,16 +42,17 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             var created = await harness.SendAsync(S1Commands.Backoffice(RecordedOfferId, travellers: S1Commands.Travellers("ADT-1")));
             var order = await CreateOrderFromOfferTests.LoadOrderAsync(harness, created.OrderId);
             var candidate = await AirOfferLiveCandidateBridgeTests.AcceptedCandidateAsync(harness, created.OrderId);
-            var charge = candidate.PricingLines.Single(line => line.SourceLineRef == "orderCharges/0");
+            var preparation = await AirOfferLiveCandidateBridgeTests.AcceptedPreparationAsync(harness, created.OrderId);
+            var charge = candidate.PricingLines.Single(line => line.SourceOccurrencePath == "orderCharges/0");
 
             Assert.Equal(AcceptanceAssurance.LocalCandidateOnly, candidate.AcceptanceAssurance);
-            Assert.Equal(AirOfferProfile.LiveCandidateSandbox, order.AcceptedSource.AcceptanceProfile);
+            Assert.Equal(AirOfferProfile.LiveCandidateSandbox, preparation.AcceptanceProfile);
             Assert.Equal(264005012m, order.CustomerTotal.Amount);
-            Assert.Equal("70", order.CustomerTotal.CurrencyRef);
+            Assert.Equal(70, order.CustomerTotal.CurrencyId);
             Assert.Single(order.Items);
             Assert.Equal(2, order.Services.Count);
             Assert.Equal(2, order.Segments.Count);
-            Assert.Single(order.Travelers);
+            Assert.Single(order.Travellers);
 
             Assert.Equal(24000000m, charge.SaleValue.Amount);
             Assert.Equal(24000000m, charge.OriginalValue.Amount);
@@ -59,10 +60,8 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
             var equivalentFare = candidate.PricingLines.First(line => line.SourceConversionRef == "1533121255006273536");
             Assert.Equal(120m, equivalentFare.OriginalValue.Amount);
-            Assert.Equal("155", equivalentFare.OriginalValue.CurrencyRef);
+            Assert.Equal(155, equivalentFare.OriginalValue.CurrencyId);
             Assert.Equal(120000000m, equivalentFare.SaleValue.Amount);
-
-            Assert.All(candidate.Services, service => Assert.Equal(AirOfferCandidateMapper.FulfillmentProfileRef, service.FulfillmentProfile.ProfileRef));
         }
 
         [Trait("Category", "Live")]
@@ -84,14 +83,16 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             _output.WriteLine($"offerId: {offerId}");
             _output.WriteLine($"orderId: {created.OrderId}");
             _output.WriteLine($"orderReference: {created.OrderReference}");
-            _output.WriteLine($"grandTotal: {created.GrandTotal} {created.CurrencyRef}");
-            _output.WriteLine($"acceptanceProfile: {order.AcceptedSource.AcceptanceProfile}");
-            _output.WriteLine($"acceptanceAssurance: {order.AcceptedSource.AcceptanceAssurance}");
+            var preparation = await AirOfferLiveCandidateBridgeTests.AcceptedPreparationAsync(harness, created.OrderId);
+
+            _output.WriteLine($"grandTotal: {created.GrandTotal} {created.CurrencyId}");
+            _output.WriteLine($"acceptanceProfile: {preparation.AcceptanceProfile}");
+            _output.WriteLine($"acceptanceAssurance: {preparation.AcceptanceAssurance}");
             _output.WriteLine($"services: {order.Services.Count}, segments: {order.Segments.Count}, pricingLines: {order.PricingLines.Count}");
             _output.WriteLine($"candidate: {NormalizedCandidateJson.Write(candidate)}");
 
-            Assert.Equal(offerId, order.AcceptedSource.SourceOfferId);
-            Assert.Equal(AcceptanceAssurance.LocalCandidateOnly, order.AcceptedSource.AcceptanceAssurance);
+            Assert.Equal(offerId, order.SourceOfferId);
+            Assert.Equal(AcceptanceAssurance.LocalCandidateOnly, preparation.AcceptanceAssurance);
             Assert.NotEmpty(order.Services);
             Assert.True(order.CustomerTotal.Amount > 0);
         }

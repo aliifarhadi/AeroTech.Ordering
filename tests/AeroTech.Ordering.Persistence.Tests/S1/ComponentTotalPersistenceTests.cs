@@ -1,4 +1,4 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProjection;
 using AeroTech.Ordering.Domain.Tests._Shared;
 using AeroTech.Ordering.Persistence.Tests._Shared;
@@ -28,21 +28,22 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             var orderId = (await harness.SendAsync(S1Commands.Backoffice(await PublishAsync(harness)))).OrderId;
 
             var order = await CreateOrderFromOfferTests.LoadOrderAsync(harness, orderId);
+            var document = await ProjectionAsync(harness, orderId);
 
-            Assert.Equal(4, order.ComponentTotals.Count);
+            Assert.Equal(4, document.ComponentTotals.Count);
 
-            foreach (var total in order.ComponentTotals)
+            foreach (var total in document.ComponentTotals)
             {
                 var lines = order.PricingLines.Where(line => line.Component == total.Component && line.Effect == total.Effect).ToList();
 
-                Assert.Equal(lines.Where(line => line.Direction == OrderPricingLineDirection.Debit).Sum(line => line.SaleValue.Amount), total.DebitAmount);
-                Assert.Equal(lines.Where(line => line.Direction == OrderPricingLineDirection.Credit).Sum(line => line.SaleValue.Amount), total.CreditAmount);
-                Assert.Equal(order.SaleCurrency.CurrencyRef, total.CurrencyRef);
+                Assert.Equal(lines.Where(line => line.Direction == OrderPricingLineDirection.Debit).Sum(line => line.SaleValue.Amount), Amount(total.DebitAmount));
+                Assert.Equal(lines.Where(line => line.Direction == OrderPricingLineDirection.Credit).Sum(line => line.SaleValue.Amount), Amount(total.CreditAmount));
             }
 
+            Assert.Equal(order.CurrencyId, document.CustomerTotal.CurrencyId);
             Assert.Equal(
                 order.CustomerTotal.Amount,
-                order.ComponentTotals.Where(total => total.Effect == PricingEffect.CustomerBalance).Sum(total => total.Net));
+                document.ComponentTotals.Where(total => total.Effect == PricingEffect.CustomerBalance).Sum(total => Amount(total.DebitAmount) - Amount(total.CreditAmount)));
         }
 
         [Fact]
@@ -52,18 +53,14 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             var orderId = (await harness.SendAsync(S1Commands.Backoffice(await PublishAsync(harness)))).OrderId;
 
             var order = await CreateOrderFromOfferTests.LoadOrderAsync(harness, orderId);
-            var commission = order.ComponentTotals.Single(total => total.Component == PricingComponentType.Commission);
+            var document = await ProjectionAsync(harness, orderId);
+            var commission = document.ComponentTotals.Single(total => total.Component == PricingComponentType.Commission);
 
             Assert.Equal(PricingEffect.SettlementOnly, commission.Effect);
-            Assert.Equal(20.00m, commission.DebitAmount);
+            Assert.Equal(20.00m, Amount(commission.DebitAmount));
+            Assert.Equal(0m, Amount(commission.CreditAmount));
             Assert.Equal(405.00m, order.CustomerTotal.Amount);
-
-            var document = await ProjectionAsync(harness, orderId);
-            var projected = document.ComponentTotals.Single(total => total.Component == PricingComponentType.Commission);
-
-            Assert.Equal(commission.DebitAmount, decimal.Parse(projected.DebitAmount, System.Globalization.CultureInfo.InvariantCulture));
-            Assert.Equal(0m, decimal.Parse(projected.CreditAmount, System.Globalization.CultureInfo.InvariantCulture));
-            Assert.Equal(PricingEffect.SettlementOnly, projected.Effect);
+            Assert.Equal(405.00m, Amount(document.CustomerTotal.Amount));
         }
 
         [Fact]
@@ -100,7 +97,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
             await harness.Catalog.PublishAsync(
                 new CandidateBuilder(harness.Clock.GetDateTime(), S1Harness.Scope())
-                    .Traveler("PAX-A")
+                    .Traveller("PAX-A")
                     .Segment("SEG-1")
                     .AirService("S-A", "PAX-A", "SEG-1")
                     .Package("ITEM-A", "S-A")
@@ -115,6 +112,8 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
             return offerId;
         }
+
+        private static decimal Amount(string value) => decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
 
         private static async Task<OrderProjectionDocument> ProjectionAsync(S1Harness harness, long orderId)
             => OrderProjectionJson.Read(await ProjectionJsonAsync(harness, orderId));

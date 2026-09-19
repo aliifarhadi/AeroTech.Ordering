@@ -1,4 +1,4 @@
-using AeroTech.Framework.Core.Domain.Exceptions;
+﻿using AeroTech.Framework.Core.Domain.Exceptions;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProjection;
 using AeroTech.Ordering.Domain.OrderAggregate;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate;
@@ -39,7 +39,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             var failure = await Assert.ThrowsAsync<InvalidOperationException>(() => harness.SendAsync(command));
             Assert.Equal(FailingProjection.Message, failure.Message);
 
-            Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<Order>(harness, order => order.AcceptedSource.SourceOfferId == offerId));
+            Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<Order>(harness, order => order.SourceOfferId == offerId));
             Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<OrderPreparation>(harness, preparation => preparation.SourceOfferId == offerId));
             Assert.Equal(0, await harness.InScopeAsync(services => services.GetRequiredService<OrderingDbContext>().OutboxMessages
                 .CountAsync(message => message.StreamKind == "Order" && message.Payload.Contains(offerId))));
@@ -47,7 +47,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             fault.Armed = false;
             var created = await harness.SendAsync(command);
 
-            Assert.Equal(1, await CreateOrderFromOfferTests.CountAsync<Order>(harness, order => order.AcceptedSource.SourceOfferId == offerId));
+            Assert.Equal(1, await CreateOrderFromOfferTests.CountAsync<Order>(harness, order => order.SourceOfferId == offerId));
             Assert.Equal(1, (await harness.SendAsync(new BackofficeGetOrderByIdQuery(created.OrderId))).CommercialVersion);
         }
 

@@ -61,6 +61,8 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
             if (details.Tickets.Any(ticket => PassengerType(ticket.PassengerTypeCode) == PassengerTypeCode.INF))
                 throw new AirOfferUnsupportedException("infant seat/resource requirement is unresolved (BD-002, OD-S1-07)");
 
+            EnsureTravellerReferences(details.Tickets);
+
             var journeys = new List<CandidateJourney>();
             var segments = new List<CandidateSegment>();
 
@@ -242,6 +244,22 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
             if (!string.Equals(requestedOfferId, respondedOfferId, StringComparison.Ordinal))
                 throw new AirOfferContractMismatchException(
                     $"details price offer {respondedOfferId} but offer {requestedOfferId} was requested");
+        }
+
+        private static void EnsureTravellerReferences(IReadOnlyList<AirOfferTicketWire> tickets)
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+
+            for (var index = 0; index < tickets.Count; index++)
+            {
+                var travellerRef = tickets[index].TravellerRef;
+
+                if (string.IsNullOrWhiteSpace(travellerRef))
+                    throw new AirOfferContractMismatchException($"tickets/{index} supplies no traveller reference; the priced traveller cannot be identified");
+
+                if (!seen.Add(travellerRef))
+                    throw new AirOfferContractMismatchException($"tickets/{index} repeats traveller reference {travellerRef}");
+            }
         }
 
         private static JourneyType JourneyTypeOf(string? journeyType)

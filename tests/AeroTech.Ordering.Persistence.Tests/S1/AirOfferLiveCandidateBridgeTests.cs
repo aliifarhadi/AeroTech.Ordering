@@ -1,4 +1,6 @@
+﻿using System.IO;
 using System.Net;
+using System.Text.Json;
 using AeroTech.Framework.Core.Domain.Exceptions;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate;
@@ -42,11 +44,9 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
             var item = Assert.Single(candidate.Items);
             Assert.Equal(OrderItemKind.OfferPackage, item.ItemKind);
-            Assert.Null(item.SourceOfferItemRef);
             Assert.Single(candidate.Services);
-            Assert.Equal(FareConstructionAssurance.Opaque, candidate.FareConstruction.Assurance);
-            Assert.All(candidate.FareConstruction.PricingUnits.SelectMany(unit => unit.Components), component => Assert.Empty(component.CoveredServiceRefs));
-            Assert.Equal(["tickets/0/coupons/0/pricings/0", "tickets/0/coupons/0/pricings/1"], candidate.PricingLines.Select(line => line.SourceLineRef));
+            Assert.NotEmpty(candidate.FareConstruction.PricingUnits);
+            Assert.Equal(["tickets/0/coupons/0/pricings/0", "tickets/0/coupons/0/pricings/1"], candidate.PricingLines.Select(line => line.SourceOccurrencePath));
             Assert.Equal([PricingComponentType.Fare, PricingComponentType.Tax], candidate.PricingLines.Select(line => line.Component));
             Assert.Equal(120m, candidate.CustomerTotal.Amount);
             Assert.Equal(2, Assert.Single(candidate.Segments).Legs.Count);
@@ -110,7 +110,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             var created = await harness.SendAsync(S1Commands.Backoffice(OfferId, travellers: S1Commands.Travellers("T1")));
             var order = await CreateOrderFromOfferTests.LoadOrderAsync(harness, created.OrderId);
 
-            Assert.Equal(OfferId, order.AcceptedSource.SourceOfferId);
+            Assert.Equal(OfferId, order.SourceOfferId);
         }
 
         [Fact]
@@ -126,22 +126,93 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
             Assert.Equal(callsBeforeCreate + 1, handler.Calls);
             Assert.Equal(AcceptanceAssurance.LocalCandidateOnly, preparation.AcceptanceAssurance);
-            Assert.Equal(ValidityState.NotSupplied, preparation.OfferValidity.State);
-            Assert.Equal(ValidityState.NotSupplied, preparation.PriceValidity.State);
-            Assert.Equal(ValidityState.NotSupplied, preparation.TicketingValidity.State);
-            Assert.Contains("BD-004", preparation.TicketingValidity.Reason);
-            Assert.DoesNotContain("LastTicketingDate", preparation.TicketingValidity.Reason);
-            var observed = Assert.IsType<ObservedTimeFact>(order.ObservedTicketingDeadline);
-            Assert.Equal(AirOfferProfile.Owner, observed.SourceOwner);
-            Assert.Equal(AirOfferCandidateMapper.TicketingDeadlineSourceRef, observed.SourceRef);
-            Assert.True(order.IsSandboxScoped);
-            Assert.Equal(AirOfferProfile.LiveCandidateSandbox, order.AcceptedSource.AcceptanceProfile);
+            Assert.Null(preparation.OfferExpiresAt);
+            Assert.Null(preparation.PriceValidUntil);
+            Assert.Equal(new DateTimeOffset(2026, 9, 10, 12, 0, 0, TimeSpan.FromHours(3.5)), order.LastTicketingDate);
+            Assert.Equal(AirOfferProfile.LiveCandidateSandbox, preparation.AcceptanceProfile);
+            Assert.Equal(preparation.Id, order.SourcePreparationId);
 
             await using var production = await StartAsync(handler, productionPolicy: true);
             var refused = await Assert.ThrowsAsync<BusinessException>(() =>
                 production.SendAsync(S1Commands.Backoffice(OfferId, travellers: S1Commands.Travellers("T1"))));
 
             Assert.Equal(20269, refused.Code);
+        }
+
+        [Theory]
+        [InlineData("blank")]
+        [InlineData("missing")]
+        [InlineData("duplicate")]
+        public async Task A_ticket_without_a_usable_traveller_reference_fails_closed_before_any_candidate(string defect)
+        {
+            var handler = new AirOfferWireFixtures.StubHandler(() => WithTicketDefect(defect));
+            await using var harness = await StartAsync(handler);
+            var key = S1Commands.NewKey($"traveller-{defect}");
+
+            var exception = await Assert.ThrowsAsync<BusinessException>(() =>
+                harness.SendAsync(S1Commands.Backoffice(OfferId, key: key, travellers: S1Commands.Travellers("T1"))));
+
+            Assert.Equal(20272, exception.Code);
+            Assert.Contains("traveller reference", exception.Message);
+            Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<Domain.CommandReceiptAggregate.CommandReceipt>(harness, receipt => receipt.IdempotencyKey == key));
+            Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<OrderPreparation>(harness, preparation => preparation.SourceOfferId == OfferId));
+        }
+
+        private static string WithTicketDefect(string defect)
+        {
+            using var document = JsonDocument.Parse(AirOfferWireFixtures.Details(offerId: OfferId));
+            var data = document.RootElement.GetProperty("data");
+            var ticket = data.GetProperty("tickets")[0];
+
+            using var buffer = new MemoryStream();
+            using (var writer = new Utf8JsonWriter(buffer))
+            {
+                writer.WriteStartObject();
+                writer.WritePropertyName("data");
+                writer.WriteStartObject();
+
+                foreach (var property in data.EnumerateObject())
+                {
+                    if (property.NameEquals("tickets"))
+                        continue;
+
+                    property.WriteTo(writer);
+                }
+
+                writer.WritePropertyName("tickets");
+                writer.WriteStartArray();
+                WriteTicket(writer, ticket, defect == "blank" ? string.Empty : null, omitTravellerRef: defect == "missing");
+
+                if (defect == "duplicate")
+                    WriteTicket(writer, ticket, null, omitTravellerRef: false);
+
+                writer.WriteEndArray();
+                writer.WriteEndObject();
+                writer.WriteEndObject();
+            }
+
+            return System.Text.Encoding.UTF8.GetString(buffer.ToArray());
+        }
+
+        private static void WriteTicket(Utf8JsonWriter writer, JsonElement ticket, string? travellerRef, bool omitTravellerRef)
+        {
+            writer.WriteStartObject();
+
+            foreach (var property in ticket.EnumerateObject())
+            {
+                if (!property.NameEquals("travellerRef"))
+                {
+                    property.WriteTo(writer);
+                    continue;
+                }
+
+                if (omitTravellerRef)
+                    continue;
+
+                writer.WriteString("travellerRef", travellerRef ?? property.Value.GetString());
+            }
+
+            writer.WriteEndObject();
         }
 
         [Theory]
@@ -181,9 +252,9 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             var fare = candidate.PricingLines.Single(line => line.Component == PricingComponentType.Fare);
 
             Assert.Equal(92m, fare.SaleValue.Amount);
-            Assert.Equal("978", fare.SaleValue.CurrencyRef);
+            Assert.Equal(978, fare.SaleValue.CurrencyId);
             Assert.Equal(100m, fare.OriginalValue.Amount);
-            Assert.Equal("840", fare.OriginalValue.CurrencyRef);
+            Assert.Equal(840, fare.OriginalValue.CurrencyId);
             Assert.Equal("ROE-1", fare.SourceConversionRef);
             Assert.Equal(112m, candidate.CustomerTotal.Amount);
         }
@@ -196,13 +267,13 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
             var created = await harness.SendAsync(S1Commands.Backoffice(OfferId, travellers: S1Commands.Travellers("T1")));
             var candidate = await AcceptedCandidateAsync(harness, created.OrderId);
-            var charge = candidate.PricingLines.Single(line => line.SourceLineRef == "orderCharges/0");
+            var charge = candidate.PricingLines.Single(line => line.SourceOccurrencePath == "orderCharges/0");
 
             Assert.Equal(PricingComponentType.Tax, charge.Component);
             Assert.Equal(24m, charge.SaleValue.Amount);
-            Assert.Equal("978", charge.SaleValue.CurrencyRef);
+            Assert.Equal(978, charge.SaleValue.CurrencyId);
             Assert.Equal(24m, charge.OriginalValue.Amount);
-            Assert.Equal("978", charge.OriginalValue.CurrencyRef);
+            Assert.Equal(978, charge.OriginalValue.CurrencyId);
             Assert.Equal("70", charge.SourceConversionRef);
             Assert.Equal(PricingBasisType.OrderItem, charge.BasisType);
             Assert.Equal(144m, candidate.CustomerTotal.Amount);
@@ -225,9 +296,13 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             Assert.Equal(OfferResolutionOutcome.UnsupportedCapability, bound.Outcome);
         }
 
-        public static Task<OrderPreparation> AcceptedPreparationAsync(S1Harness harness, long orderId)
-            => harness.InScopeAsync(services => services.GetRequiredService<OrderingDbContext>()
-                .Set<OrderPreparation>().AsNoTracking().SingleAsync(preparation => preparation.ConsumedByOrderId == orderId));
+        public static async Task<OrderPreparation> AcceptedPreparationAsync(S1Harness harness, long orderId)
+        {
+            var preparationId = (await CreateOrderFromOfferTests.LoadOrderAsync(harness, orderId)).SourcePreparationId;
+
+            return await harness.InScopeAsync(services => services.GetRequiredService<OrderingDbContext>()
+                .Set<OrderPreparation>().AsNoTracking().SingleAsync(preparation => preparation.Id == preparationId));
+        }
 
         public static async Task<NormalizedCandidate> AcceptedCandidateAsync(S1Harness harness, long orderId)
             => (await AcceptedPreparationAsync(harness, orderId)).Candidate;

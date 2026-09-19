@@ -1,0 +1,14 @@
+Test run for C:\Users\al.farhadi\AppData\Local\Temp\ordbuild7\AeroTech.Ordering.Persistence.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:15.53]     AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.A_ticket_without_a_usable_traveller_reference_fails_closed_before_any_candidate(defect: "duplicate") [FAIL]
+  Failed AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.A_ticket_without_a_usable_traveller_reference_fails_closed_before_any_candidate(defect: "duplicate") [59 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "The offer candidate violates the source c"···
+Not found: "traveller reference"
+  Stack Trace:
+     at AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.A_ticket_without_a_usable_traveller_reference_fails_closed_before_any_candidate(String defect) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\AirOfferLiveCandidateBridgeTests.cs:line 156
+   at AeroTech.Ordering.Persistence.Tests.S1.AirOfferLiveCandidateBridgeTests.A_ticket_without_a_usable_traveller_reference_fails_closed_before_any_candidate(String defect) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\AirOfferLiveCandidateBridgeTests.cs:line 158
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     1, Passed:     2, Skipped:     0, Total:     3, Duration: 3 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)

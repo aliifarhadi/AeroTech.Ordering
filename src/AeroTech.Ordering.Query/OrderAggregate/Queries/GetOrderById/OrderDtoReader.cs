@@ -1,4 +1,4 @@
-using AeroTech.Ordering.Domain._Shared.Resources;
+﻿using AeroTech.Ordering.Domain._Shared.Resources;
 using AeroTech.Ordering.Query._Shared.DbContexts;
 using AeroTech.Ordering.Query.OrderAggregate.Dto;
 using AeroTech.Ordering.Query.OrderAggregate.Models;
@@ -40,10 +40,10 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrderById
 
         private async Task<IReadOnlyList<OrderTravellerDto>> NamedTravellersAsync(OrderDto order, CancellationToken cancellationToken)
         {
-            var identities = await _dbContext.Set<OrderTravelerIdentityReadModel>()
+            var identities = await _dbContext.Set<OrderTravellerIdentityReadModel>()
                 .AsNoTracking()
-                .Where(identity => order.Travellers.Select(traveller => traveller.TravellerId).Contains(identity.TravelerId))
-                .ToDictionaryAsync(identity => identity.TravelerId, cancellationToken);
+                .Where(identity => order.Travellers.Select(traveller => traveller.TravellerId).Contains(identity.TravellerId))
+                .ToDictionaryAsync(identity => identity.TravellerId, cancellationToken);
 
             return order.Travellers
                 .Select(traveller => identities.TryGetValue(traveller.TravellerId, out var identity)

@@ -95,10 +95,7 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
         public static BusinessException SettlementAttributionRequired(params object?[] args) =>
             new(20292, ExceptionMessages.SettlementAttributionRequired, args) { HttpStatus = 422 };
 
-        public static BusinessException FundingObligationScopeInvalid(params object?[] args) =>
-            new(20293, ExceptionMessages.FundingObligationScopeInvalid, args) { HttpStatus = 422 };
-
-        public static BusinessException ComponentTotalInvalid(params object?[] args) =>
-            new(20294, ExceptionMessages.ComponentTotalInvalid, args) { HttpStatus = 422 };
+        public static BusinessException AirServiceScopeInvalid(params object?[] args) =>
+            new(20293, ExceptionMessages.AirServiceScopeInvalid, args) { HttpStatus = 422 };
     }
 }

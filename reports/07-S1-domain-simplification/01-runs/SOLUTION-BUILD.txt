@@ -1,0 +1,36 @@
+  Determining projects to restore...
+E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj : warning NU1510: PackageReference Microsoft.Extensions.Hosting.Abstractions will not be pruned. This package is automatically available and does not need to be referenced explicitly. Remove the PackageReference item. [E:\Projects\DotAir\AeroTech.Ordering\AeroTech.Ordering.sln]
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.401\Current\SolutionFile\ImportAfter\Microsoft.NET.Sdk.Solution.targets(36,5): warning NETSDK1194: The "--output" option isn't supported when building a solution. Specifying a solution-level output path results in all projects copying outputs to the same directory, which can lead to inconsistent builds. [E:\Projects\DotAir\AeroTech.Ordering\AeroTech.Ordering.sln]
+E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj : warning NU1510: PackageReference Microsoft.Extensions.Hosting.Abstractions will not be pruned. This package is automatically available and does not need to be referenced explicitly. Remove the PackageReference item.
+  AeroTech.Messages -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Messages.dll
+  AeroTech.Ordering.ReferenceData -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.ReferenceData.dll
+  AeroTech.Framework.Core -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Framework.Core.dll
+  AeroTech.Framework.Infrastructure -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Framework.Infrastructure.dll
+  AeroTech.Ordering.Domain -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Domain.dll
+  AeroTech.Ordering.Providers -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Providers.dll
+  AeroTech.Framework.Presentation -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Framework.Presentation.dll
+E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\OrderAggregate\Commands\RebuildOrderProjection\RebuildOrderProjectionCommandHandler.cs(89,92): warning CA2200: Re-throwing caught exception changes stack information (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2200) [E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\AeroTech.Ordering.Application.csproj]
+E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\OrderAggregate\Commands\CreateOrderFromOffer\CreateOrderFromOfferService.cs(92,90): warning CA2200: Re-throwing caught exception changes stack information (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2200) [E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\AeroTech.Ordering.Application.csproj]
+  AeroTech.Ordering.Application -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Application.dll
+  AeroTech.Ordering.Domain.Tests -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Domain.Tests.dll
+  AeroTech.Ordering.Providers.Deterministic -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Providers.Deterministic.dll
+  AeroTech.Ordering.Query -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Query.dll
+  AeroTech.Ordering.Persistence -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Persistence.dll
+  AeroTech.Ordering.Synchronizer -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Synchronizer.dll
+  AeroTech.Ordering.Consumers -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Consumers.dll
+  AeroTech.Ordering.RestApi -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.RestApi.dll
+  AeroTech.Ordering.ServiceHost -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.ServiceHost.dll
+  AeroTech.Ordering.Persistence.Tests -> C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Persistence.Tests.dll
+
+Build succeeded.
+
+E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj : warning NU1510: PackageReference Microsoft.Extensions.Hosting.Abstractions will not be pruned. This package is automatically available and does not need to be referenced explicitly. Remove the PackageReference item. [E:\Projects\DotAir\AeroTech.Ordering\AeroTech.Ordering.sln]
+C:\Program Files\dotnet\sdk\10.0.401\Current\SolutionFile\ImportAfter\Microsoft.NET.Sdk.Solution.targets(36,5): warning NETSDK1194: The "--output" option isn't supported when building a solution. Specifying a solution-level output path results in all projects copying outputs to the same directory, which can lead to inconsistent builds. [E:\Projects\DotAir\AeroTech.Ordering\AeroTech.Ordering.sln]
+E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj : warning NU1510: PackageReference Microsoft.Extensions.Hosting.Abstractions will not be pruned. This package is automatically available and does not need to be referenced explicitly. Remove the PackageReference item.
+E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\OrderAggregate\Commands\RebuildOrderProjection\RebuildOrderProjectionCommandHandler.cs(89,92): warning CA2200: Re-throwing caught exception changes stack information (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2200) [E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\AeroTech.Ordering.Application.csproj]
+E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\OrderAggregate\Commands\CreateOrderFromOffer\CreateOrderFromOfferService.cs(92,90): warning CA2200: Re-throwing caught exception changes stack information (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2200) [E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\AeroTech.Ordering.Application.csproj]
+    5 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:11.89

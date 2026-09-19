@@ -1,4 +1,4 @@
-using AeroTech.Messages.Aegis.Enums;
+﻿using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
 using AeroTech.Ordering.Domain.Tests._Shared;
@@ -36,7 +36,6 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             Assert.Equal(S1Harness.OwnerAirlineId, order.SalesContext.SellerId);
             Assert.Equal(SellingOfficeKind.AirlineOffice, order.SalesContext.SellingOfficeKind);
             Assert.Equal(S1Harness.AirlineOfficeId, order.SalesContext.SellingOfficeId);
-            Assert.False(order.Buyer.IsSupplied);
             Assert.Equal(BusinessContextType.Airline, order.InitiatingActor.ContextType);
             Assert.Equal(S1Harness.AirlineUserId, order.InitiatingActor.ActorId);
         }
@@ -106,7 +105,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
             await harness.Catalog.PublishAsync(
                 new CandidateBuilder(harness.Clock.GetDateTime(), S1Harness.OtaPanelScope())
-                    .Traveler("PAX-A")
+                    .Traveller("PAX-A")
                     .Segment("SEG-1")
                     .AirService("S-A", "PAX-A", "SEG-1")
                     .Package("ITEM-A", "S-A")

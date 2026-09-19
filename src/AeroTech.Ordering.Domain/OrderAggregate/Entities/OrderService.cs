@@ -1,5 +1,6 @@
 using AeroTech.Framework.Core.Domain.Entities;
 using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Ordering.Domain._Shared.Resources;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
 
@@ -20,6 +21,12 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             CandidateService source,
             long changeId)
         {
+            if (travellerId <= 0)
+                throw ExceptionFactory.AirServiceScopeInvalid("it must name exactly one accepted traveller");
+
+            if (segmentId <= 0)
+                throw ExceptionFactory.AirServiceScopeInvalid("it must name exactly one accepted passenger segment");
+
             Id = id;
             OrderId = orderId;
             OrderItemId = orderItemId;

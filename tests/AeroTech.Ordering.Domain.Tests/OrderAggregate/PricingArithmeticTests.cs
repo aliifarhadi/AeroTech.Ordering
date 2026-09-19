@@ -8,7 +8,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
 {
     public sealed class PricingArithmeticTests
     {
-        private const string Eur = "EUR";
+        private const int Eur = 978;
 
         [Fact]
         public void Sale_with_settlement_commission_charges_the_customer_405()
@@ -51,9 +51,9 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         [Fact]
         public void Three_and_zero_decimal_currencies_keep_their_scale()
         {
-            Assert.Equal(12.345m, PricingArithmetic.CustomerTotal([Priced(PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, 12.345m, "KWD")], "KWD").Amount);
-            Assert.Equal(1500m, PricingArithmetic.CustomerTotal([Priced(PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, 1500m, "JPY")], "JPY").Amount);
-            Assert.Throws<BusinessException>(() => PricingArithmetic.CustomerTotal([Priced(PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, 1m, "USD")], Eur));
+            Assert.Equal(12.345m, PricingArithmetic.CustomerTotal([Priced(PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, 12.345m, 414)], 414).Amount);
+            Assert.Equal(1500m, PricingArithmetic.CustomerTotal([Priced(PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, 1500m, 392)], 392).Amount);
+            Assert.Throws<BusinessException>(() => PricingArithmetic.CustomerTotal([Priced(PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, 1m, 840)], Eur));
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
             Assert.Equal(100.00000000m, DecimalRepresentation.EnsureAmount(100.00000000m, "amount"));
         }
 
-        private static PricedAmount Priced(PricingEffect effect, OrderPricingLineDirection direction, decimal amount, string currency = Eur)
+        private static PricedAmount Priced(PricingEffect effect, OrderPricingLineDirection direction, decimal amount, int currency = Eur)
             => new(effect, direction, new Money(amount, currency));
     }
 }

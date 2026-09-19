@@ -63,8 +63,6 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
 
         public const string SettlementAttributionRequired = "A settlement-only pricing line requires a settlement party reference and category code.";
 
-        public const string FundingObligationScopeInvalid = "Funding obligation scope is invalid: {0} must be a positive identifier.";
-
-        public const string ComponentTotalInvalid = "Component total is invalid: {0}.";
+        public const string AirServiceScopeInvalid = "An air transport service covers exactly one traveller on one passenger segment: {0}.";
     }
 }

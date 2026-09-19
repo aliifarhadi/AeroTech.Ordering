@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -48,9 +48,9 @@ namespace AeroTech.Ordering.Persistence.Tests.Api
             var order = await GetAsync($"{BackofficeOrders}/{orderId}", token);
 
             Assert.Equal(HttpStatusCode.OK, order.Status);
-            Assert.Equal(offerId, order.Data.GetProperty("offerId").GetString());
+            Assert.Equal(offerId, order.Data.GetProperty("sourceOfferId").GetString());
             Assert.Equal("BackOffice", order.Data.GetProperty("channel").GetString());
-            Assert.Equal("120", order.Data.GetProperty("grandTotal").GetProperty("amount").GetString());
+            Assert.Equal("120", order.Data.GetProperty("customerTotal").GetProperty("amount").GetString());
 
             var traveller = Assert.Single(order.Data.GetProperty("travellers").EnumerateArray());
             Assert.Equal("Sample", traveller.GetProperty("firstName").GetString());

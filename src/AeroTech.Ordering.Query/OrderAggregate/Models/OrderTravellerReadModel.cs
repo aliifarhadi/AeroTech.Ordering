@@ -1,6 +1,8 @@
+using AeroTech.Messages.Ordering.Enums;
+
 namespace AeroTech.Ordering.Query.OrderAggregate.Models
 {
-    public sealed class OrderTravelerReadModel
+    public sealed class OrderTravellerReadModel
     {
         public long Id { get; set; }
 
@@ -8,10 +10,10 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Models
 
         public string SourceTravellerRef { get; set; } = default!;
 
-        public string ClientTravelerRef { get; set; } = default!;
+        public string ClientTravellerRef { get; set; } = default!;
 
-        public string PassengerTypeCode { get; set; } = default!;
+        public PassengerTypeCode PassengerTypeCode { get; set; }
 
-        public long? InfantParentTravelerId { get; set; }
+        public long? InfantParentTravellerId { get; set; }
     }
 }

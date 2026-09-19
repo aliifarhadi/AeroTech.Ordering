@@ -1,8 +1,8 @@
 namespace AeroTech.Ordering.Query.OrderAggregate.Models
 {
-    public sealed class OrderTravelerIdentityReadModel
+    public sealed class OrderTravellerIdentityReadModel
     {
-        public long TravelerId { get; set; }
+        public long TravellerId { get; set; }
 
         public string GivenName { get; set; } = default!;
 

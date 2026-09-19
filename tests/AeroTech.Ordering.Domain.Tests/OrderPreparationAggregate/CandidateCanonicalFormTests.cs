@@ -1,5 +1,7 @@
 using AeroTech.Framework.Core.Domain.Exceptions;
+using AeroTech.Ordering.Domain._Shared.Serialization;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization;
+using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
 using AeroTech.Ordering.Domain.Tests._Shared;
 using Xunit;
 
@@ -7,56 +9,90 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
 {
     public sealed class CandidateCanonicalFormTests
     {
-        private const string PackExampleDigest = "2732898652d05598776a1811a5546c55aa45f8af2e782f9d1ee674c9ff9d1adb";
+        private const int ContractMismatch = 20272;
+
+        private static readonly DateTimeOffset Now = new(2026, 10, 1, 10, 0, 0, TimeSpan.Zero);
 
         [Fact]
-        public void Pack_example_candidate_digest_is_reproduced_by_the_canonical_form()
+        public void The_canonicalization_algorithm_version_is_stable_and_the_schema_starts_at_one()
         {
-            var candidate = NormalizedCandidateJson.Read(PackExamples.NormalizedCandidate);
-
-            Assert.Equal(PackExampleDigest, NormalizedCandidateJson.Digest(candidate));
+            Assert.Equal("ordering-canonical-json-v1", CanonicalJson.Version);
+            Assert.Equal("1.0", NormalizedCandidate.CurrentSchemaVersion);
         }
 
         [Fact]
-        public void Canonical_form_round_trips_exact_decimal_strings_and_instants()
+        public void Canonical_form_round_trips_and_reproduces_the_same_digest()
         {
-            var candidate = NormalizedCandidateJson.Read(PackExamples.NormalizedCandidate);
-            var written = NormalizedCandidateJson.Write(candidate);
-            var reread = NormalizedCandidateJson.Read(written);
+            var candidate = CandidateBuilder.OneWayFare100Tax20(Now).Build();
 
-            Assert.Equal(written, NormalizedCandidateJson.Write(reread));
-            Assert.Contains("\"amount\":\"120.00\"", written);
-            Assert.Contains("\"value\":\"2026-10-01T10:10:00Z\"", written);
-            Assert.Equal(120.00m, reread.CustomerTotal.Amount);
-            Assert.Equal(2, decimal.GetBits(reread.CustomerTotal.Amount)[3] >> 16 & 0x7F);
+            var first = NormalizedCandidateJson.Write(candidate);
+            var second = NormalizedCandidateJson.Write(NormalizedCandidateJson.Read(first));
+
+            Assert.Equal(first, second);
+            Assert.Equal(NormalizedCandidateJson.Digest(candidate), CanonicalJson.Sha256Hex(second));
         }
 
         [Fact]
-        public void Property_outside_the_candidate_contract_is_rejected()
+        public void Identities_stay_numeric_in_the_canonical_form()
         {
-            var tampered = PackExamples.NormalizedCandidate.Replace("\"schemaVersion\": \"3.0\",", "\"schemaVersion\": \"3.0\", \"unexpected\": true,");
+            var canonical = NormalizedCandidateJson.Write(CandidateBuilder.OneWayFare100Tax20(Now).Build());
 
-            var exception = Assert.Throws<BusinessException>(() => NormalizedCandidateJson.Read(tampered));
-
-            Assert.Contains("unexpected", exception.Message);
+            Assert.Contains("\"currencyId\":978", canonical);
+            Assert.Contains("\"originAirportId\":1001", canonical);
+            Assert.Contains("\"destinationAirportId\":1002", canonical);
+            Assert.DoesNotContain("\"currencyRef\"", canonical);
+            Assert.DoesNotContain("\"originRef\"", canonical);
+            Assert.DoesNotContain("\"sourceJourneyTypeRaw\"", canonical);
+            Assert.DoesNotContain("\"sourceDirectionRaw\"", canonical);
+            Assert.DoesNotContain("\"detailSchema\"", canonical);
         }
 
         [Fact]
-        public void Floating_point_amount_is_rejected()
+        public void Amounts_stay_exact_decimal_strings()
         {
-            var tampered = PackExamples.NormalizedCandidate.Replace("\"amount\": \"120.00\"", "\"amount\": 120.0");
+            var canonical = NormalizedCandidateJson.Write(CandidateBuilder.OneWayFare100Tax20(Now).Build());
 
-            Assert.Throws<BusinessException>(() => NormalizedCandidateJson.Read(tampered));
+            Assert.Contains("\"amount\":\"100\"", canonical);
+            Assert.Contains("\"amount\":\"20\"", canonical);
         }
 
         [Fact]
-        public void Unregistered_extension_type_is_an_unsupported_capability()
+        public void A_property_outside_the_candidate_contract_is_rejected()
         {
-            var tampered = PackExamples.NormalizedCandidate.Replace("\"type\": \"AirTransport\"", "\"type\": \"RegisteredExtension\"");
+            var canonical = NormalizedCandidateJson.Write(CandidateBuilder.OneWayFare100Tax20(Now).Build());
+            var extended = canonical.Replace("{\"acceptanceAssurance\"", "{\"unexpected\":1,\"acceptanceAssurance\"");
 
-            var exception = Assert.Throws<BusinessException>(() => NormalizedCandidateJson.Read(tampered));
+            Assert.NotEqual(canonical, extended);
 
-            Assert.Equal(20273, exception.Code);
+            var exception = Assert.Throws<BusinessException>(() => NormalizedCandidateJson.Read(extended));
+
+            Assert.Equal(ContractMismatch, exception.Code);
+            Assert.Contains("is not part of the candidate contract", exception.Message);
+        }
+
+        [Fact]
+        public void A_floating_point_amount_is_rejected()
+        {
+            var canonical = NormalizedCandidateJson.Write(CandidateBuilder.OneWayFare100Tax20(Now).Build());
+            var floating = canonical.Replace("\"amount\":\"100\"", "\"amount\":100.0");
+
+            Assert.NotEqual(canonical, floating);
+
+            Assert.Equal(ContractMismatch, Assert.Throws<BusinessException>(() => NormalizedCandidateJson.Read(floating)).Code);
+        }
+
+        [Fact]
+        public void An_unsupported_schema_version_is_rejected()
+        {
+            var canonical = NormalizedCandidateJson.Write(CandidateBuilder.OneWayFare100Tax20(Now).Build());
+            var legacy = canonical.Replace("\"schemaVersion\":\"1.0\"", "\"schemaVersion\":\"3.0\"");
+
+            Assert.NotEqual(canonical, legacy);
+
+            var exception = Assert.Throws<BusinessException>(() => NormalizedCandidateJson.Read(legacy));
+
+            Assert.Equal(ContractMismatch, exception.Code);
+            Assert.Contains("is not supported", exception.Message);
         }
     }
 }
