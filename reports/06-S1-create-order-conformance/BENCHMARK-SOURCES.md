@@ -1,6 +1,6 @@
 # Benchmark Sources
 
-Stage: 06-S1-create-order-conformance · retrieval date **2026-09-19** · revision 2 (AIDM added)
+Stage: 06-S1-create-order-conformance · retrieval date **2026-09-19** · revision 3 (AIDM maturity recorded) · HEAD `4e48447`
 
 Every vendor- or standards-specific claim used in `DOMAIN-BENCHMARK-MATRIX.md` traces to a row here. Where public material does not prove a detail, the row says `NOT PUBLICLY PROVEN` and the matrix must not assert it.
 
@@ -23,16 +23,28 @@ Pages were retrieved with the agent's web fetch (HTML → markdown → extractio
 | I6 | AIR Tech Zone "About ONE Order" | `https://airtechzone.iata.org/industry-programs/oo/` | Describes ONE Order as "a single Customer Order record, capturing all data elements obtained and required for order fulfillment of air travel" and states architectural principles only. Entity definitions live in AIDM, not on this page. | HIGH for the single-record principle |
 | I7 | "Business Reference Architecture" | `https://www.iata.org/reference-architecture` | The architecture "outlines the impact of the transition to Offers and Orders on various financial management capabilities, including **Customer Order Accounting, Partners/Suppliers Order Accounting**, General Accounting & Revenue Recognition, Corporate Finance, Treasury & Risks, Enterprise Performance Management, and Tax Management." It is "a framework, agnostic to specific technologies". | HIGH — corroborates that customer-payable accounting and partner/supplier settlement are **separate** capabilities |
 
-## IATA AIDM (public entity model) — added in revision 2
+## IATA AIDM (public entity model)
+
+**Revision 3 adds model maturity.** Retrieval confidence and model maturity are two different things and revision 2 recorded only the first. Each AIDM page states its own status; the four entity pages this audit reasons from are **Approved**, and the two distribution-chain pages are **Proposed**. A `Proposed` page is legitimate corroboration — it is IATA's own published model — but it is **not** normative authority, and no AeroTech shape is justified by a `Proposed` page alone.
+
+| Row | AIDM version | Page status | Used as | Retrieval confidence |
+|---|---|---|---|---|
+| M1 Order Item | 25.2 | **Approved** | normative corroboration (multi-item Order, item-level time limits, Commission association) | HIGH — page retrieved |
+| M2 Service | 25.2 | **Approved** | normative corroboration (one passenger × one segment; `Status Code` separate from `Delivery Status Code`; Interline Settlement Information) | HIGH — page retrieved |
+| M3 Commission | 24.1 | **Approved** | corroboration only — that settlement-adjacent remuneration carries codes and may be amount or percentage. **Not** the semantic authority for Pack 3.8's generic settlement category (see `OD-CLOSE-01`) | HIGH — page retrieved |
+| M4 Distribution Chain Role Code | 25.2 | **Proposed** | corroboration only — that Carrier / Distributor / Seller are chain roles rather than organisation types. No AeroTech field is justified by this row alone | HIGH — page retrieved |
+| M5 Price | 24.1 | **Approved** | normative corroboration (component summary beside a grand total, at Order and Order Item level) | HIGH — page retrieved |
+| M6 Distribution Chain Link | 25.2 | **Proposed** | not retrieved; **no claim is made from it** | `NOT RETRIEVED` |
+
 
 | # | Source | URL | Claim supported | Confidence |
 |---|---|---|---|---|
 | M1 | AIDM 25.2 **Order Item** | `https://airtechzone.iata.org/aidm_model/25.2/EARoot/EA6/EA1/EA2/EA7/EA10550.htm` | Definition: "An individually priced item within an Order, made up of one or more Services. May or may not be a selected Offer Item (e.g. non-chargeable Services available on request such as a wheelchair)." Attributes include Order Item Identifier, Status Code, Type Code, **Grand Total Amount**, and four separate limits (Payment, Price Guarantee, Ticketing, Naming Time Limit). Associations include Service (strong), Price (strong), **Commission (may be present)**, Change Restrictions, Cancel Restrictions, Penalty, Payment Information, Offer Item (weak). | HIGH |
 | M2 | AIDM 25.2 **Service** | `https://airtechzone.iata.org/aidm_model/25.2/EARoot/EA6/EA2/EA2/EA3/EA11503.htm` | Definition: "An instance of a specific flight or Service Definition as it has been offered (and eventually ordered and consumed) in the context of a specific Offer and/or Order." Constraint: "**At time of order, the services should be applied to a single passenger on a single segment.**" Transformation: "At time of Order Creation an Offered Service can become multiple services within the Order Item as the service is broken down per segment and passenger." Attributes include **Status Code** and, separately, **Delivery Status Code**. Associations from Passenger, Delivery Provider, Booking Reference, Validating Carrier, Responsible Airline, Interline Settlement Information. | HIGH |
 | M3 | AIDM 24.1 **Commission** | `https://airtechzone.iata.org/aidm_model/24.1/EARoot/EA6/EA1/EA2/EA11/EA11982.htm` | Definition: "A remuneration either an amount of money, or a set percentage of the value involved, **paid to an agent** in relations to a commercial transaction." Attributes (all 0..1): Amount, **Code**, **Commission Code**, Percentage Applied To Amount, Percentage Percent, Remark Text, Taxable Indicator. Associated with Order, Order Item, Offer Item, Interline Settlement Information, Price Quote, Ticket Document Information. | HIGH |
-| M4 | AIDM 25.2 **Distribution Chain Role Code** | `https://airtechzone.iata.org/aidm_model/25.2/EARoot/EA6/EA1/EA1/EA2/EA10203.htm` | "The list of allowable roles in a distribution chain": **Carrier** — "An organization which carries the passenger, baggage, or goods, and/or commits to delivering the carriage."; **Distributor** — "An organization that provides a distribution capability such as a certain type of Consolidator, an Aggregator, more generally an intermediary."; **Seller** — "An organization that offers a shopping capability to a shopper." Roles are defined "within the distribution chain mechanism itself, not an entity's primary business classification." | HIGH |
+| M4 *(Proposed)* | AIDM 25.2 **Distribution Chain Role Code** | `https://airtechzone.iata.org/aidm_model/25.2/EARoot/EA6/EA1/EA1/EA2/EA10203.htm` | "The list of allowable roles in a distribution chain": **Carrier** — "An organization which carries the passenger, baggage, or goods, and/or commits to delivering the carriage."; **Distributor** — "An organization that provides a distribution capability such as a certain type of Consolidator, an Aggregator, more generally an intermediary."; **Seller** — "An organization that offers a shopping capability to a shopper." Roles are defined "within the distribution chain mechanism itself, not an entity's primary business classification." | HIGH |
 | M5 | AIDM 24.1 **Price** | `https://airtechzone.iata.org/aidm_model/24.1/EARoot/EA6/EA1/EA3/EA1/EA3/EA12368.htm` | Definition: "An amount of money expected, required, or given in payment for something." Attributes include **Base Amount**, **Total Amount**, **Equivalent Amount**, Base Amount Guarantee Time Limit, Masked Indicator, Loyalty Unit Amount/Name. Associations include **Fee, Markup, Tax Summary, Discount, Surcharge, Currency Conversion**, Fare Component, Fare Detail, **Order (Total Price role)**, **Order Item**, Service (Internal Value role). | HIGH |
-| M6 | AIDM 25.2 Distribution Chain Link | `https://airtechzone.iata.org/aidm_model/25.2/EARoot/EA6/EA1/EA2/EA9/EA10652.htm` | Not separately retrieved in this run; no claim is made from it. | `NOT RETRIEVED` |
+| M6 *(Proposed)* | AIDM 25.2 Distribution Chain Link | `https://airtechzone.iata.org/aidm_model/25.2/EARoot/EA6/EA1/EA2/EA9/EA10652.htm` | Not separately retrieved in this run; no claim is made from it. | `NOT RETRIEVED` |
 
 ## Amadeus
 

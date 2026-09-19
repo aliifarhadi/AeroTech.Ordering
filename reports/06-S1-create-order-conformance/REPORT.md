@@ -1,33 +1,36 @@
 # S1 Create-Order Domain Benchmark & Conformance Audit
 
-**Revision 2** — corrected after independent review. Revision 1's executive conclusion is withdrawn.
+**Revision 3** — closure plan corrected after the second independent review. Revision 1's executive conclusion stays withdrawn; revision 2's diagnosis survives, but five of its recommendations and its scenario arithmetic do not.
 
 ## 1. Repository state
 
+Two states must be distinguished, because revision 2's wording no longer holds.
+
+**During the revision-2 audit run:** branch `k8s-stg`, HEAD `506cceeb4971dedce5d0905641f3250cd2e25459` ("reports"), worktree clean. That run committed nothing, and the statement "nothing committed" was accurate when it was written.
+
+**Current, and the baseline for this run:**
+
 - **Branch:** `k8s-stg`
-- **HEAD:** `506cceeb4971dedce5d0905641f3250cd2e25459` ("reports") — exactly the reviewer-observed commit, so nothing had advanced and no diff had to be inspected.
-- **Production/domain baseline parent:** `e86171103e9fef0b6a57a7895b32ccc87b0e5773` ("S1-Domain Repair").
-- **Worktree at start:** clean.
-- **Changed in this run:** `reports/06-S1-create-order-conformance/` only — eight documents updated, two added (`INDEPENDENT-REVIEW-CORRECTIONS.md`, `IMPLEMENTATION-PLAN.md`).
-- **Code changed:** **none.** No file under `src/`, `Contracts/`, `tests/` or `Migrations/`; no package reference; no public API.
+- **HEAD:** `4e48447f51ab2ecc1829f30ec1c14d759f2659f5` ("Reports Added")
+- **Parent:** `506cceeb4971dedce5d0905641f3250cd2e25459`
+- **What `4e48447` contains:** exactly the ten Stage-06 report files — eight modified, two added, 784 insertions, all under `reports/06-S1-create-order-conformance/`. Verified with `git diff --stat 506ccee HEAD`: **zero** changes under `src/`, `Contracts/`, `tests/` or `Migrations/`. The branch state is report-only.
+- **Worktree at the start of revision 3:** clean.
+- **Changed in this run:** `reports/06-S1-create-order-conformance/` only. **No file under `src/`, `Contracts/`, `tests/` or `Migrations/`; no package reference; no public API code; no migration.** Nothing committed in this run.
+- **Production/domain baseline:** `e86171103e9fef0b6a57a7895b32ccc87b0e5773` ("S1-Domain Repair") — unchanged since it landed.
 - **Historical evidence repository:** `E:\Projects\DotAir\Ordering` @ `077a851`, read only.
 
 ## 2. Authority and benchmark sources
 
 Authority order applied: owner decisions → Pack 3.8 → actual AeroTech contracts and observed wire → IATA standards and AIDM → Amadeus/Sabre/Navitaire → historical repository → engineering preference last.
 
-Revision 2 re-read `DOMAIN/01` §2–§3, `DOMAIN/02` §7–§23 and §46–§52, `DOMAIN/04` §5, `DOMAIN/06`, `CONTRACTS/02-AIROFFER` line 13, and `AuthorizedScopeResolver`, `CallerScopeKey`, `PricingArithmetic`, `PricingLineMatrix` and the status enums line by line — which is what revision 1 did not do.
+Revision 3 re-read `DOMAIN/02` §19 and §23, `DOMAIN/03` §11 and §13–§20, `DOMAIN/06` in full and `DOMAIN/07`, and traced `Order.SellingOfficeId`, `CandidateSalesContext`, `NormalizedCandidateJson`, `FundingObligation` with its EF configuration, `DocumentAuthority`, `FulfillmentDocumentKind`, `OrderProjectionJson.SchemaVersion` and both commercial-status enums line by line.
 
-**Benchmark sources: 15 rows in revision 1 → 23 in revision 2**, 17 carrying a positive claim. The new group is **IATA AIDM**, which revision 1 wrongly declared unavailable:
+**23 benchmark sources**, 17 carrying a positive claim. Revision 3 adds **model maturity** beside retrieval confidence, which revision 2 omitted:
 
-| AIDM entity | What it proves | Confidence |
+| AIDM row | Page status | Used as |
 |---|---|---|
-| **Order Item** (25.2) | "An individually priced item within an Order, made up of one or more Services." Associates **Commission ("may be present")**, Price, Change/Cancel Restrictions, Penalty. Carries Grand Total Amount and four separate time limits. | HIGH |
-| **Service** (25.2) | "**At time of order, the services should be applied to a single passenger on a single segment.**" "At time of Order Creation an Offered Service can become multiple services within the Order Item as the service is broken down per segment and passenger." Carries `Status Code` **and separately** `Delivery Status Code`. | HIGH |
-| **Commission** (24.1) | "A remuneration … **paid to an agent** …" Attributes: Amount, **Code**, **Commission Code**, Percentage Applied To Amount, Percentage Percent, Remark Text, Taxable Indicator — all 0..1. | HIGH |
-| **Distribution Chain Role Code** (25.2) | Carrier / Distributor / Seller, defined as roles "within the distribution chain mechanism itself, **not an entity's primary business classification**". | HIGH |
-| **Price** (24.1) | Base Amount, Total Amount, Equivalent Amount; associates Fee, Markup, **Tax Summary**, Discount, Surcharge, Currency Conversion, at **Order** and **Order Item** level. | HIGH |
-| **Reference Business Architecture** | Separates "**Customer Order Accounting**" from "**Partners/Suppliers Order Accounting**". | HIGH |
+| M1 Order Item, M2 Service, M3 Commission, M5 Price | **Approved** | normative corroboration |
+| M4 Distribution Chain Role Code, M6 Distribution Chain Link | **Proposed** | corroboration only — no AeroTech shape rests on these |
 
 Two limits stand: Sabre returns **HTTP 403** to this agent, so Sabre claims are capped at MEDIUM and no Sabre field is asserted; and IATA's Implementation Guides remain behind the developer portal, though AIDM does not.
 
@@ -35,11 +38,15 @@ Two limits stand: Sabre returns **HTTP 403** to this agent, so Sabre claims are 
 
 **`S1_CREATE_ORDER_DOMAIN_GAPS_FOUND`**
 
-Revision 1 concluded "only two small gaps" and `FIX_DOMAIN_DESIGN = 0`. **That conclusion is withdrawn.** It audited the concepts it went looking for and never walked `DOMAIN/01` §2, `DOMAIN/02` §48–52 or `DOMAIN/06` field by field against the code. Four of the five new gaps are single sentences in those three sections.
+Revision 2's substantive findings are all confirmed by the second review and stand: **4 blockers**, **3 domain-shape debts**, **1 governance contradiction**, `FIX_DOMAIN_DESIGN` = **7** rows. The core architecture remains sound and a rewrite is not justified.
 
-Corrected position: **4 S1 blockers**, **3 domain-shape debts**, **1 governance contradiction**, and `FIX_DOMAIN_DESIGN` = **7 rows**, not 0.
+What revision 3 changes is the **closure plan**, not the diagnosis:
 
-The core architecture remains sound and a rewrite is not justified: canonical Order boundary, accepted-source evidence, idempotency, SQL atomicity and concurrency, typed fare construction, segment/service ownership, offline projection rebuild, PII separation, and owner/payment/document/delivery boundaries all hold.
+- **Scenario arithmetic was broken.** The table said 9 incorrectly unsupported, the prose said 11, the enumeration listed 12, and the population compared against revision 1 was not the same population. Corrected to `61 business/domain + 12 reliability = 73`, one primary disposition per scenario, primary counts summing to 61, **12** incorrectly unsupported.
+- **One blocker was wrongly treated as free.** The lifecycle vocabulary correction is a shared-contract and public-wire change and needs owner approval — now **`OD-CLOSE-09`**. Only **A1** is unambiguous today.
+- **The office collision is a current public bug**, not only a provenance debt — traced through to `OrderDto.AirlineOfficeId`.
+- **Two plan items were missing entirely:** binding the repaired sales context into the accepted candidate digest, and the projection schema-4 transition.
+- **Four recommended shapes were wrong** and are corrected: component totals, funding scope, fulfillment document authority, and the settlement benchmark wording.
 
 ## 4. Critical S1 gaps
 
@@ -47,51 +54,55 @@ The core architecture remains sound and a rewrite is not justified: canonical Or
 
 `AirOfferSourceAdapter.Interpret` calls `Map(request.OfferId, envelope.Data, …)` and never compares `envelope.Data.OfferId`. Receiver-qualified search confirms it is read nowhere. The Order is accepted with the other offer's money, journeys, services and fare construction while `AcceptedSourceOfferId`, `ProductSourceOfferId` and the public `offerId` all claim the requested offer. This defeats INV-006's "no silent repricing".
 
-**Correction to revision 1:** revision 1 recommended tolerating a *missing* `data.offerId` because our C# mirror types it `string?`. The Pack is authority, not the mirror: `CONTRACTS/02-AIROFFER` line 13 lists `LastTicketingDate?` as the **only** optional root field. Closure target is strict on **both** missing and mismatched.
+Closure is strict on **both** missing and mismatched: `CONTRACTS/02-AIROFFER` line 13 makes `LastTicketingDate?` the only optional root field. **This is the one item that needs no owner answer.**
 
 ### 4.2 A settlement line can be accepted with no counterparty and no category
 
-`DOMAIN/03` §13 — "SettlementOnly requires party/category/currency." Neither exists in any layer. The owner kept the settlement half of SC-S1-013 in S1 (`S1-API-READABILITY-OWNER-DECISION` line 64), and there is no `SC_S1_013` test at any layer.
+`DOMAIN/03` §13 — "SettlementOnly requires party/category/currency." Neither exists in any layer. The owner kept the settlement half of SC-S1-013 in S1, and there is no `SC_S1_013` test at any layer.
 
-**Correction to revision 1:** it recommended a new `SettlementCategory` **enum**. AIDM models the category as a **Code** (Commission has `Code` and `Commission Code`, both 0..1), and inventing a closed vocabulary the owner has not defined is exactly what `GOVERNANCE/05` forbids. Corrected shape: `SettlementAttribution(PartyRef, CategoryCode)` — both source-owned strings, required iff `Effect == SettlementOnly`, with a SQL constraint preventing half-population.
+Shape: `SettlementAttribution(PartyRef, CategoryCode)` — both **opaque source/contract strings**, required iff `Effect == SettlementOnly`, a SQL check against half-population, settlement currency = the committed `SaleValue` currency.
 
-### 4.3 No immutable `SalesContext`, no `BuyerSnapshot`, seller organisation discarded *(new)*
+**Benchmark wording corrected.** Revision 2 claimed AIDM "models the category as a Code". That overstates M3, which proves only that **Commission** carries codes and may be an amount or a percentage. `CategoryCode` is an opaque code required by **Pack 3.8**; AIDM corroborates, it does not authorise. And settlement attribution is **not** commission-specific — `DOMAIN/03` §19–20 give Fee, Markup, Penalty and Discount their own settlement bases — so closure requires at least one **non-commission** `SettlementOnly` test (scenario 21).
 
-`DOMAIN/01` §2 requires an immutable `SalesContext` and a `BuyerSnapshot` **at accepted creation**. `DOMAIN/04` §5: "Buyer, financial Customer, Traveler, payer, agency/seller and actor are separate references … SalesContext … remain historical."
+### 4.3 No immutable `SalesContext`, no `BuyerSnapshot`, seller organisation discarded, office namespace already public
 
-Today:
-- `BuyerActorContextType` / `BuyerActorId` hold the **initiating actor** — `AirlineUserId`, `TravelAgencyUserId`, `PartnerApiAccessProfileId` or `ActorId` by surface. Naming an actor a buyer is a naming error with consequences.
-- On OtaPanel, `TravelAgencyId` is resolved to a `FinancialCustomerId` and then **dropped**. It survives only inside the `agency:{id}` fragment of the `CallerScope` **string** on `OrderPreparations` and `CommandReceipts` — so the fact is durable, but only as a parsed idempotency key, which is not a snapshot and is not queryable. Historical seller identity otherwise depends on mutable ReferenceData.
-- **A defect the reviewer did not name:** `Order.SellingOfficeId` is one untyped `long` holding **two namespaces** — airline office on Backoffice, travel-agency office on OtaPanel. A later join to an airline-office master silently mis-joins agency offices.
+`DOMAIN/01` §2 requires an immutable `SalesContext` **and** a `BuyerSnapshot` at accepted creation. `DOMAIN/04` §5: "Buyer, financial Customer, Traveler, payer, agency/seller and actor are separate references … SalesContext … remain historical."
 
-AIDM independently separates Carrier, Distributor and Seller as chain roles distinct from organisation type. Needs `OD-CLOSE-05`; do **not** build a distribution-chain engine — no surface supplies a chain.
+- `BuyerActorContextType` / `BuyerActorId` hold the **initiating actor**. `SalesContext` does not satisfy `BuyerSnapshot`; the Pack requires both, and **no surface supplies an independent buyer fact today**. Buyer must never be inferred from FinancialCustomer, Actor, Traveler or Seller.
+- On OtaPanel, `TravelAgencyId` is resolved to a `FinancialCustomerId` and dropped. It survives only inside the `agency:{id}` fragment of the `CallerScope` **string** — an idempotency key, never to be parsed into a snapshot.
+- **`SellingOfficeId` is a current public semantic bug.** Traced: `Order.cs:47` → `OrderProjectionBuilder.cs:19` → `OrderProjectionDocument.cs:15`, where the position is renamed **`AirlineOfficeId`** because both are positional records → `OrderProjectionMapper.cs:22` → `OrderDto.cs:14`. **A `GET` on an OtaPanel order returns a travel-agency office id under the field name `airlineOfficeId`.** Scope: the S1 outbox writes `IntegrationEvents.V2.OrderCreated`, which has no office field, so no integration event is affected.
+- **The repair must reach the accepted candidate.** `CandidateSalesContext` already participates in `NormalizedCandidateJson` under the `salesContext` key and therefore in the acceptance digest. Changing only `Order` would leave the accepted sales context outside the digest that proves it — the hole revision 2's plan left open.
 
-### 4.4 Commercial lifecycle vocabulary does not match the Pack *(new)*
+Needs `OD-CLOSE-05`, which now also carries the public-contract choice. Do **not** build a distribution-chain engine; no surface supplies a chain.
+
+### 4.4 Commercial lifecycle vocabulary does not match the Pack — and is a public-contract decision
 
 | Enum | Current | `DOMAIN/02` requires |
 |---|---|---|
-| `OrderServiceCommercialStatus` | `Pending, Active, Cancelled, Exchanged, Suspended` | §48: Pending, Active, Cancelled, **Replaced**, **Expired** |
-| `OrderItemCommercialStatus` | `Active, Replaced, Cancelled` | §52: Active, **PartiallyChanged**, Cancelled, Replaced, **Partitioned**, **Expired**, **Inactive** |
+| `OrderServiceCommercialStatus` | `Pending=1, Active=2, Cancelled=3, Exchanged=4, Suspended=5` | §48: Pending, Active, Cancelled, **Replaced**, **Expired** |
+| `OrderItemCommercialStatus` | `Active=1, Replaced=2, Cancelled=3` | §52: Active, **PartiallyChanged**, Cancelled, Replaced, **Partitioned**, **Expired**, **Inactive** |
 
-`Exchanged` is an operation outcome, not a canonical state. `Suspended` has no home on the commercial axis — §52 says "Fulfillment/delivery facets remain separate", and `OrderServiceDeliveryStatus` already exists. AIDM corroborates: Service carries `Status Code` and, separately, `Delivery Status Code`.
+`Exchanged` is an operation outcome; `Suspended` belongs to the delivery axis, where `OrderServiceDeliveryStatus` already exists. AIDM M2 separates `Status Code` from `Delivery Status Code`.
 
-No owner decision overrides the Pack here, so this is not a decision — it is a correction. Migration risk is low: `Exchanged` and `Suspended` are referenced **nowhere** in `src` or `tests`, and only `Active` is ever written. This is the cheapest moment in the project's life to fix it; after S5 it would mean migrating accepted rows.
+**Revision 2 recorded this as "not a decision". That was wrong on process.** Both enums are in shared `Contracts/AeroTech.Messages`, both are in the public `OrderDto`, and both serialize by name — a shared-contract and public-wire change under `GOVERNANCE/05`. It is now **`OD-CLOSE-09`**, with a recommended numbering that preserves every existing value: `Replaced = 4` and `Expired = 5` take the unused service slots, the item enum appends 4–7, and item `Replaced`/`Cancelled` are **not** renumbered to match prose order.
 
-## 5. Domain-shape debts — decide now, implement later
+Blast radius measured: `Exchanged` and `Suspended` are referenced nowhere in `src` or `tests`, and only `Active` is ever written. This is the cheapest moment to correct it; after S5 it would mean migrating accepted rows.
 
-| # | Debt | Pack text | Current | Why it cannot simply be deferred |
-|---|---|---|---|---|
-| 5.1 | `FulfillmentProfileSnapshot` covers 4½ of 8 semantics | `DOMAIN/02` §23 names resource quantity/**unit policy**, document requirement/type/**authority**, **delivery provider/control policy**, **dependency treatment**, **partial-fulfillment support** | `ProfileRef, ProfileVersion, Assurance, ReservationRequirement, DocumentKind, FundingRequirement, CapacityUnits` | revision 1 rated this `BLOCKED_OWNER_CONTRACT` and stopped, conflating blocked **values** with an incomplete **shape**. S2 is the first slice to need unit policy; adding it later rewrites accepted snapshots. `OD-CLOSE-07` |
-| 5.2 | `FundingObligation` has item scope only and no disposition | `DOMAIN/06`: "Service/**Item**/PricingLine scope … and **current disposition**" | `OrderItemId?` only | revision 1 called this "fully sufficient for S3" — **wrong**. A fee-only `MonetaryCharge` needs line scope; an S6 added service needs service scope. The **disposition vocabulary is not enumerated anywhere in `DOMAIN/06`**, so it must be asked, not invented. `OD-CLOSE-08` |
-| 5.3 | No persisted current component totals | `DOMAIN/01` §2: "Derived-but-persisted: CommercialSummary, CustomerTotal **and complete current component totals**" | only the first two | AIDM `Price` carries Base/Total plus Fee, Markup, **Tax Summary**, Discount, Surcharge at Order and Item level. Not information loss — the lines survive — but a Pack conformance gap revision 1 never raised. `OD-CLOSE-06` |
+## 5. Important but non-blocking gaps — domain shape decided now, code later
+
+| # | Debt | Pack text | Corrected position |
+|---|---|---|---|
+| 5.1 | `FulfillmentProfileSnapshot` | `DOMAIN/02` §23 names eight semantics | **Revision 2's analysis was wrong twice.** Coverage is **five of eight**, not "4½": `FulfillmentDocumentKind` (`None` / specific kind / `Unresolved`) already expresses document **requirement and type**, so no second flag should be added. And document **authority** is *not* an undefined vocabulary — `DOMAIN/07` defines LOCAL-AIRLINE / EXTERNAL and `DocumentAuthority { Local, External }` already exists in Contracts. Add `DocumentAuthority?` and a **nullable** `PartialFulfillmentSupported`; a non-nullable `false` would assert that partial fulfillment is unsupported, which no source has said. The three genuinely undefined policy semantics stay as source-owned opaque refs. `OD-CLOSE-07` |
+| 5.2 | `FundingObligation` scope and disposition | `DOMAIN/06`: "Service/**Item**/PricingLine scope … and **current disposition**" | **Revision 2's shape was wrong.** `ScopeKind + ScopeId` is a polymorphic FK that SQL Server cannot enforce, inside an aggregate whose other three references are real FKs. Corrected to `OrderItemId?` + `OrderServiceId?` + `PricingLineId?`, real FKs, CHECK exactly one non-null, typed `FundingObligationScope` in the Domain, no discriminator. "Every fee-only `MonetaryCharge` needs line scope" is withdrawn as overstated. S1 stays item-scoped; the **disposition vocabulary is not enumerated anywhere in `DOMAIN/06`** and must be asked. `OD-CLOSE-08` |
+| 5.3 | No persisted current component totals | `DOMAIN/01` §2: "complete current component totals" | **Revision 2's shape was insufficient.** A single unsigned `Amount` cannot hold a component with both debit and credit lines, and a signed net would contradict `DOMAIN/03` §11 — "Direction alone supplies sign". Corrected to `(OrderId, Component, Effect, DebitAmount, CreditAmount, CurrencyRef)`, net derived, all effects included, sale currency only, order level only, a deterministic summary and not a second source of truth. `OD-CLOSE-06` |
 
 ## 6. False alarms and concepts correctly deferred
 
-**Seat — unchanged and reconfirmed.** `DOMAIN/02`'s typed-details table gives **Seat** its own row ("Exactly one traveler and related air service; seat product/characteristics, requested seat when sold by identifier"), separate from the AirTransport row; `VERTICAL-SLICE-PLAN` puts it in **S6**. A sold seat product, a requested seat, a reserved inventory seat and a delivered/assigned DCS seat are four facts with four lifecycles. `AirTransportDetail` carries **no** seat field; the historical repository's `RequestedSeat` on the air detail is the precedent to avoid. AIDM M2 and Navitaire N3 ("communicate seat fees and assign or change seat assignments") corroborate seat merchandising as distinct from the flight. **`DEFER_IMPLEMENTATION` / `STRUCTURALLY_READY`, no S6 code.**
+**Seat — unchanged across all three revisions.** `DOMAIN/02`'s typed-details table gives Seat its own row, separate from the AirTransport row; `VERTICAL-SLICE-PLAN` puts it in **S6**. A sold seat product, a requested seat, a reserved inventory seat and a delivered/assigned DCS seat are four facts with four lifecycles. `AirTransportDetail` carries **no** seat field; the historical repository's `RequestedSeat` on the air detail is the precedent avoided. AIDM M2 and Navitaire N3 corroborate seat merchandising as distinct from the flight. **`STRUCTURALLY_READY`, no S6 code.**
 
-Also still correct from revision 1: the ETKT-coupon-entity rejection (the Pack calls AirOffer's coupons a priced projection), the route-shape fare-inference rejection, the generic-Order-TTL rejection, and the finding that the S1 path is not over-abstracted.
+**Interline settlement is *not* a current S1 gap — corrected in revision 3.** Revision 2 counted it as a second `CURRENT_S1_GAP`. Interline behaviour is not an S1 requirement and the owner never kept it in S1. Reclassified to **`FUTURE_DOMAIN_DEPENDENCY` + `BLOCKED_OWNER_CONTRACT` (BD-012)**. The only obligation it places on S1 is that `SettlementAttribution` be decided **generically** — which is why a non-commission test is now required. `CURRENT_S1_GAP` accordingly falls from 3 to **2**.
 
-**Historical repository comparison** is unchanged from revision 1 except for one row: `OrderPricingLine.SettlementPartyRef` / `.SettlementCategory` are confirmed as the one genuinely useful legacy semantic that must return — justified by `DOMAIN/03` §13 and AIDM Commission, with the legacy field only as corroboration, never as authority.
+Also still correct: the ETKT-coupon-entity rejection (the Pack calls AirOffer's coupons a priced projection), the route-shape fare-inference rejection, the generic-Order-TTL rejection, and the finding that the S1 path is not over-abstracted.
 
 ## 7. Pricing and settlement verdict
 
@@ -103,13 +114,15 @@ Also still correct from revision 1: the ETKT-coupon-entity rejection (the Pack c
 | Direction alone supplies sign | non-negative magnitudes + `PricingLineMatrix.Sign` | **PASS** |
 | **SettlementOnly requires party / category / currency** | **nowhere** | **FAIL** |
 
-**SC-S1-013.** The owner split it: the reversal half is deferred; the settlement/commission half "stays proven". Status of that retained half — arithmetic proven, but only on `PricedAmount` arrays in a pure domain test; matrix and SQL rules proven; **representation incomplete**; **end-to-end unproven**, with no `SC_S1_013` test at any layer and an AirOffer mapper that only ever emits `CustomerBalance`.
+**Agency commission.** `DOMAIN/03` §19–20 make settlement a property of Fee, Markup, Penalty and Discount as well as Commission, so the S1 fix must be generic rather than commission-shaped. AIDM M3 corroborates that commission is remuneration "paid to an agent" and may be amount or percentage; `PricingCalculationKind` is already the seam for the percentage case, and `OD-P-18` stays binding — AirOffer's `Amount` is never read as a percentage value.
 
-Scope boundary reaffirmed: Ordering preserves the accepted commercial/settlement fact and nothing more. No Commission aggregate, no commission calculation, no agency master, no BSP engine, no assumption that the settlement party equals the seller, and no percentage/basis numeric fields merely because AIDM supports them — `OD-P-18` stays binding for AirOffer.
+**SC-S1-013.** The owner split it: the reversal half is deferred, the settlement/commission half "stays proven". Status of that retained half — arithmetic proven, but only on `PricedAmount` arrays in a pure domain test; matrix and SQL rules proven; **representation incomplete**; **end-to-end unproven**, with no `SC_S1_013` test at any layer and an AirOffer mapper that only ever emits `CustomerBalance`.
+
+Scope boundary reaffirmed: Ordering preserves the accepted commercial/settlement fact and nothing more. No Commission aggregate, no commission calculation, no agency master, no BSP engine, and no assumption that the settlement party equals the seller.
 
 ## 8. AirOffer information-loss verdict
 
-Unchanged from revision 1 except the OfferId closure target.
+Unchanged.
 
 | Outcome | Count |
 |---|---|
@@ -117,87 +130,101 @@ Unchanged from revision 1 except the OfferId closure target.
 | Read and preserved, or provably derivable | **99** |
 | Deliberately ignored with a recorded reason | **3** — `CouponId`, `Coupon.Sequence`, `TravellerIndex` |
 | Blocked by an owner-contract gap | **2** — `Flight.Stop`, `Leg.Stop` (`OD-P-12`, handoff `OR-002`) |
-| Lost | **1** — `Details.OfferId`, lost as a **validation** (now strict on missing **and** mismatched) |
+| Lost | **1** — `Details.OfferId`, lost as a **validation**, strict on missing and mismatched |
 | Silently lost with no reason recorded | **0** |
 
 The rate-of-exchange limit stands: the recorded live response references a period whose own currencies (`71 → 70`) do not correspond to the line's (`155 → 70`). Evidence is preserved verbatim; nothing interprets it; the meaning sits inside `OR-002`.
 
 ## 9. Scenario coverage verdict
 
-Expanded from 43 to **61** scenarios; revision 1 never probed the item-composition boundary, the party/role boundary, or seven pricing boundaries.
+**Accounting corrected.** Revision 2's totals did not close, and its growth comparison mixed two populations.
 
-| Outcome | Rev 1 | Rev 2 |
-|---|---|---|
-| Representable **and** tested | 24 | **26** |
-| Representable but untested | 9 | **24** |
-| Correctly deferred | 4 | **4** |
-| **Incorrectly unsupported** | 2 | **11** |
-| Blocked by owner semantics | 4 | **4** |
+`61 business/domain (1–61) + 12 reliability (R1–R12) = 73 total.` Revision 1's 43 was 31 business/domain + 12 reliability, so like-for-like growth is **31 → 61**, not 43 → 61. Every business/domain scenario now has exactly **one primary disposition**, and the primary counts sum to 61 with no overlap subtraction anywhere.
 
-The 11 incorrectly unsupported: four party/role (agency identity survives a ReferenceData change; the four roles are not conflated; the partner profile is not a buyer; office namespaces distinguished), five settlement (amount-based commission end to end; reject with no attribution; reject with half attribution; category preserved losslessly; two counterparties stay distinct), one component-total reconciliation, and two contract fail-closed (`offerId` missing, `offerId` mismatched).
+| Primary disposition | Count |
+|---|---|
+| `TESTED` | **24** |
+| `UNTESTED` — representable, but no test asserts the scenario's own claim | **24** |
+| `UNSUPPORTED` — cannot be represented today and should be | **12** |
+| `DEFERRED` — content belongs to a later slice | **1** |
+| **Total business/domain** | **61** |
+| Reliability (R1–R12), all proven | 12 |
+| **Total** | **73** — 36 proven |
 
-The jump from 2 to 11 is not new breakage — it is coverage revision 1 never attempted.
+The 12 `UNSUPPORTED`: 4 party/role (8, 9, 11, 12), 5 settlement (17–21), 1 component totals (38), 2 contract fail-closed (54, 55). That matches the reviewer's own enumeration; revision 2's "9" and "11" were both wrong.
+
+`TESTED` fell 26 → 24 because revision 3 applies a stricter rule — a scenario counts as tested only when a named test asserts **its own** claim, not an adjacent rule — which moved scenarios 25, 27, 44 and 58 to `UNTESTED`. **No test was removed, disabled or weakened.**
+
+Four owner-blocked facts (infant/BD-002, `Stop`, bound `direction`, root `journeyType`) are now **secondary tags on their host scenarios**, not a sixth primary bucket. Counting them as a bucket is why revision 2's columns did not sum.
 
 Pack reconciliation unchanged: 19 of 21 `SC-S1-*` have named tests; `SC-S1-014` is absent by ratified owner decision; `SC-S1-013` is absent and only half-ratified.
 
 ## 10. Full-domain future readiness
 
-Revision 1's "13 of 14 families clean `DEFER_IMPLEMENTATION`" is **withdrawn**; it collapsed "is the behavior deferred" and "is the shape correct" into one answer. Reclassified:
+Six classes, one primary per family, fifteen families:
 
 | Classification | Families |
 |---|---|
 | `STRUCTURALLY_READY` | **5** — seat/ancillary, exchange fare graph, disruption, delivery, traveler correction |
-| `ADDITIVE_FUTURE_EXTENSION` | **2** — refund, group (plus split's lineage half) |
 | `DOMAIN_SHAPE_GAP` | **5** — reservation snapshot, funding scope/disposition, document authority, cancellation vocabulary, split status |
-| `BLOCKED_OWNER_CONTRACT` | **5** value-side blocks — BD-002/003, BD-006, BD-010, BD-012 |
-| `CURRENT_S1_GAP` | **3** — agency settlement, interline settlement, accepted sales provenance |
+| `ADDITIVE_FUTURE_EXTENSION` | **2** — refund, group (plus split's lineage half) |
+| `FUTURE_DOMAIN_DEPENDENCY` *(new class)* | **1** — interline/partner settlement |
+| `CURRENT_S1_GAP` | **2** — agency settlement, accepted sales provenance *(was 3)* |
+| **Total** | **15** |
+
+`BLOCKED_OWNER_CONTRACT` is a **secondary** tag on 5 families (BD-002/003, BD-006, BD-010, BD-012) and is never added into the primary totals.
 
 Three S1 decisions that genuinely improved future readiness still stand: seat stayed out of `AirTransportDetail`; the fare-construction graph became typed; `ScopeAtAssociation` was added to the item–service link.
 
 ## 11. Code simplicity and readability findings
 
-Unchanged except finding 1, whose fix is now scoped so the **canonical candidate JSON and every accepted digest stay byte-identical** — only the in-memory model becomes typed. Revision 1's version would have been a breaking change to the acceptance contract, not a simplification.
+Unchanged. Finding 1's fix stays scoped so the **canonical candidate JSON and every accepted digest remain byte-identical** — only the in-memory model becomes typed — and it stays a post-closure item, which is exactly how `OD-C-09` splits.
 
-Deliberately retained and recorded so nobody "simplifies" them later: the single-entry `ServiceDetailSchemaRegistry` (it is the SC-S1-021 gate), the three mirrored model families (the Pack requires the separation), the four per-surface command triplets (a ratified owner decision), and the `20288` throw in `OrderProjectionMapper`.
+Deliberately retained so nobody "simplifies" them later: the single-entry `ServiceDetailSchemaRegistry` (the SC-S1-021 gate), the three mirrored model families (the Pack requires the separation), the four per-surface command triplets (a ratified owner decision), and the `20288` throw in `OrderProjectionMapper`.
 
-The inverted result holds and strengthens: the real problems in this path are **missing checks and missing accepted facts**, not excess machinery.
+The inverted result holds: the real problems in this path are **missing checks and missing accepted facts**, not excess machinery.
 
 ## 12. Open owner decisions
 
-| ID | Title | Status |
+| ID | Title | State in revision 3 |
 |---|---|---|
-| `OD-CLOSE-01` | Settlement attribution on a pricing line | **recommendation corrected** — source-owned `CategoryCode`, not a new enum |
-| `OD-CLOSE-02` | Fail-closed check on `data.offerId` | **recommendation corrected** — strict on missing **and** mismatched |
-| `OD-CLOSE-03` | Reconcile the stage-04 cleanup decisions | **reframed** — reconciliation table, not eight blanket answers; `OD-C-04` carries a genuine contradiction |
+| `OD-CLOSE-01` | Settlement attribution on a pricing line | **benchmark wording narrowed**; shape unchanged; non-commission test added |
+| `OD-CLOSE-02` | Fail-closed check on `data.offerId` | unchanged — strict on missing and mismatched |
+| `OD-CLOSE-03` | Reconcile the stage-04 cleanup decisions | reconciliation table; `OD-C-04` contradiction; a recommended answer per row |
 | `OD-CLOSE-04` | Public exposure of pricing code and name | unchanged; explicitly **not** a domain blocker |
-| `OD-CLOSE-05` | Accepted Buyer / Seller / SalesContext snapshot | **new** — includes the per-surface availability table |
-| `OD-CLOSE-06` | Component totals semantics | **new** |
-| `OD-CLOSE-07` | FulfillmentProfileSnapshot target shape | **new** |
-| `OD-CLOSE-08` | FundingObligation scope and disposition | **new** |
+| `OD-CLOSE-05` | SalesContext / BuyerSnapshot / InitiatingActor | **expanded** — three separate snapshots, candidate-digest binding, public office-contract choice |
+| `OD-CLOSE-06` | Component totals | **shape corrected** — debit/credit pair |
+| `OD-CLOSE-07` | FulfillmentProfileSnapshot | **analysis corrected** — authority vocabulary already exists; nullable partial-fulfillment |
+| `OD-CLOSE-08` | FundingObligation scope and disposition | **shape corrected** — three real FKs with an exactly-one CHECK |
+| **`OD-CLOSE-09`** | **Commercial lifecycle vocabulary — shared contract and public wire** | **new** |
+
+Every `Answer:` line is empty. Nothing anywhere in this bundle is an accepted decision; everything under a **Recommendation** heading is a recommendation.
 
 Open elsewhere and not duplicated: `OD-P-12` (AirOffer `Stop`, `direction`, `journeyType` — handoff `OR-002`) and BD-001 … BD-013.
 
-**`OD-C-04` contradiction, recorded explicitly:** `S1-API-READABILITY-OWNER-DECISION` line 60 says `GetOperation` "remains reachable on the internal surface only"; `S1-CLEANUP-OPEN-DECISIONS` `OD-C-04` says the query, read model and routes were deleted entirely; the code has **no** `GetOperation` on any surface. The implementation followed the report, not the decision. Revision 1 missed this.
+**`OD-C-04` contradiction, unchanged:** `S1-API-READABILITY-OWNER-DECISION` line 60 says `GetOperation` "remains reachable on the internal surface only"; `OD-C-04` says the query, read model and routes were deleted entirely; the code has **no** `GetOperation` on any surface. The implementation followed the report, not the decision.
 
 ## 13. Recommended repair scope
 
-Detail in `IMPLEMENTATION-PLAN.md`. Summary:
+Detail in `IMPLEMENTATION-PLAN.md`.
 
-**A — before S1 approval.** A1 `offerId` fail-closed *(unambiguous, can start now)*; A2 `SettlementAttribution`; A3 `SalesContext`/seller snapshot and the office-namespace fix; A4 lifecycle vocabulary *(unambiguous, can start now)*; A5 component totals; A6 the missing tests *(20 of them need no new field and can start now)*; A7 the `OD-C-04` reconciliation.
+**A — before S1 approval.** A1 `offerId` fail-closed *(the only unambiguous item; can start now)*; A2 `SettlementAttribution`; A3 sales context + buyer + actor + office kind, **including the canonical candidate and its digest**; A4 lifecycle vocabulary *(now gated on `OD-CLOSE-09`)*; A5 component totals; A6 the missing tests *(20 of the 24 need no new field and can start now)*; A7 the `OD-C-04` reconciliation; **A8 projection schema 4** *(new)*.
 
-**B — shape decided now, implementation later.** B1 the four remaining fulfillment-profile semantics, plus `PartialFulfillmentSupported` now because the Pack defines it without needing a vocabulary; B2 funding-obligation scope shape now, disposition vocabulary asked not invented.
+**A8 in brief:** schema 2 and schema 3 stay readable; schema 4 becomes current for all new writes and deterministic rebuilds; no facts are fabricated when reading 2 or 3; the deterministic rebuild is the upgrade path, so schema 3 is never mutated in place; stale-rebuild concurrency is unchanged; R13 covers 2→4 and 3→4.
 
-**C — explicitly deferred behavior.** Reservation, payment, documents, cancellation, ancillary add, seat assignment, allocation and reversal, refund, exchange, disruption, delivery, split, group, interline — no code, no tables, no handlers.
+**B — shape decided now, implementation later.** B1 fulfillment profile (`DocumentAuthority?` and a nullable `PartialFulfillmentSupported` now; three opaque policy refs with the slices that need them); B2 funding-scope FKs now, disposition vocabulary asked rather than invented.
+
+**C — explicitly deferred behaviour.** Reservation, payment, documents, cancellation, ancillary add, seat assignment, allocation and reversal, refund, exchange, disruption, delivery, split, group, **interline** — no code, no tables, no handlers.
 
 **D — post-closure simplifications.** Typed in-memory candidate detail with an unchanged canonical digest; the candidate-member reflection guard; the `Map` method extraction.
 
-One additive migration covers A2, A3, A4's guard, A5 and B1's boolean. Pre-repair rows receive honest `NotSupplied` values and are never back-derived from today's ReferenceData.
+**Migration strategy — revision 2's "one migration for the whole batch" is withdrawn.** These changes have different authorities, different owner answers, different backfill semantics and different verification needs; batching them makes each un-revertable without the others. Replaced by: one migration per coherent decision; honest backfill (`NotSupplied` / null / unresolved — never back-derived from today's ReferenceData and never parsed out of a `CallerScope` string); every new reference a **real FK** and every conditional-presence rule a **SQL CHECK**; each migration naming the decision that authorised it, with guard migrations failing loudly rather than coercing a value; and an upgrade test per migration asserting that accepted rows survive without invented facts, plus the digest (R14) and rebuild (R13) transition tests.
 
 ## 14. S1 status
 
 `S1_NOT_READY_FOR_APPROVAL`
 
-Four blockers must close (4.1–4.4), four new owner decisions must be answered (`OD-CLOSE-05` … `-08`), two recommendations have been corrected (`OD-CLOSE-01`, `-02`), and the scenario closure plan must be executed. None of this requires a rewrite; the architecture is sound.
+Four blockers must close (4.1–4.4), **nine** owner decisions must be answered, and the scenario closure plan must be executed. Only **A1** and the 20 field-independent tests can proceed today; A4 is no longer free. None of this requires a rewrite; the architecture is sound.
 
 ## 15. S2 status
 

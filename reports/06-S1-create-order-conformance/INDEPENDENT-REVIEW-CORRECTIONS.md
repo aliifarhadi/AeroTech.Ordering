@@ -1,8 +1,41 @@
 # Independent Review — Corrections Applied
 
-Stage: 06-S1-create-order-conformance · corrected 2026-09-19 · HEAD `506ccee`
+Stage: 06-S1-create-order-conformance · **revision 3** · 2026-09-19 · HEAD `4e48447`
 
-Every claim in the independent review was re-checked against Pack 3.8, the actual source, the actual migrations and public IATA AIDM. The previous report is not defended. Where the reviewer is right, the evidence is quoted; where a correction needs refining, that is stated too.
+Two independent reviews have now been answered. Neither previous report is defended: every claim was re-checked against Pack 3.8, the actual source, the actual migrations and public IATA AIDM, and where a prior recommendation was wrong it is withdrawn in place rather than argued.
+
+---
+
+# Round 2 — review of revision 2
+
+The reviewer's repository-state correction is accepted: revision 2 **was** committed as `4e48447` ("Reports Added") after the run that produced it ended. That commit contains exactly the ten Stage-06 report files — eight modified, two added — and **zero** changes under `src/`, `Contracts/`, `tests/` or migrations. The claim "nothing committed" was true when it was written and is no longer true; revision 3 states both, which is what `REPORT.md` §1 now does.
+
+## Round-2 verdict table
+
+| # | Reviewer claim | Verdict | What changed in revision 3 |
+|---|---|---|---|
+| 1 | Scenario counts are internally inconsistent (table 9, prose 11, enumeration 12) and "43 → 61" is not apples-to-apples | **Confirmed — all three defects reproduce** | the matrix now states `61 business/domain + 12 reliability = 73`, gives every scenario exactly **one primary disposition**, and the five primary counts sum to 61. Like-for-like growth is restated as **31 → 61**. The true `UNSUPPORTED` count is **12**, which matches the reviewer's own enumeration. Overlap subtraction is gone |
+| 2 | The lifecycle correction is **not self-authorizing** — it is a shared-contract and public-wire change | **Confirmed — revision 2 was wrong on process** | revision 2 listed this under "explicitly not a decision". It is now **`OD-CLOSE-09`**, and `IMPLEMENTATION-PLAN` A4 waits for it. The recommended numbering preserves every existing value, exactly as proposed |
+| 3 | `SellingOfficeId` is already a **public** semantic bug, not only a provenance debt | **Confirmed, and traced end to end** | `Order.cs:47` → `OrderProjectionBuilder.cs:19` → `OrderProjectionDocument.cs:15` (`AirlineOfficeId`) → `OrderProjectionMapper.cs:22` → `OrderDto.cs:14`. The rename happens silently because both are positional records. `OD-CLOSE-05` now carries the public-contract choice (clean rename vs deprecated compatibility field). **Scope refinement:** the S1 outbox writes `IntegrationEvents.V2.OrderCreated`, which has no office field, so no integration event is affected; `V1.OrderCreated` does carry `AirlineOfficeId` but is not on the S1 path |
+| 4 | A3 does not bind the repaired sales context into the **accepted candidate digest** | **Confirmed — a real hole in revision 2's plan** | `CandidateSalesContext(OwnerAirlineId, FinancialCustomerId, Channel, SellingOfficeId)` already participates in `NormalizedCandidateJson` under the `salesContext` key. A3 now changes the candidate record, the writer **and** reader, the canonicalization version, preparation read compatibility, and carries digest tests. The `agency:{id}` fragment is restated as an idempotency key that must never be parsed into a snapshot |
+| 5 | `SalesContext` does not satisfy `BuyerSnapshot`; the Pack requires both | **Confirmed** | `OD-CLOSE-05` now decides **three** separate things — `SalesContextSnapshot`, `BuyerSnapshot`, `InitiatingActor` — and records that no surface supplies an independent buyer fact today. Explicit `NotSupplied` is offered as an owner choice, never as a default, and Buyer is never inferred from FinancialCustomer, Actor, Traveler or Seller |
+| 6 | Projection schema transition is missing from A2/A3/A5 | **Confirmed** | new **A8**: schema 2 and 3 stay readable, schema 4 becomes current, no facts are fabricated when reading 2 or 3, the deterministic rebuild is the upgrade path, stale-rebuild concurrency is unchanged, and R13 covers 2→4 and 3→4. Schema 3 is not mutated in place |
+| 7 | Settlement benchmark wording is too strong | **Confirmed** | revision 2 wrote that "AIDM models the category as a Code". That overstates M3. The corrected statement: `CategoryCode` is an **opaque source/contract-owned** settlement-category code required by Pack 3.8; AIDM corroborates that commission carries codes and is not the authority for AeroTech's generic category. Settlement currency is restated as the committed **`SaleValue`** currency, and a **non-commission `SettlementOnly`** test is now required (scenario 21, replacing revision 2's second commission scenario) |
+| 8 | Component totals lose direction semantics under one unsigned `Amount` | **Confirmed** | `DOMAIN/03` §11 — amounts are nonnegative magnitudes and Direction alone supplies sign. `OD-CLOSE-06` now recommends `(OrderId, Component, Effect, DebitAmount, CreditAmount, CurrencyRef)` with net derived, all effects included, sale currency only, order level only, summary not canonical |
+| 9a | Document authority is **not** an undefined vocabulary | **Confirmed — revision 2 was factually wrong** | `DOMAIN/07` defines LOCAL-AIRLINE / EXTERNAL and `DocumentAuthority { Local = 1, External = 2 }` already exists in `Contracts/AeroTech.Messages/Ordering/Enums`, used by `ElectronicTicketIssued` and `ElectronicMiscDocumentIssued`. Only the **live value** is unresolved. **Additional finding of this round:** `FulfillmentDocumentKind` (`None` / specific kind / `Unresolved`) already expresses document **requirement and type** together, so no separate `DocumentRequired` flag should be added — which raises the snapshot's true coverage from "4½ of 8" to **five of eight** |
+| 9b | `PartialFulfillmentSupported` must allow unknown | **Confirmed** | a non-nullable bool backfilled `false` asserts that partial fulfillment is unsupported, which no source has stated. Corrected to a **nullable** bool. The three genuinely undefined policy semantics stay as source/profile-owned opaque refs |
+| 10 | `ScopeKind + ScopeId` is a polymorphic FK that SQL Server cannot enforce | **Confirmed — revision 2's recommendation is withdrawn** | corrected to `OrderItemId?` + `OrderServiceId?` + `PricingLineId?`, real FKs, CHECK exactly one non-null, typed `FundingObligationScope` in the Domain, no discriminator. Revision 2's "every fee-only `MonetaryCharge` needs line scope" is also withdrawn as overstated. S1 stays item-scoped; disposition stays owner-required; `ObligationRevision` stays S3 |
+| 11 | Interline settlement is not a separate current S1 blocker | **Confirmed** | reclassified to **`FUTURE_DOMAIN_DEPENDENCY` + `BLOCKED_OWNER_CONTRACT` (BD-012)** in both `FUTURE-READINESS` (family 13) and the benchmark matrix (L20). `CURRENT_S1_GAP` falls from 3 to **2**. The only S1 obligation it imposes is that `SettlementAttribution` be decided generically |
+| 12 | AIDM maturity should be recorded separately from retrieval confidence | **Confirmed** | `BENCHMARK-SOURCES` now records page status: Order Item, Service, Commission and Price are **Approved**; Distribution Chain Role Code and Distribution Chain Link are **Proposed** and are used as corroboration only. No AeroTech shape rests on a `Proposed` page |
+| 13 | Recommendations must not read as accepted decisions | **Confirmed** | `OPEN-DECISIONS` now states at the top that nothing is accepted until the owner writes on an `Answer:` line, and every `Answer:` line remains empty |
+
+**Net effect on the headline numbers:** blockers stay at 4 but one of them (A4) becomes decision-gated rather than free; `CURRENT_S1_GAP` falls 3 → 2; `UNSUPPORTED` scenarios rise 9/11 → **12** with the arithmetic now closing; open decisions rise 8 → **9**; two plan items (candidate digest binding, projection schema 4) that revision 2 omitted entirely are added.
+
+---
+
+# Round 1 — review of revision 1
+
+Everything below is unchanged from revision 2 except where round 2 supersedes it, which the rows above state explicitly.
 
 ## Verdict table
 

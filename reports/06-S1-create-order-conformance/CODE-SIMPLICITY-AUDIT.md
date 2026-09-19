@@ -1,6 +1,6 @@
 # Code Simplicity and Maintainability Audit
 
-Stage: 06-S1-create-order-conformance · **revision 2** · 2026-09-19 · HEAD `506ccee`
+Stage: 06-S1-create-order-conformance · **revision 3** · 2026-09-19 · HEAD `4e48447`
 
 Findings are unchanged except finding 1, whose proposed change would have altered the canonical candidate JSON and therefore every accepted digest. Corrected below.
 

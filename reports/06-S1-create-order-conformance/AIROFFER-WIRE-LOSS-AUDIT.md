@@ -1,6 +1,6 @@
 # AirOffer Wire-to-Domain Loss Audit
 
-Stage: 06-S1-create-order-conformance · **revision 2** · 2026-09-19 · HEAD `506ccee`
+Stage: 06-S1-create-order-conformance · **revision 3** · 2026-09-19 · HEAD `4e48447`
 
 Field enumeration and destinations are unchanged from revision 1 and were re-verified. Only the §9 closure target changed.
 
