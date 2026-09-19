@@ -1,16 +1,13 @@
 using AeroTech.Framework.Core.Domain.Aggregates;
-using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.Resources;
 using AeroTech.Ordering.Domain._Shared.Serialization;
-using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Arguments;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Contracts;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Entities;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
-using AeroTech.Messages.Shared.Enums;
 
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
 {
@@ -27,15 +24,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
 
         public long FinancialCustomerId { get; private set; }
 
-        public SalesChannel Channel { get; private set; }
-
-        public long? SellingOfficeId { get; private set; }
-
         public string CallerScope { get; private set; } = null!;
-
-        public BusinessContextType ActorContextType { get; private set; }
-
-        public long? ActorId { get; private set; }
 
         public string SourceOwner { get; private set; } = null!;
 
@@ -63,19 +52,9 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
 
         public DateTimeOffset CapturedAt { get; private set; }
 
-        public ValidityFact OfferValidity { get; private set; } = null!;
+        public DateTimeOffset? OfferExpiresAt { get; private set; }
 
-        public ValidityFact PriceValidity { get; private set; } = null!;
-
-        public ValidityFact TicketingValidity { get; private set; } = null!;
-
-        public string? ClientReference { get; private set; }
-
-        public long? ConsumedByOrderId { get; private set; }
-
-        public DateTimeOffset? ConsumedAt { get; private set; }
-
-        public DateTimeOffset CreatedAt { get; private set; }
+        public DateTimeOffset? PriceValidUntil { get; private set; }
 
         public IReadOnlyCollection<PreparationSourceEvidence> Evidence => _evidence.AsReadOnly();
 
@@ -91,18 +70,12 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
             if (!string.Equals(args.Candidate.Source.SourcePayloadHash, args.Evidence.PayloadHash, StringComparison.Ordinal))
                 throw ExceptionFactory.CandidateContractMismatch("candidate source payload hash differs from the captured evidence");
 
-            var candidateJson = NormalizedCandidateJson.Write(args.Candidate);
-
             var preparation = new OrderPreparation
             {
                 Id = args.PreparationId,
                 OwnerAirlineId = args.Scope.OwnerAirlineId,
                 FinancialCustomerId = args.Scope.FinancialCustomerId,
-                Channel = args.Scope.Channel,
-                SellingOfficeId = args.Scope.SellingOfficeId,
                 CallerScope = args.Scope.CallerScope,
-                ActorContextType = args.Scope.ActorContextType,
-                ActorId = args.Scope.ActorId,
                 SourceOwner = args.Candidate.Source.Owner,
                 SourceOfferId = args.Candidate.Source.OfferId,
                 ProviderProfileId = args.Profile.ProviderProfileId,
@@ -112,14 +85,11 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
                 OwnerBindingRef = args.Candidate.Source.OwnerBindingRef,
                 SourcePayloadHash = args.Candidate.Source.SourcePayloadHash,
                 CanonicalizationVersion = CanonicalJson.Version,
-                CandidateJson = candidateJson,
+                CandidateJson = NormalizedCandidateJson.Write(args.Candidate),
                 PricedAt = args.Candidate.PricedAt,
                 CapturedAt = args.Candidate.CapturedAt,
-                OfferValidity = args.Candidate.Validity.Offer,
-                PriceValidity = args.Candidate.Validity.Price,
-                TicketingValidity = args.Candidate.Validity.Ticketing,
-                ClientReference = args.ClientReference,
-                CreatedAt = args.CreatedAt,
+                OfferExpiresAt = args.Candidate.OfferExpiresAt,
+                PriceValidUntil = args.Candidate.PriceValidUntil,
                 _candidate = args.Candidate
             };
 
@@ -136,38 +106,22 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
             return preparation;
         }
 
-        public bool IsConsumed => ConsumedByOrderId is not null;
-
-        public IReadOnlyList<ValidityFact> ValidityFacts => [OfferValidity, PriceValidity, TicketingValidity];
-
         public void EnsureAcceptable(IAcceptanceProfilePolicy policy, DateTimeOffset now)
         {
-            if (ConsumedByOrderId is { } orderId)
-                throw ExceptionFactory.PreparationAlreadyConsumed(Id, orderId);
-
             if (!policy.Permits(AcceptanceProfile))
                 throw ExceptionFactory.AcceptanceProfileNotPermitted(AcceptanceProfile, policy.EnvironmentClass);
 
-            EnsureValidity("offer", OfferValidity, now);
-            EnsureValidity("price", PriceValidity, now);
+            EnsureValidity("offer", OfferExpiresAt, now);
+            EnsureValidity("price", PriceValidUntil, now);
         }
 
-        public void Consume(long orderId, DateTimeOffset at)
+        private void EnsureValidity(string subject, DateTimeOffset? validUntil, DateTimeOffset now)
         {
-            if (ConsumedByOrderId is { } existing)
-                throw ExceptionFactory.PreparationAlreadyConsumed(Id, existing);
+            if (validUntil is { } expiry && expiry <= now)
+                throw ExceptionFactory.SourceValidityExpired(subject, SourceOwner, expiry);
 
-            ConsumedByOrderId = orderId;
-            ConsumedAt = at;
-        }
-
-        private void EnsureValidity(string subject, ValidityFact fact, DateTimeOffset now)
-        {
-            if (fact.IsExpiredAt(now))
-                throw ExceptionFactory.SourceValidityExpired(subject, fact.Owner, fact.Value!.Value);
-
-            if (fact.State == ValidityState.NotSupplied && AcceptanceAssurance == AcceptanceAssurance.OwnerBound)
-                throw ExceptionFactory.SourceValidityNotEstablished(subject, fact.State);
+            if (validUntil is null && AcceptanceAssurance == AcceptanceAssurance.OwnerBound)
+                throw ExceptionFactory.SourceValidityNotEstablished(subject, SourceOwner);
         }
 
         private string ComputeDigest() => CanonicalJson.Sha256Hex(CanonicalJson.Write(new Dictionary<string, object?>(StringComparer.Ordinal)
@@ -180,8 +134,6 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate
             {
                 ["ownerAirlineId"] = CanonicalJson.Identifier(OwnerAirlineId),
                 ["financialCustomerId"] = CanonicalJson.Identifier(FinancialCustomerId),
-                ["channel"] = CandidateVocabulary.Name(Channel),
-                ["sellingOfficeId"] = CanonicalJson.Identifier(SellingOfficeId),
                 ["callerScope"] = CallerScope
             },
             ["candidate"] = NormalizedCandidateJson.ToNode(Candidate)

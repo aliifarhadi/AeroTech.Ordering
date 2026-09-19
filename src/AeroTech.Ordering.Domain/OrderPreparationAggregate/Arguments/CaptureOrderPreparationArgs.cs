@@ -11,6 +11,5 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Arguments
         NormalizedCandidate Candidate,
         OfferSourceProfile Profile,
         SourceEvidence Evidence,
-        string? ClientReference,
-        DateTimeOffset CreatedAt);
+        DateTimeOffset CapturedAt);
 }

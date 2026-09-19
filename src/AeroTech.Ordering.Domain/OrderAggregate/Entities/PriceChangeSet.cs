@@ -15,8 +15,6 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             long changeId,
             int financialSequence,
             PriceChangeReason reason,
-            string sourceDecisionRef,
-            int baseCommercialVersion,
             DateTimeOffset committedAt)
         {
             Id = id;
@@ -24,8 +22,6 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             ChangeId = changeId;
             FinancialSequence = financialSequence;
             Reason = reason;
-            SourceDecisionRef = sourceDecisionRef;
-            BaseCommercialVersion = baseCommercialVersion;
             CommittedAt = committedAt;
         }
 
@@ -36,10 +32,6 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         public int FinancialSequence { get; private set; }
 
         public PriceChangeReason Reason { get; private set; }
-
-        public string SourceDecisionRef { get; private set; } = null!;
-
-        public int BaseCommercialVersion { get; private set; }
 
         public DateTimeOffset CommittedAt { get; private set; }
     }

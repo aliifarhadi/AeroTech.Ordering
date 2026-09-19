@@ -14,26 +14,23 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         {
             Id = id;
             OrderId = orderId;
-            SourceBoundRef = source.JourneyRef;
+            BoundId = source.BoundId;
             Sequence = source.Sequence;
-            SourceDirectionRaw = source.SourceDirectionRaw;
             Direction = source.Direction;
-            OriginRef = source.OriginRef;
-            DestinationRef = source.DestinationRef;
+            OriginAirportId = source.OriginAirportId;
+            DestinationAirportId = source.DestinationAirportId;
         }
 
         public long OrderId { get; private set; }
 
-        public string SourceBoundRef { get; private set; } = null!;
+        public string BoundId { get; private set; } = null!;
 
         public int Sequence { get; private set; }
 
-        public string? SourceDirectionRaw { get; private set; }
+        public BoundDirection Direction { get; private set; }
 
-        public BoundDirection? Direction { get; private set; }
+        public int OriginAirportId { get; private set; }
 
-        public string OriginRef { get; private set; } = null!;
-
-        public string DestinationRef { get; private set; } = null!;
+        public int DestinationAirportId { get; private set; }
     }
 }

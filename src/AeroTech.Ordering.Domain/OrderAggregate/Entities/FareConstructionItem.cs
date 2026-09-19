@@ -1,16 +1,13 @@
-using AeroTech.Framework.Core.Domain.Entities;
-
 namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 {
-    public sealed class FareConstructionItem : Entity<long>
+    public sealed class FareConstructionItem
     {
         private FareConstructionItem()
         {
         }
 
-        internal FareConstructionItem(long id, long fareConstructionId, long orderItemId)
+        internal FareConstructionItem(long fareConstructionId, long orderItemId)
         {
-            Id = id;
             FareConstructionId = fareConstructionId;
             OrderItemId = orderItemId;
         }

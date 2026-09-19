@@ -1,22 +1,19 @@
-using AeroTech.Framework.Core.Domain.Entities;
-
 namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 {
-    public sealed class FarePricingUnitCoveredBound : Entity<long>
+    public sealed class FarePricingUnitCoveredBound
     {
         private FarePricingUnitCoveredBound()
         {
         }
 
-        internal FarePricingUnitCoveredBound(long id, long pricingUnitId, string sourceBoundRef)
+        internal FarePricingUnitCoveredBound(long pricingUnitId, string coveredBoundOfferId)
         {
-            Id = id;
             PricingUnitId = pricingUnitId;
-            SourceBoundRef = sourceBoundRef;
+            CoveredBoundOfferId = coveredBoundOfferId;
         }
 
         public long PricingUnitId { get; private set; }
 
-        public string SourceBoundRef { get; private set; } = null!;
+        public string CoveredBoundOfferId { get; private set; } = null!;
     }
 }

@@ -1,4 +1,3 @@
-using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +9,11 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderChange> builder)
         {
-            builder.ToTable("OrderChanges", PersistenceSchemas.Order);
+            builder.ToTable("OrderChanges", PersistenceSchemas.Order, table =>
+                table.HasCheckConstraint("CK_OrderChanges_CommercialVersion", "[CommercialVersion] >= 1"));
             builder.HasKey(change => change.Id);
             builder.Property(change => change.Id).ValueGeneratedNever();
-            builder.Property(change => change.SourceDecisionRef).HasMaxLength(PersistenceSchemas.CallerScopeLength).IsRequired();
-            builder.HasIndex(change => new { change.OrderId, change.CommercialVersion }).IsUnique();
+            builder.HasIndex(change => new { change.OrderId, change.CommercialVersion });
         }
     }
 }

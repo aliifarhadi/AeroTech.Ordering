@@ -1,5 +1,4 @@
 using AeroTech.Framework.Core.Domain.Aggregates;
-using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.Resources;
 
 namespace AeroTech.Ordering.Domain.CommandReceiptAggregate
@@ -24,27 +23,17 @@ namespace AeroTech.Ordering.Domain.CommandReceiptAggregate
 
         public string RequestDigest { get; private set; } = null!;
 
-        public long OperationId { get; private set; }
-
-        public CommandReceiptStatus Status { get; private set; }
-
-        public long? PreparationId { get; private set; }
-
         public long? OrderId { get; private set; }
 
         public string ResultJson { get; private set; } = null!;
 
         public DateTimeOffset CreatedAt { get; private set; }
 
-        public DateTimeOffset? CompletedAt { get; private set; }
-
         public static CommandReceipt Completed(
             long id,
-            long operationId,
             ReceiptScope scope,
             string canonicalizationVersion,
             string requestDigest,
-            long? preparationId,
             long? orderId,
             string resultJson,
             DateTimeOffset now)
@@ -55,7 +44,6 @@ namespace AeroTech.Ordering.Domain.CommandReceiptAggregate
             return new CommandReceipt
             {
                 Id = id,
-                OperationId = operationId,
                 OwnerAirlineId = scope.OwnerAirlineId,
                 FinancialCustomerId = scope.FinancialCustomerId,
                 CallerScope = scope.CallerScope,
@@ -63,12 +51,9 @@ namespace AeroTech.Ordering.Domain.CommandReceiptAggregate
                 IdempotencyKey = scope.IdempotencyKey,
                 CanonicalizationVersion = canonicalizationVersion,
                 RequestDigest = requestDigest,
-                Status = CommandReceiptStatus.Completed,
-                PreparationId = preparationId,
                 OrderId = orderId,
                 ResultJson = resultJson,
-                CreatedAt = now,
-                CompletedAt = now
+                CreatedAt = now
             };
         }
 

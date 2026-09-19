@@ -31,7 +31,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
             Assert.Equal(20.00m, commission.SaleValue.Amount);
             Assert.Equal("agency:77", commission.SettlementAttribution!.PartyRef);
             Assert.Equal("COMMISSION", commission.SettlementAttribution.CategoryCode);
-            Assert.Equal(commission.SaleValue.CurrencyRef, order.SaleCurrency.CurrencyRef);
+            Assert.Equal(commission.SaleValue.CurrencyId, order.SaleCurrency.CurrencyId);
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         public void A_customer_balance_line_cannot_carry_settlement_attribution()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
+                .Traveller("PAX-A")
                 .Segment("SEG-1")
                 .AirService("S-A", "PAX-A", "SEG-1")
                 .Package("ITEM-A", "S-A")
@@ -70,7 +70,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         public void A_non_commission_settlement_line_proves_the_model_is_generic()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
+                .Traveller("PAX-A")
                 .Segment("SEG-1")
                 .AirService("S-A", "PAX-A", "SEG-1")
                 .Package("ITEM-A", "S-A")
@@ -93,7 +93,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         public void Two_settlement_counterparties_stay_distinct()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
+                .Traveller("PAX-A")
                 .Segment("SEG-1")
                 .AirService("S-A", "PAX-A", "SEG-1")
                 .Package("ITEM-A", "S-A")
@@ -145,7 +145,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
 
         internal static CandidateBuilder CommissionSale(SettlementAttribution? attribution = null, bool withAttribution = true)
             => new CandidateBuilder(Now)
-                .Traveler("PAX-A")
+                .Traveller("PAX-A")
                 .Segment("SEG-1")
                 .AirService("S-A", "PAX-A", "SEG-1")
                 .Package("ITEM-A", "S-A")

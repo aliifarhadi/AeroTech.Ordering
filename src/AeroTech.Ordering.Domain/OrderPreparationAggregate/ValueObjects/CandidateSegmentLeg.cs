@@ -1,12 +1,12 @@
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
     public sealed record CandidateSegmentLeg(
-        string SourceLegRef,
+        long LegId,
         int Sequence,
-        string? OriginRef,
-        string? OriginTerminalRef,
-        string? DestinationRef,
-        string? DestinationTerminalRef,
-        DateTimeOffset? Departure,
-        DateTimeOffset? Arrival);
+        int? OriginAirportId,
+        int? OriginAirportTerminalId,
+        int? DestinationAirportId,
+        int? DestinationAirportTerminalId,
+        DateTimeOffset? DepartureDateTime,
+        DateTimeOffset? ArrivalDateTime);
 }

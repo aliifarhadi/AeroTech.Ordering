@@ -17,21 +17,18 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             OrderId = orderId;
             PriceChangeSetId = priceChangeSetId;
             OrderItemId = orderItemId;
-            SourceLineRef = source.SourceLineRef;
-            CandidateLineRef = source.LineRef;
+            SourceOccurrencePath = source.SourceOccurrencePath;
             Component = source.Component;
             Effect = source.Effect;
             Direction = source.Direction;
-            Role = source.LineRole;
-            SourceCode = source.SourceCode;
-            SourceName = source.SourceName;
-            SourceReference = source.SourceReference;
+            Code = source.Code;
+            Name = source.Name;
+            Reference = source.Reference;
             CalculationKind = source.CalculationKind;
             OriginalValue = source.OriginalValue;
             SaleValue = source.SaleValue;
             BasisType = source.BasisType;
             BasisId = basisId;
-            SourceBasisRef = source.BasisRef;
             SourceConversionRef = source.SourceConversionRef;
             AppliedConversion = source.AppliedConversion;
             SettlementAttribution = source.SettlementAttribution;
@@ -43,9 +40,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 
         public long? OrderItemId { get; private set; }
 
-        public string SourceLineRef { get; private set; } = null!;
-
-        public string CandidateLineRef { get; private set; } = null!;
+        public string SourceOccurrencePath { get; private set; } = null!;
 
         public PricingComponentType Component { get; private set; }
 
@@ -53,13 +48,11 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 
         public OrderPricingLineDirection Direction { get; private set; }
 
-        public PricingLineRole Role { get; private set; }
+        public string? Code { get; private set; }
 
-        public string? SourceCode { get; private set; }
+        public string? Name { get; private set; }
 
-        public string? SourceName { get; private set; }
-
-        public string? SourceReference { get; private set; }
+        public string? Reference { get; private set; }
 
         public PricingCalculationKind CalculationKind { get; private set; }
 
@@ -71,14 +64,10 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 
         public long? BasisId { get; private set; }
 
-        public string SourceBasisRef { get; private set; } = null!;
-
         public string? SourceConversionRef { get; private set; }
 
         public AppliedConversion? AppliedConversion { get; private set; }
 
         public SettlementAttribution? SettlementAttribution { get; private set; }
-
-        public long? OriginalPricingLineId { get; private set; }
     }
 }

@@ -127,14 +127,12 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
                     await _referenceGenerator.NextAsync(args.Scope.OwnerAirlineId, cancellationToken),
                     preparation,
                     args.Scope,
-                    Travelers(args),
+                    Travellers(args),
                     Contacts(args),
                     now,
                     now,
                     args.ClientReference),
                 _ids);
-
-            preparation.Consume(order.Id, now);
 
             var result = CreateOrderFromOfferResult.From(order);
 
@@ -142,11 +140,9 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
             _orders.Add(order);
             _receipts.Add(CommandReceipt.Completed(
                 _ids.NewId(),
-                _ids.NewId(),
                 receiptScope,
                 _digester.CanonicalizationVersion,
                 digest,
-                preparation.Id,
                 order.Id,
                 result.ToReceiptJson(),
                 now));
@@ -165,7 +161,6 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
                 resolution.Candidate!,
                 resolution.Profile,
                 resolution.Evidence!,
-                args.ClientReference,
                 now));
 
         private async Task<CreateOrderFromOfferResult?> ReplayAsync(ReceiptScope receiptScope, string digest, CancellationToken cancellationToken)
@@ -180,9 +175,9 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
             return CreateOrderFromOfferResult.FromReceiptJson(receipt.ResultJson);
         }
 
-        private static IReadOnlyList<TravelerBinding> Travelers(CreateOrderFromOfferArgs args)
+        private static IReadOnlyList<TravellerBinding> Travellers(CreateOrderFromOfferArgs args)
             => args.Travellers
-                .Select(traveller => new TravelerBinding(
+                .Select(traveller => new TravellerBinding(
                     traveller.OfferTravellerRef,
                     traveller.TravellerRef,
                     traveller.FirstName,

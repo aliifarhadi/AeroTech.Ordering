@@ -64,7 +64,7 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProj
             if (existing is not null)
             {
                 existing.EnsureSameRequest(digest, receiptScope.FinancialCustomerId);
-                return RebuildOrderProjectionResult.FromReceiptJson(existing.ResultJson, existing.OperationId);
+                return RebuildOrderProjectionResult.FromReceiptJson(existing.ResultJson, existing.Id);
             }
 
             await _querySynchronizer.RebuildAsync(order, cancellationToken);
@@ -72,12 +72,10 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProj
             var result = new RebuildOrderProjectionResult(order.Id, _ids.NewId(), order.OrderRevision, order.CommercialVersion, false);
 
             _receipts.Add(CommandReceipt.Completed(
-                _ids.NewId(),
                 result.OperationId,
                 receiptScope,
                 _digester.CanonicalizationVersion,
                 digest,
-                null,
                 order.Id,
                 result.ToReceiptJson(),
                 _clock.GetDateTime()));
@@ -90,7 +88,7 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProj
             {
                 var winner = await _receipts.FindAsync(receiptScope, cancellationToken) ?? throw conflict;
                 winner.EnsureSameRequest(digest, receiptScope.FinancialCustomerId);
-                return RebuildOrderProjectionResult.FromReceiptJson(winner.ResultJson, winner.OperationId);
+                return RebuildOrderProjectionResult.FromReceiptJson(winner.ResultJson, winner.Id);
             }
             catch (CommitConflictException conflict) when (conflict.Kind == CommitConflictKind.ProjectionRevision)
             {

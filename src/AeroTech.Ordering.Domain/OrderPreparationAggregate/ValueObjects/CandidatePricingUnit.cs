@@ -3,11 +3,8 @@ using AeroTech.Messages.Ordering.Enums;
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
     public sealed record CandidatePricingUnit(
-        string SourceUnitRef,
-        string? SourceKindRaw,
+        int Sequence,
         FarePricingUnitType Type,
-        FareCombinationMethod CombinationMethod,
-        IReadOnlyList<string> CoveredSourceBoundRefs,
-        CandidatePricingGroup? PricingGroup,
+        IReadOnlyList<string> CoveredBoundOfferIds,
         IReadOnlyList<CandidateFareComponent> Components);
 }

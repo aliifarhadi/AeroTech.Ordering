@@ -13,32 +13,32 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         {
             Id = id;
             SegmentId = segmentId;
+            LegId = source.LegId;
             Sequence = source.Sequence;
-            SourceLegRef = source.SourceLegRef;
-            OriginRef = source.OriginRef;
-            OriginTerminalRef = source.OriginTerminalRef;
-            DestinationRef = source.DestinationRef;
-            DestinationTerminalRef = source.DestinationTerminalRef;
-            Departure = source.Departure;
-            Arrival = source.Arrival;
+            OriginAirportId = source.OriginAirportId;
+            OriginAirportTerminalId = source.OriginAirportTerminalId;
+            DestinationAirportId = source.DestinationAirportId;
+            DestinationAirportTerminalId = source.DestinationAirportTerminalId;
+            DepartureDateTime = source.DepartureDateTime;
+            ArrivalDateTime = source.ArrivalDateTime;
         }
 
         public long SegmentId { get; private set; }
 
+        public long LegId { get; private set; }
+
         public int Sequence { get; private set; }
 
-        public string SourceLegRef { get; private set; } = null!;
+        public int? OriginAirportId { get; private set; }
 
-        public string? OriginRef { get; private set; }
+        public int? OriginAirportTerminalId { get; private set; }
 
-        public string? OriginTerminalRef { get; private set; }
+        public int? DestinationAirportId { get; private set; }
 
-        public string? DestinationRef { get; private set; }
+        public int? DestinationAirportTerminalId { get; private set; }
 
-        public string? DestinationTerminalRef { get; private set; }
+        public DateTimeOffset? DepartureDateTime { get; private set; }
 
-        public DateTimeOffset? Departure { get; private set; }
-
-        public DateTimeOffset? Arrival { get; private set; }
+        public DateTimeOffset? ArrivalDateTime { get; private set; }
     }
 }

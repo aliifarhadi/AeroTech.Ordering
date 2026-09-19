@@ -10,10 +10,8 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
         public void Configure(EntityTypeBuilder<FarePricingUnitCoveredBound> builder)
         {
             builder.ToTable("FarePricingUnitCoveredBounds", PersistenceSchemas.Order);
-            builder.HasKey(row => row.Id);
-            builder.Property(row => row.Id).ValueGeneratedNever();
-            builder.Property(row => row.SourceBoundRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();
-            builder.HasIndex(row => new { row.PricingUnitId, row.SourceBoundRef }).IsUnique();
+            builder.Property(bound => bound.CoveredBoundOfferId).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();
+            builder.HasKey(bound => new { bound.PricingUnitId, bound.CoveredBoundOfferId });
         }
     }
 }

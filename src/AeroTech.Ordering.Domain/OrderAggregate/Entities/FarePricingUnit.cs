@@ -13,45 +13,25 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         {
         }
 
-        internal FarePricingUnit(
-            long id,
-            long fareConstructionId,
-            long? pricingGroupId,
-            int sequence,
-            CandidatePricingUnit source,
-            IReadOnlyDictionary<string, long> serviceIds,
-            IReadOnlyDictionary<string, long> segmentIds,
-            Func<long> newId)
+        internal FarePricingUnit(long id, long fareConstructionId, CandidatePricingUnit source, Func<long> newId)
         {
             Id = id;
             FareConstructionId = fareConstructionId;
-            PricingGroupId = pricingGroupId;
-            Sequence = sequence;
-            SourceUnitRef = source.SourceUnitRef;
-            SourceKindRaw = source.SourceKindRaw;
+            Sequence = source.Sequence;
             Type = source.Type;
-            CombinationMethod = source.CombinationMethod;
 
-            foreach (var boundRef in source.CoveredSourceBoundRefs)
-                _coveredBounds.Add(new FarePricingUnitCoveredBound(newId(), id, boundRef));
+            foreach (var bound in source.CoveredBoundOfferIds)
+                _coveredBounds.Add(new FarePricingUnitCoveredBound(id, bound));
 
             for (var index = 0; index < source.Components.Count; index++)
-                _components.Add(new FareComponent(newId(), id, index + 1, source.Components[index], serviceIds, segmentIds, newId));
+                _components.Add(new FareComponent(newId(), id, index + 1, source.Components[index]));
         }
 
         public long FareConstructionId { get; private set; }
 
-        public long? PricingGroupId { get; private set; }
-
         public int Sequence { get; private set; }
 
-        public string SourceUnitRef { get; private set; } = null!;
-
-        public string? SourceKindRaw { get; private set; }
-
         public FarePricingUnitType Type { get; private set; }
-
-        public FareCombinationMethod CombinationMethod { get; private set; }
 
         public IReadOnlyCollection<FarePricingUnitCoveredBound> CoveredBounds => _coveredBounds.AsReadOnly();
 

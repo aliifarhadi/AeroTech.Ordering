@@ -6,8 +6,8 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
     {
         public AppliedConversion(
             string sourceConversionRef,
-            string fromCurrencyRef,
-            string toCurrencyRef,
+            int fromCurrencyId,
+            int toCurrencyId,
             decimal rate,
             int decimalPlaces,
             string? roundingToken)
@@ -15,8 +15,8 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
             if (string.IsNullOrWhiteSpace(sourceConversionRef))
                 throw ExceptionFactory.CandidateContractMismatch("an applied conversion requires its source reference");
 
-            if (string.IsNullOrWhiteSpace(fromCurrencyRef) || string.IsNullOrWhiteSpace(toCurrencyRef))
-                throw ExceptionFactory.CandidateContractMismatch("an applied conversion requires both currency references");
+            if (fromCurrencyId <= 0 || toCurrencyId <= 0)
+                throw ExceptionFactory.CandidateContractMismatch("an applied conversion requires both currency identifiers");
 
             if (rate <= 0m)
                 throw ExceptionFactory.CandidateContractMismatch("an applied conversion rate must be positive");
@@ -25,8 +25,8 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
                 throw ExceptionFactory.CandidateContractMismatch("an applied conversion cannot have negative decimal places");
 
             SourceConversionRef = sourceConversionRef;
-            FromCurrencyRef = fromCurrencyRef;
-            ToCurrencyRef = toCurrencyRef;
+            FromCurrencyId = fromCurrencyId;
+            ToCurrencyId = toCurrencyId;
             Rate = rate;
             DecimalPlaces = decimalPlaces;
             RoundingToken = string.IsNullOrWhiteSpace(roundingToken) ? null : roundingToken;
@@ -34,9 +34,9 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
 
         public string SourceConversionRef { get; }
 
-        public string FromCurrencyRef { get; }
+        public int FromCurrencyId { get; }
 
-        public string ToCurrencyRef { get; }
+        public int ToCurrencyId { get; }
 
         public decimal Rate { get; }
 

@@ -69,7 +69,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
         public void Air_service_with_two_segments_is_rejected()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
+                .Traveller("PAX-A")
                 .Segment("SEG-A")
                 .Segment("SEG-B")
                 .Package("ITEM-A", "SERVICE-A")
@@ -102,7 +102,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
         public void Amount_beyond_storage_scale_is_rejected_not_rounded()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
+                .Traveller("PAX-A")
                 .Segment("SEG-A")
                 .AirService("SERVICE-A", "PAX-A", "SEG-A")
                 .Package("ITEM-A", "SERVICE-A")
@@ -124,7 +124,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate
         public void Two_values_in_one_currency_are_a_contract_mismatch()
         {
             var builder = CandidateBuilder.OneWayFare100Tax20(Now)
-                .Line("FARE-2", "ITEM-A", PricingComponentType.Fare, 10m, "SERVICE-A", original: new Money(11m, CandidateBuilder.SaleCurrency));
+                .Line("FARE-2", "ITEM-A", PricingComponentType.Fare, 10m, "SERVICE-A", original: new Money(11m, CandidateBuilder.SaleCurrencyId));
 
             AssertMessage("two different values in one currency", () => CandidateValidator.EnsureValid(builder.Build(), builder.SalesScope));
         }

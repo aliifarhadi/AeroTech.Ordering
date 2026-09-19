@@ -4,21 +4,21 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
 {
     public sealed record Money
     {
-        public Money(decimal amount, string currencyRef)
+        public Money(decimal amount, int currencyId)
         {
-            if (string.IsNullOrWhiteSpace(currencyRef))
-                throw ExceptionFactory.CandidateContractMismatch("money requires a currency reference");
+            if (currencyId <= 0)
+                throw ExceptionFactory.CandidateContractMismatch("money requires a currency identifier");
 
             Amount = amount;
-            CurrencyRef = currencyRef;
+            CurrencyId = currencyId;
         }
 
         public decimal Amount { get; }
 
-        public string CurrencyRef { get; }
+        public int CurrencyId { get; }
 
         public bool IsNegative => Amount < 0;
 
-        public bool SameCurrencyAs(Money other) => string.Equals(CurrencyRef, other.CurrencyRef, StringComparison.Ordinal);
+        public bool SameCurrencyAs(Money other) => CurrencyId == other.CurrencyId;
     }
 }

@@ -24,7 +24,6 @@ namespace AeroTech.Ordering.Persistence.CommandReceiptAggregate
             builder.HasIndex(receipt => new { receipt.OwnerAirlineId, receipt.CallerScope, receipt.CommandKind, receipt.IdempotencyKey })
                 .IsUnique()
                 .HasDatabaseName(ScopeKeyIndex);
-            builder.HasIndex(receipt => receipt.OperationId).IsUnique();
             builder.HasIndex(receipt => new { receipt.OwnerAirlineId, receipt.OrderId });
         }
     }

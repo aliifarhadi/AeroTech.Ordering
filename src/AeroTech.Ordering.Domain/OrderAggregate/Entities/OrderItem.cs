@@ -1,7 +1,6 @@
 using AeroTech.Framework.Core.Domain.Entities;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
-using AeroTech.Ordering.Domain.OrderAggregate.ValueObjects;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
@@ -12,33 +11,21 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         {
         }
 
-        internal OrderItem(long id, long orderId, CandidateItem source, long createdByChangeId, CommercialTermsSnapshot commercialTerms)
+        internal OrderItem(long id, long orderId, CandidateItem source, long changeId)
         {
             Id = id;
             OrderId = orderId;
-            SourceItemRef = source.ItemRef;
             Kind = source.ItemKind;
-            SourceOfferItemRef = source.SourceOfferItemRef;
             AcceptedTotal = source.AcceptedTotal;
-            Product = source.Product;
-            CommercialTerms = commercialTerms;
-            CreatedByChangeId = createdByChangeId;
+            CreatedByChangeId = changeId;
             CommercialStatus = OrderItemCommercialStatus.Active;
         }
 
         public long OrderId { get; private set; }
 
-        public string SourceItemRef { get; private set; } = null!;
-
         public OrderItemKind Kind { get; private set; }
 
-        public string? SourceOfferItemRef { get; private set; }
-
         public Money AcceptedTotal { get; private set; } = null!;
-
-        public ProductSnapshot Product { get; private set; } = null!;
-
-        public CommercialTermsSnapshot CommercialTerms { get; private set; } = null!;
 
         public long CreatedByChangeId { get; private set; }
 

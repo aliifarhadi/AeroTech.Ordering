@@ -3,10 +3,9 @@ using AeroTech.Messages.Ordering.Enums;
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
     public sealed record CandidateJourney(
-        string JourneyRef,
+        string BoundId,
         int Sequence,
-        string? SourceDirectionRaw,
-        BoundDirection? Direction,
-        string OriginRef,
-        string DestinationRef);
+        BoundDirection Direction,
+        int OriginAirportId,
+        int DestinationAirportId);
 }

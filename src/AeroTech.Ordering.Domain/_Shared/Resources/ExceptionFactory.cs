@@ -44,8 +44,8 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
         public static BusinessException OfferSourceUnavailable(params object?[] args) =>
             new(20275, ExceptionMessages.OfferSourceUnavailable, args) { HttpStatus = 503 };
 
-        public static BusinessException TravelerBindingInvalid(params object?[] args) =>
-            new(20276, ExceptionMessages.TravelerBindingInvalid, args) { HttpStatus = 422 };
+        public static BusinessException TravellerBindingInvalid(params object?[] args) =>
+            new(20276, ExceptionMessages.TravellerBindingInvalid, args) { HttpStatus = 422 };
 
         public static BusinessException ContactInvalid(params object?[] args) =>
             new(20277, ExceptionMessages.ContactInvalid, args) { HttpStatus = 422 };

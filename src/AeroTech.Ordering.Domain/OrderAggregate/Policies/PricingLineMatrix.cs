@@ -10,11 +10,10 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Policies
             PricingComponentType component,
             PricingEffect effect,
             OrderPricingLineDirection direction,
-            PricingLineRole role,
             SettlementAttribution? settlementAttribution)
         {
-            if (!Enum.IsDefined(component) || !Enum.IsDefined(effect) || !Enum.IsDefined(direction) || !Enum.IsDefined(role))
-                throw ExceptionFactory.PricingRuleViolated("component, effect, direction and role must be defined");
+            if (!Enum.IsDefined(component) || !Enum.IsDefined(effect) || !Enum.IsDefined(direction))
+                throw ExceptionFactory.PricingRuleViolated("component, effect and direction must be defined");
 
             if (component == PricingComponentType.Other && effect != PricingEffect.Informational)
                 throw ExceptionFactory.PricingRuleViolated("Other is informational only");
@@ -27,7 +26,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Policies
 
             EnsureSettlementAttribution(effect, settlementAttribution);
 
-            if (effect != PricingEffect.CustomerBalance || role != PricingLineRole.Original)
+            if (effect != PricingEffect.CustomerBalance)
                 return;
 
             var normal = NormalCustomerDirection(component);

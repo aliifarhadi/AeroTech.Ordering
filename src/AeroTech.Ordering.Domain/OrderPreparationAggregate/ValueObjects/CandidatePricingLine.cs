@@ -4,21 +4,19 @@ using AeroTech.Ordering.Domain._Shared.ValueObjects;
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
     public sealed record CandidatePricingLine(
-        string LineRef,
-        string? ItemRef,
+        string SourceOccurrencePath,
+        string? ItemKey,
         PricingComponentType Component,
         PricingEffect Effect,
         OrderPricingLineDirection Direction,
-        PricingLineRole LineRole,
-        string? SourceCode,
-        string? SourceName,
-        string? SourceReference,
+        string? Code,
+        string? Name,
+        string? Reference,
         PricingCalculationKind CalculationKind,
         Money OriginalValue,
         Money SaleValue,
-        string SourceLineRef,
         PricingBasisType BasisType,
-        string BasisRef,
+        string BasisKey,
         string? SourceConversionRef,
         AppliedConversion? AppliedConversion,
         SettlementAttribution? SettlementAttribution);

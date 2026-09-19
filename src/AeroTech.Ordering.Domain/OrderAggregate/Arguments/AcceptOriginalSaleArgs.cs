@@ -9,7 +9,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Arguments
         string OrderReference,
         OrderPreparation Preparation,
         AuthorizedSalesScope AcceptingScope,
-        IReadOnlyList<TravelerBinding> TravelerBindings,
+        IReadOnlyList<TravellerBinding> TravellerBindings,
         IReadOnlyList<ContactDetails> Contacts,
         DateTimeOffset ClientAcceptedAt,
         DateTimeOffset AcceptedAt,

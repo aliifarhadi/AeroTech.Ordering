@@ -9,24 +9,22 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         AcceptanceAssurance AcceptanceAssurance,
         DateTimeOffset PricedAt,
         DateTimeOffset CapturedAt,
-        CandidateValidity Validity,
+        DateTimeOffset? OfferExpiresAt,
+        DateTimeOffset? PriceValidUntil,
+        DateTimeOffset? LastTicketingDate,
         CandidateSalesContext SalesContext,
-        IReadOnlyList<CandidateTraveler> Travelers,
+        JourneyType JourneyType,
+        IReadOnlyList<CandidateTraveller> Travellers,
         IReadOnlyList<CandidateJourney> Journeys,
         IReadOnlyList<CandidateSegment> Segments,
         IReadOnlyList<CandidateItem> Items,
         IReadOnlyList<CandidateService> Services,
         IReadOnlyList<CandidatePricingLine> PricingLines,
         Money CustomerTotal,
-        string? SaleCurrencyCode,
-        string? SourceJourneyTypeRaw,
-        JourneyType? JourneyType,
         CandidateFareConstruction FareConstruction)
     {
-        public const string CurrentSchemaVersion = "4.0";
+        public const string CurrentSchemaVersion = "1.0";
 
-        public const string LegacySchemaVersion = "3.0";
-
-        public CurrencySnapshot SaleCurrency => new(CustomerTotal.CurrencyRef, SaleCurrencyCode);
+        public int CurrencyId => CustomerTotal.CurrencyId;
     }
 }

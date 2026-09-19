@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text.Json;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
-using AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
 using AeroTech.Ordering.Providers.AirOffer.Wire;
 
@@ -10,11 +9,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
 {
     public static class AirOfferCandidateMapper
     {
-        public const string PackageItemRef = "OFFER-PACKAGE";
-        public const string FulfillmentProfileRef = "AIROFFER-OBSERVED-AIR-UNCERTIFIED";
-        public const string FulfillmentProfileVersion = "1";
-        public const string SourceContextRef = "airoffer:details:pricingUnits";
-        public const string TicketingDeadlineSourceRef = "details.lastTicketingDate";
+        public const string PackageItemKey = "package";
 
         private static readonly IReadOnlyDictionary<string, PricingComponentType> Categories = new Dictionary<string, PricingComponentType>(StringComparer.OrdinalIgnoreCase)
         {
@@ -32,6 +27,22 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
             [3] = PricingComponentType.CarrierSurcharge
         };
 
+        private static readonly IReadOnlyDictionary<string, JourneyType> JourneyTypes = new Dictionary<string, JourneyType>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["OneWay"] = JourneyType.OneWay,
+            ["RoundTrip"] = JourneyType.RoundTrip,
+            ["Circle"] = JourneyType.Circle,
+            ["OpenJaw"] = JourneyType.OpenJaw
+        };
+
+        private static readonly IReadOnlyDictionary<string, FarePricingUnitType> PricingUnitKinds = new Dictionary<string, FarePricingUnitType>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["OneWay"] = FarePricingUnitType.OneWay,
+            ["RoundTrip"] = FarePricingUnitType.RoundTrip,
+            ["OpenJaw"] = FarePricingUnitType.OpenJaw,
+            ["CircleTrip"] = FarePricingUnitType.CircleTrip
+        };
+
         public static NormalizedCandidate Map(
             string requestedOfferId,
             AirOfferDetailsWire details,
@@ -41,11 +52,11 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
         {
             EnsureRespondedOffer(requestedOfferId, details.OfferId);
 
-            var saleCurrency = Currency(details.CurrencyId);
+            var currencyId = details.CurrencyId;
             var mismatches = new List<string>();
 
             if (details.Tickets.Count == 0)
-                throw new AirOfferContractMismatchException("details contain no priced traveler tickets");
+                throw new AirOfferContractMismatchException("details contain no priced traveller tickets");
 
             if (details.Tickets.Any(ticket => PassengerType(ticket.PassengerTypeCode) == PassengerTypeCode.INF))
                 throw new AirOfferUnsupportedException("infant seat/resource requirement is unresolved (BD-002, OD-S1-07)");
@@ -58,10 +69,9 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 journeys.Add(new CandidateJourney(
                     bound.BoundId,
                     bound.Sequence,
-                    RawValue(bound.Direction),
-                    null,
-                    Id(bound.OriginAirportId),
-                    Id(bound.DestinationAirportId)));
+                    Direction(bound.BoundId, bound.Direction),
+                    bound.OriginAirportId,
+                    bound.DestinationAirportId));
 
                 foreach (var flight in bound.Flights.OrderBy(flight => flight.Sequence))
                     segments.Add(Segment(bound.BoundId, flight));
@@ -69,7 +79,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
 
             var flights = details.AirTransports
                 .SelectMany(bound => bound.Flights.Select(flight => (Bound: bound.BoundId, Flight: flight)))
-                .ToDictionary(entry => SegmentRef(entry.Bound, entry.Flight.FlightId), entry => entry.Flight, StringComparer.Ordinal);
+                .ToDictionary(entry => SegmentKey(entry.Bound, entry.Flight.FlightId), entry => entry.Flight, StringComparer.Ordinal);
 
             var rates = RateIndex(details.RatesOfExchange);
             var services = new List<CandidateService>();
@@ -87,20 +97,20 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 {
                     var coupon = ticket.Coupons[couponIndex];
                     var path = $"tickets/{ticketIndex}/coupons/{couponIndex}";
-                    var segmentRef = SegmentRef(coupon.BoundId, coupon.FlightId);
+                    var segmentKey = SegmentKey(coupon.BoundId, coupon.FlightId);
 
-                    if (!flights.TryGetValue(segmentRef, out var flight))
+                    if (!flights.TryGetValue(segmentKey, out var flight))
                         throw new AirOfferContractMismatchException($"{path} references bound {coupon.BoundId} flight {coupon.FlightId}, which is not in airTransports");
 
-                    var serviceRef = $"{ticket.TravellerRef}|{segmentRef}";
-                    services.Add(AirService(serviceRef, ticket.TravellerRef, segmentRef, flight, coupon, path));
+                    var serviceKey = $"{ticket.TravellerRef}|{segmentKey}";
+                    services.Add(AirService(serviceKey, ticket.TravellerRef, segmentKey, flight, coupon, path));
 
                     Reconcile(path, coupon.BaseAmount, coupon.ChargeAmount, coupon.TotalAmount, mismatches);
                     var couponTotal = 0m;
 
                     for (var pricingIndex = 0; pricingIndex < coupon.Pricings.Count; pricingIndex++)
                     {
-                        var line = Line($"{path}/pricings/{pricingIndex}", coupon.Pricings[pricingIndex], details.CurrencyId, rates, PricingBasisType.OrderService, serviceRef);
+                        var line = Line($"{path}/pricings/{pricingIndex}", coupon.Pricings[pricingIndex], currencyId, rates, PricingBasisType.OrderService, serviceKey);
                         lines.Add(line);
                         couponTotal += line.SaleValue.Amount;
                     }
@@ -119,7 +129,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
 
             for (var chargeIndex = 0; chargeIndex < details.OrderCharges.Count; chargeIndex++)
             {
-                var line = Line($"orderCharges/{chargeIndex}", details.OrderCharges[chargeIndex], details.CurrencyId, rates, PricingBasisType.OrderItem, PackageItemRef);
+                var line = Line($"orderCharges/{chargeIndex}", details.OrderCharges[chargeIndex], currencyId, rates, PricingBasisType.OrderItem, PackageItemKey);
                 lines.Add(line);
                 rootTotal += line.SaleValue.Amount;
             }
@@ -133,12 +143,10 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 throw new AirOfferContractMismatchException(string.Join("; ", mismatches));
 
             var package = new CandidateItem(
-                PackageItemRef,
+                PackageItemKey,
                 OrderItemKind.OfferPackage,
-                null,
-                services.Select(service => service.ServiceRef).ToList(),
-                new Money(details.TotalAmount, saleCurrency),
-                new ProductSnapshot(AirOfferProfile.Owner, requestedOfferId, null, null, null, null, null, null));
+                services.Select(service => service.ServiceKey).ToList(),
+                new Money(details.TotalAmount, currencyId));
 
             return new NormalizedCandidate(
                 NormalizedCandidate.CurrentSchemaVersion,
@@ -146,128 +154,85 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 AcceptanceAssurance.LocalCandidateOnly,
                 details.PricedAt,
                 capturedAt,
-                new CandidateValidity(
-                    new ValidityFact(ValidityState.NotSupplied, null, AirOfferProfile.Owner, null, "Details response supplies no OfferExpiresAt (BD-001)"),
-                    new ValidityFact(ValidityState.NotSupplied, null, "AirPrice", null, "Details response supplies no PriceValidUntil (BD-001)"),
-                    new ValidityFact(ValidityState.NotSupplied, null, "Unresolved owner", null, "Ticketing deadline ownership is unresolved (BD-004)"),
-                    details.LastTicketingDate is { } lastTicketingDate
-                        ? new ObservedTimeFact(lastTicketingDate, AirOfferProfile.Owner, TicketingDeadlineSourceRef)
-                        : null),
-                new CandidateSalesContext(scope.OwnerAirlineId, scope.FinancialCustomerId, scope.SalesContext, scope.Buyer),
-                details.Tickets.Select(ticket => new CandidateTraveler(ticket.TravellerRef, PassengerType(ticket.PassengerTypeCode))).ToList(),
+                null,
+                null,
+                details.LastTicketingDate,
+                new CandidateSalesContext(scope.OwnerAirlineId, scope.FinancialCustomerId, scope.SalesContext),
+                JourneyTypeOf(details.JourneyType),
+                details.Tickets.Select(ticket => new CandidateTraveller(ticket.TravellerRef, PassengerType(ticket.PassengerTypeCode))).ToList(),
                 journeys,
                 segments,
                 [package],
                 services,
-                lines.Select(line => line with { ItemRef = PackageItemRef }).ToList(),
-                new Money(details.TotalAmount, saleCurrency),
-                Text(details.CurrencyCode),
-                Text(details.JourneyType),
-                null,
-                new CandidateFareConstruction(
-                    FareConstructionAssurance.Opaque,
-                    SourceContextRef,
-                    details.PricingUnits.Select((unit, index) => new CandidatePricingUnit(
-                        $"pricingUnits/{index}",
-                        Text(unit.Kind),
-                        FarePricingUnitType.Unspecified,
-                        FareCombinationMethod.Unspecified,
+                lines.Select(line => line with { ItemKey = PackageItemKey }).ToList(),
+                new Money(details.TotalAmount, currencyId),
+                new CandidateFareConstruction(details.PricingUnits
+                    .Select((unit, index) => new CandidatePricingUnit(
+                        index + 1,
+                        PricingUnitKind(unit.Kind),
                         unit.CoveredBoundOfferIds.ToList(),
-                        null,
                         unit.FareComponents.Select(component => new CandidateFareComponent(
-                            Id(component.AirFareId),
-                            component.FareBasis,
-                            component.FareFamily,
-                            component.FareType,
-                            component.CabinClassId is null ? null : Id(component.CabinClassId.Value),
-                            component.RbdId is null ? null : Id(component.RbdId.Value),
-                            component.BookingClass,
-                            component.TicketingRestrictionMinutes,
-                            null,
-                            null,
-                            null,
-                            null,
-                            [],
-                            [])).ToList())).ToList()));
+                            component.AirFareId,
+                            Text(component.FareBasis),
+                            Text(component.FareFamily),
+                            Text(component.FareType),
+                            component.CabinClassId,
+                            component.RbdId,
+                            Text(component.BookingClass),
+                            component.TicketingRestrictionMinutes)).ToList()))
+                    .ToList()));
         }
 
         private static CandidateSegment Segment(string boundId, AirOfferFlightWire flight)
             => new(
-                SegmentRef(boundId, flight.FlightId),
+                SegmentKey(boundId, flight.FlightId),
                 boundId,
+                flight.Sequence,
                 SegmentKind.ScheduledAir,
-                Id(flight.OriginAirportId),
-                flight.OriginAirportTerminalId is null ? null : Id(flight.OriginAirportTerminalId.Value),
-                Id(flight.DestinationAirportId),
-                flight.DestinationAirportTerminalId is null ? null : Id(flight.DestinationAirportTerminalId.Value),
+                flight.OriginAirportId,
+                flight.OriginAirportTerminalId,
+                flight.DestinationAirportId,
+                flight.DestinationAirportTerminalId,
                 flight.DepartureDateTime,
                 flight.ArrivalDateTime,
-                Id(flight.FlightId),
+                flight.FlightId,
                 Text(flight.FlightNumber),
-                Id(flight.FlightVersion),
-                Id(flight.MarketingAirlineId),
-                Id(flight.OperatingAirlineId),
-                Id(flight.FlightCapacityId),
+                flight.FlightVersion,
+                flight.MarketingAirlineId,
+                flight.OperatingAirlineId,
+                flight.FlightCapacityId,
                 flight.Duration,
-                Id(flight.AircraftId),
+                flight.AircraftId,
                 flight.Legs.OrderBy(leg => leg.Sequence).Select(Leg).ToList());
 
         private static CandidateSegmentLeg Leg(AirOfferLegWire leg)
             => new(
-                Id(leg.LegId),
+                leg.LegId,
                 leg.Sequence,
-                Id(leg.OriginAirportId),
-                leg.OriginAirportTerminalId is null ? null : Id(leg.OriginAirportTerminalId.Value),
-                Id(leg.DestinationAirportId),
-                leg.DestinationAirportTerminalId is null ? null : Id(leg.DestinationAirportTerminalId.Value),
+                leg.OriginAirportId,
+                leg.OriginAirportTerminalId,
+                leg.DestinationAirportId,
+                leg.DestinationAirportTerminalId,
                 leg.DepartureDateTime,
                 leg.ArrivalDateTime);
 
         private static CandidateService AirService(
-            string serviceRef,
+            string serviceKey,
             string travellerRef,
-            string segmentRef,
+            string segmentKey,
             AirOfferFlightWire flight,
             AirOfferCouponWire coupon,
             string path)
-        {
-            var details = new Dictionary<string, string>(StringComparer.Ordinal);
-            Add(details, ServiceDetailSchemaRegistry.CabinRef, flight.CabinClassId is null ? null : Id(flight.CabinClassId.Value));
-            Add(details, ServiceDetailSchemaRegistry.RbdRef, flight.RbdId is null ? null : Id(flight.RbdId.Value));
-            Add(details, ServiceDetailSchemaRegistry.BookingClass, flight.BookingClass);
-
-            return new CandidateService(
-                serviceRef,
-                OrderServiceType.AirTransportation,
-                null,
-                null,
-                ServicePriceTreatment.SupplierOpaque,
-                null,
-                null,
-                [travellerRef],
-                [segmentRef],
-                1,
-                OrderItemUnitOfMeasure.PassengerSegment,
-                ServiceDetailSchemaRegistry.AirTransportSchema,
-                ServiceDetailSchemaRegistry.AirTransportSchemaVersion,
-                details,
+            => new(
+                serviceKey,
+                travellerRef,
+                segmentKey,
+                flight.CabinClassId,
+                flight.RbdId,
+                Text(flight.BookingClass),
                 Baggage($"{path} checked baggage", coupon.BaggagePieces, coupon.BaggageWeight, coupon.BaggageUnit),
                 Baggage($"{path} cabin baggage", coupon.CabinBaggagePieces, coupon.CabinBaggageWeight, coupon.CabinBaggageUnit),
-                new SoldTermFlags(coupon.IsRefundable, coupon.IsChangeable, coupon.IsUpgradable),
-                new CandidateFulfillmentProfile(
-                    FulfillmentProfileRef,
-                    FulfillmentProfileVersion,
-                    FulfillmentProfileAssurance.NotCertified,
-                    ReservationRequirement.Unresolved,
-                    FulfillmentDocumentKind.Unresolved,
-                    null,
-                    FundingRequirement.Unresolved,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null));
-        }
+                new SoldTermFlags(coupon.IsRefundable, coupon.IsChangeable, coupon.IsUpgradable));
 
         private static void EnsureRespondedOffer(string requestedOfferId, string? respondedOfferId)
         {
@@ -278,6 +243,23 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 throw new AirOfferContractMismatchException(
                     $"details price offer {respondedOfferId} but offer {requestedOfferId} was requested");
         }
+
+        private static JourneyType JourneyTypeOf(string? journeyType)
+            => journeyType is not null && JourneyTypes.TryGetValue(journeyType, out var mapped)
+                ? mapped
+                : throw new AirOfferContractMismatchException($"journey type {journeyType ?? "(missing)"} is not a known journey type");
+
+        private static FarePricingUnitType PricingUnitKind(string? kind)
+            => kind is not null && PricingUnitKinds.TryGetValue(kind, out var mapped)
+                ? mapped
+                : throw new AirOfferContractMismatchException($"pricing unit kind {kind ?? "(missing)"} is not a known pricing unit type");
+
+        private static BoundDirection Direction(string boundId, JsonElement direction) => direction.ValueKind switch
+        {
+            JsonValueKind.Number when direction.TryGetInt32(out var value) && Enum.IsDefined((BoundDirection)value) => (BoundDirection)value,
+            JsonValueKind.String when Enum.TryParse<BoundDirection>(direction.GetString(), ignoreCase: true, out var parsed) && Enum.IsDefined(parsed) => parsed,
+            _ => throw new AirOfferContractMismatchException($"bound {boundId} direction {direction} is not a known bound direction")
+        };
 
         private static BaggageAllowance? Baggage(string path, int pieces, int weight, string? unit)
         {
@@ -327,7 +309,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
             int saleCurrencyId,
             IReadOnlyDictionary<string, AirOfferRateOfExchangeWire> rates,
             PricingBasisType basisType,
-            string basisRef)
+            string basisKey)
         {
             var component = Component(path, row.Category);
             var amountInSale = row.CurrencyId == saleCurrencyId;
@@ -347,16 +329,14 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                     component,
                     PricingEffect.CustomerBalance,
                     OrderPricingLineDirection.Debit,
-                    PricingLineRole.Original,
                     Text(row.Code),
                     Text(row.Name),
                     Text(row.Reference),
                     PricingCalculationKind.Percentage,
-                    new Money(row.EquivalentAmount, Currency(saleCurrencyId)),
-                    new Money(row.EquivalentAmount, Currency(saleCurrencyId)),
-                    path,
+                    new Money(row.EquivalentAmount, saleCurrencyId),
+                    new Money(row.EquivalentAmount, saleCurrencyId),
                     basisType,
-                    basisRef,
+                    basisKey,
                     Text(row.RateOfExchangePeriodId),
                     null,
                     null);
@@ -381,16 +361,14 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 component,
                 PricingEffect.CustomerBalance,
                 OrderPricingLineDirection.Debit,
-                PricingLineRole.Original,
                 Text(row.Code),
                 Text(row.Name),
                 Text(row.Reference),
                 PricingCalculationKind.Amount,
-                new Money(row.Amount, Currency(row.CurrencyId)),
-                new Money(sale, Currency(saleCurrencyId)),
-                path,
+                new Money(row.Amount, row.CurrencyId),
+                new Money(sale, saleCurrencyId),
                 basisType,
-                basisRef,
+                basisKey,
                 conversionRef,
                 conversionRef is null ? null : Conversion(path, conversionRef, rates),
                 null);
@@ -409,8 +387,8 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
 
             return new AppliedConversion(
                 conversionRef,
-                Currency(rate.FromCurrencyId),
-                Currency(rate.ToCurrencyId),
+                rate.FromCurrencyId,
+                rate.ToCurrencyId,
                 rate.Rate,
                 rate.DecimalPlaces,
                 RawValue(rate.RoundingFactor));
@@ -436,25 +414,14 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
             _ => value.GetRawText()
         };
 
-        private static string? RawValue(JsonElement? value) => value is null ? null : RawValue(value.Value);
-
-        private static void Add(IDictionary<string, string> details, string key, string? value)
-        {
-            if (!string.IsNullOrWhiteSpace(value))
-                details[key] = value;
-        }
-
-        private static string SegmentRef(string boundId, long flightId) => $"{boundId}|{Id(flightId)}";
+        private static string SegmentKey(string boundId, long flightId)
+            => $"{boundId}|{flightId.ToString(CultureInfo.InvariantCulture)}";
 
         private static PassengerTypeCode PassengerType(string code)
             => Enum.TryParse<PassengerTypeCode>(code, ignoreCase: false, out var parsed) && Enum.IsDefined(parsed)
                 ? parsed
                 : throw new AirOfferContractMismatchException($"passenger type code {code} is not a known passenger type");
 
-        private static string Currency(int currencyId) => Id(currencyId);
-
         private static string? Text(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
-
-        private static string Id(long value) => value.ToString(CultureInfo.InvariantCulture);
     }
 }

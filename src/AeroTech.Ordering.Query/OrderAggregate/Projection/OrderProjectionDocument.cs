@@ -10,18 +10,15 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         string OrderReference,
         CommercialSummary Status,
         int CommercialVersion,
-        string OfferId,
+        string SourceOfferId,
         SalesChannel Channel,
-        long CustomerId,
+        long FinancialCustomerId,
         ProjectedSalesContext SalesContext,
-        ProjectedParty? Buyer,
         ProjectedActor InitiatingActor,
-        ProjectedMoney GrandTotal,
-        string SaleCurrencyRef,
-        string? SaleCurrencyCode,
-        string? SourceJourneyTypeRaw,
-        JourneyType? JourneyType,
-        ProjectedObservedTime? ObservedTicketingDeadline,
+        int CurrencyId,
+        ProjectedMoney CustomerTotal,
+        JourneyType JourneyType,
+        DateTimeOffset? LastTicketingDate,
         IReadOnlyList<ProjectedTraveller> Travellers,
         IReadOnlyList<ProjectedJourney> Journeys,
         IReadOnlyList<ProjectedSegment> Segments,
@@ -29,15 +26,13 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         IReadOnlyList<ProjectedPricingLine> Pricing,
         IReadOnlyList<ProjectedComponentTotal> ComponentTotals,
         IReadOnlyList<ProjectedFareConstruction> FareConstructions,
-        IReadOnlyList<ProjectedItemServiceLink> ItemServiceLinks,
         DateTimeOffset CreationDate);
 
     public sealed record ProjectedSalesContext(
-        ProjectedParty? Seller,
+        BusinessContextType? SellerContextType,
+        long? SellerId,
         SellingOfficeKind? SellingOfficeKind,
         long? SellingOfficeId);
-
-    public sealed record ProjectedParty(BusinessContextType ContextType, long PartyId);
 
     public sealed record ProjectedActor(BusinessContextType ContextType, long? ActorId);
 
@@ -45,151 +40,95 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         PricingComponentType Component,
         PricingEffect Effect,
         string DebitAmount,
-        string CreditAmount,
-        string CurrencyRef);
+        string CreditAmount);
 
-    public sealed record ProjectedMoney(string Amount, string CurrencyRef);
-
-    public sealed record ProjectedObservedTime(DateTimeOffset Value, string SourceOwner, string SourceRef);
+    public sealed record ProjectedMoney(string Amount, int CurrencyId);
 
     public sealed record ProjectedTraveller(
         long TravellerId,
         string TravellerRef,
-        string OfferTravellerRef,
+        string SourceTravellerRef,
         PassengerTypeCode PassengerType,
-        long? GuardianTravellerId);
+        long? InfantParentTravellerId);
 
     public sealed record ProjectedJourney(
         long JourneyId,
-        string SourceBoundRef,
+        string BoundId,
         int Sequence,
-        string? SourceDirectionRaw,
-        BoundDirection? Direction,
-        string OriginRef,
-        string DestinationRef);
+        BoundDirection Direction,
+        int OriginAirportId,
+        int DestinationAirportId);
 
     public sealed record ProjectedSegment(
         long SegmentId,
-        long? JourneyId,
+        long JourneyId,
         int Sequence,
-        string SourceSegmentRef,
         SegmentKind Kind,
-        string OriginRef,
-        string? OriginTerminalRef,
-        string DestinationRef,
-        string? DestinationTerminalRef,
-        DateTimeOffset? Departure,
-        DateTimeOffset? Arrival,
-        string? FlightRef,
+        int OriginAirportId,
+        int? OriginAirportTerminalId,
+        int DestinationAirportId,
+        int? DestinationAirportTerminalId,
+        DateTimeOffset? SoldDeparture,
+        DateTimeOffset? SoldArrival,
+        long? FlightId,
         string? FlightNumber,
-        string? FlightVersion,
-        string? MarketingCarrierRef,
-        string? OperatingCarrierRef,
-        string? SourceCapacityRef,
+        int? FlightVersion,
+        int? MarketingAirlineId,
+        int? OperatingAirlineId,
+        long? FlightCapacityId,
         int? Duration,
-        string? AircraftRef,
+        int? AircraftId,
         IReadOnlyList<ProjectedLeg> Legs);
 
     public sealed record ProjectedLeg(
+        long OrderSegmentLegId,
         long LegId,
         int Sequence,
-        string SourceLegRef,
-        string? OriginRef,
-        string? OriginTerminalRef,
-        string? DestinationRef,
-        string? DestinationTerminalRef,
-        DateTimeOffset? Departure,
-        DateTimeOffset? Arrival);
+        int? OriginAirportId,
+        int? OriginAirportTerminalId,
+        int? DestinationAirportId,
+        int? DestinationAirportTerminalId,
+        DateTimeOffset? DepartureDateTime,
+        DateTimeOffset? ArrivalDateTime);
 
     public sealed record ProjectedItem(
         long ItemId,
-        string SourceItemRef,
         OrderItemKind Kind,
         OrderItemCommercialStatus Status,
         ProjectedMoney AcceptedTotal,
-        ProjectedProduct Product,
-        ProjectedCommercialTerms Terms,
         IReadOnlyList<ProjectedService> Services);
-
-    public sealed record ProjectedProduct(
-        string SourceSystem,
-        string SourceOfferId,
-        string? SourceOfferItemRef,
-        string? ProductCode,
-        string? ProductName,
-        string? BrandCode,
-        string? BrandName,
-        string? ProductVersion);
-
-    public sealed record ProjectedCommercialTerms(
-        CommercialTermState Refundability,
-        CommercialTermState Changeability,
-        CommercialTermState UpgradeEligibility,
-        string SourceSystem,
-        string? SourcePolicyRef,
-        string? SourcePolicyVersion,
-        DateTimeOffset CapturedAt);
 
     public sealed record ProjectedService(
         long ServiceId,
-        string SourceServiceRef,
-        OrderServiceType ServiceType,
         OrderServiceCommercialStatus Status,
-        string? ServiceCode,
-        string? Name,
-        ServicePriceTreatment PriceTreatment,
-        string? SupplierPartyRef,
-        string? DeliveryProviderRef,
-        string Quantity,
-        OrderItemUnitOfMeasure QuantityUnit,
-        IReadOnlyList<long> TravellerIds,
-        IReadOnlyList<long> SegmentIds,
-        ProjectedSoldTerms SoldTerms,
-        ProjectedFulfillmentProfile FulfillmentProfile,
-        ProjectedAirTransport? AirTransport);
-
-    public sealed record ProjectedSoldTerms(bool? Refundable, bool? Changeable, bool? Upgradable);
-
-    public sealed record ProjectedFulfillmentProfile(
-        string ProfileRef,
-        string ProfileVersion,
-        FulfillmentProfileAssurance Assurance,
-        ReservationRequirement ReservationRequirement,
-        FulfillmentDocumentKind DocumentKind,
-        DocumentAuthority? DocumentAuthority,
-        FundingRequirement FundingRequirement,
-        int? CapacityUnits,
-        string? ResourceUnitPolicyRef,
-        string? DeliveryControlPolicyRef,
-        string? DependencyTreatmentPolicyRef,
-        bool? PartialFulfillmentSupported);
-
-    public sealed record ProjectedAirTransport(
-        string? CabinRef,
-        string? RbdRef,
+        long TravellerId,
+        long SegmentId,
+        int? CabinClassId,
+        long? RbdId,
         string? BookingClass,
         ProjectedBaggage? CheckedBaggage,
-        ProjectedBaggage? CabinBaggage);
+        ProjectedBaggage? CabinBaggage,
+        bool? Refundable,
+        bool? Changeable,
+        bool? Upgradable);
 
     public sealed record ProjectedBaggage(int? Pieces, string? Weight, BaggageWeightUnit? WeightUnit);
 
     public sealed record ProjectedPricingLine(
         long LineId,
         long? ItemId,
-        string SourceLineRef,
+        string SourceOccurrencePath,
         PricingComponentType Component,
         PricingEffect Effect,
         OrderPricingLineDirection Direction,
-        PricingLineRole Role,
-        string? SourceCode,
-        string? SourceName,
-        string? SourceReference,
+        string? Code,
+        string? Name,
+        string? Reference,
         PricingCalculationKind CalculationKind,
         ProjectedMoney SaleValue,
         ProjectedMoney OriginalValue,
         PricingBasisType BasisType,
         long? BasisId,
-        string SourceBasisRef,
         string? SourceConversionRef,
         ProjectedConversion? AppliedConversion,
         ProjectedSettlementAttribution? SettlementAttribution);
@@ -198,60 +137,33 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
 
     public sealed record ProjectedConversion(
         string SourceConversionRef,
-        string FromCurrencyRef,
-        string ToCurrencyRef,
+        int FromCurrencyId,
+        int ToCurrencyId,
         string Rate,
         int DecimalPlaces,
         string? RoundingToken);
 
     public sealed record ProjectedFareConstruction(
         long ConstructionId,
-        FareConstructionAssurance Assurance,
-        string SourceContextRef,
         IReadOnlyList<long> ItemIds,
-        IReadOnlyList<ProjectedFareGroup> Groups,
         IReadOnlyList<ProjectedFareUnit> Units);
-
-    public sealed record ProjectedFareGroup(
-        long GroupId,
-        PassengerTypeCode PassengerType,
-        int Quantity,
-        IReadOnlyList<long> TravellerIds);
 
     public sealed record ProjectedFareUnit(
         long UnitId,
-        long? GroupId,
         int Sequence,
-        string SourceUnitRef,
-        string? SourceKindRaw,
         FarePricingUnitType Type,
-        FareCombinationMethod CombinationMethod,
-        IReadOnlyList<string> CoveredBoundRefs,
+        IReadOnlyList<string> CoveredBoundOfferIds,
         IReadOnlyList<ProjectedFareComponent> Components);
 
     public sealed record ProjectedFareComponent(
         long ComponentId,
         int Sequence,
-        string SourceFareRef,
+        long AirFareId,
         string? FareBasis,
         string? FareFamily,
         string? FareType,
-        string? CabinRef,
-        string? RbdRef,
+        int? CabinClassId,
+        long? RbdId,
         string? BookingClass,
-        int? TicketingRestrictionMinutes,
-        string? FareOwnerRef,
-        string? TariffRef,
-        string? RuleRef,
-        string? RoutingRef,
-        IReadOnlyList<long> CoveredServiceIds,
-        IReadOnlyList<long> CoveredSegmentIds);
-
-    public sealed record ProjectedItemServiceLink(
-        long LinkId,
-        long ItemId,
-        long ServiceId,
-        long LinkedByChangeId,
-        IReadOnlyList<long> TravellerIdsAtAssociation,
-        IReadOnlyList<long> SegmentIdsAtAssociation);
+        int? TicketingRestrictionMinutes);
 }

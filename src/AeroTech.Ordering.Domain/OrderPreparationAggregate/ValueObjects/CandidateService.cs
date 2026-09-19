@@ -1,25 +1,15 @@
-using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
 {
     public sealed record CandidateService(
-        string ServiceRef,
-        OrderServiceType Type,
-        string? ServiceCode,
-        string? Name,
-        ServicePriceTreatment PriceTreatment,
-        string? SupplierPartyRef,
-        string? DeliveryProviderRef,
-        IReadOnlyList<string> BeneficiaryRefs,
-        IReadOnlyList<string> SegmentRefs,
-        decimal Quantity,
-        OrderItemUnitOfMeasure QuantityUnit,
-        string DetailSchema,
-        int DetailSchemaVersion,
-        IReadOnlyDictionary<string, string> Details,
+        string ServiceKey,
+        string TravellerRef,
+        string SegmentKey,
+        int? CabinClassId,
+        long? RbdId,
+        string? BookingClass,
         BaggageAllowance? CheckedBaggage,
         BaggageAllowance? CabinBaggage,
-        SoldTermFlags SoldTerms,
-        CandidateFulfillmentProfile FulfillmentProfile);
+        SoldTermFlags SoldTerms);
 }

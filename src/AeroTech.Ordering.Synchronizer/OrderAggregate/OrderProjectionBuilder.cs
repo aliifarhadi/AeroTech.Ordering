@@ -1,4 +1,4 @@
-using AeroTech.Messages.Aegis.Enums;
+using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderAggregate;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
@@ -14,23 +14,19 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
             order.OrderReference,
             order.CommercialSummary,
             order.CommercialVersion,
-            order.AcceptedSource.SourceOfferId,
+            order.SourceOfferId,
             order.Channel,
             order.FinancialCustomerId,
             new ProjectedSalesContext(
-                Party(order.SalesContext.SellerContextType, order.SalesContext.SellerId),
+                order.SalesContext.SellerContextType,
+                order.SalesContext.SellerId,
                 order.SalesContext.SellingOfficeKind,
                 order.SalesContext.SellingOfficeId),
-            Party(order.Buyer.ContextType, order.Buyer.BuyerId),
             new ProjectedActor(order.InitiatingActor.ContextType, order.InitiatingActor.ActorId),
+            order.CurrencyId,
             Money(order.CustomerTotal),
-            order.SaleCurrency.CurrencyRef,
-            order.SaleCurrency.CurrencyCode,
-            order.SourceJourneyTypeRaw,
             order.JourneyType,
-            order.ObservedTicketingDeadline is { } observed
-                ? new ProjectedObservedTime(observed.Value, observed.SourceOwner, observed.SourceRef)
-                : null,
+            order.LastTicketingDate,
             Travellers(order),
             Journeys(order),
             Segments(order),
@@ -38,18 +34,17 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
             Pricing(order),
             ComponentTotals(order),
             FareConstructions(order),
-            ItemServiceLinks(order),
             order.CreatedAt);
 
         private static IReadOnlyList<ProjectedTraveller> Travellers(Order order)
-            => order.Travelers
-                .OrderBy(traveler => traveler.SourceTravellerRef, StringComparer.Ordinal)
-                .Select(traveler => new ProjectedTraveller(
-                    traveler.Id,
-                    traveler.ClientTravelerRef,
-                    traveler.SourceTravellerRef,
-                    traveler.PassengerTypeCode,
-                    traveler.InfantParentTravelerId))
+            => order.Travellers
+                .OrderBy(traveller => traveller.SourceTravellerRef, StringComparer.Ordinal)
+                .Select(traveller => new ProjectedTraveller(
+                    traveller.Id,
+                    traveller.ClientTravellerRef,
+                    traveller.SourceTravellerRef,
+                    traveller.PassengerTypeCode,
+                    traveller.InfantParentTravellerId))
                 .ToList();
 
         private static IReadOnlyList<ProjectedJourney> Journeys(Order order)
@@ -57,49 +52,48 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                 .OrderBy(journey => journey.Sequence)
                 .Select(journey => new ProjectedJourney(
                     journey.Id,
-                    journey.SourceBoundRef,
+                    journey.BoundId,
                     journey.Sequence,
-                    journey.SourceDirectionRaw,
                     journey.Direction,
-                    journey.OriginRef,
-                    journey.DestinationRef))
+                    journey.OriginAirportId,
+                    journey.DestinationAirportId))
                 .ToList();
 
         private static IReadOnlyList<ProjectedSegment> Segments(Order order)
             => order.Segments
-                .OrderBy(segment => segment.Sequence)
+                .OrderBy(segment => segment.JourneyId)
+                .ThenBy(segment => segment.Sequence)
                 .Select(segment => new ProjectedSegment(
                     segment.Id,
                     segment.JourneyId,
                     segment.Sequence,
-                    segment.SourceSegmentRef,
                     segment.Kind,
-                    segment.OriginRef,
-                    segment.OriginTerminalRef,
-                    segment.DestinationRef,
-                    segment.DestinationTerminalRef,
+                    segment.OriginAirportId,
+                    segment.OriginAirportTerminalId,
+                    segment.DestinationAirportId,
+                    segment.DestinationAirportTerminalId,
                     segment.SoldDeparture,
                     segment.SoldArrival,
-                    segment.FlightRef,
+                    segment.FlightId,
                     segment.FlightNumber,
                     segment.FlightVersion,
-                    segment.MarketingCarrierRef,
-                    segment.OperatingCarrierRef,
-                    segment.SourceCapacityRef,
+                    segment.MarketingAirlineId,
+                    segment.OperatingAirlineId,
+                    segment.FlightCapacityId,
                     segment.Duration,
-                    segment.AircraftRef,
+                    segment.AircraftId,
                     segment.Legs
                         .OrderBy(leg => leg.Sequence)
                         .Select(leg => new ProjectedLeg(
                             leg.Id,
+                            leg.LegId,
                             leg.Sequence,
-                            leg.SourceLegRef,
-                            leg.OriginRef,
-                            leg.OriginTerminalRef,
-                            leg.DestinationRef,
-                            leg.DestinationTerminalRef,
-                            leg.Departure,
-                            leg.Arrival))
+                            leg.OriginAirportId,
+                            leg.OriginAirportTerminalId,
+                            leg.DestinationAirportId,
+                            leg.DestinationAirportTerminalId,
+                            leg.DepartureDateTime,
+                            leg.ArrivalDateTime))
                         .ToList()))
                 .ToList();
 
@@ -108,82 +102,36 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                 .OrderBy(item => item.Id)
                 .Select(item => new ProjectedItem(
                     item.Id,
-                    item.SourceItemRef,
                     item.Kind,
                     item.CommercialStatus,
                     Money(item.AcceptedTotal),
-                    new ProjectedProduct(
-                        item.Product.SourceSystem,
-                        item.Product.SourceOfferId,
-                        item.Product.SourceOfferItemRef,
-                        item.Product.ProductCode,
-                        item.Product.ProductName,
-                        item.Product.BrandCode,
-                        item.Product.BrandName,
-                        item.Product.ProductVersion),
-                    new ProjectedCommercialTerms(
-                        item.CommercialTerms.Refundability,
-                        item.CommercialTerms.Changeability,
-                        item.CommercialTerms.UpgradeEligibility,
-                        item.CommercialTerms.SourceSystem,
-                        item.CommercialTerms.SourcePolicyRef,
-                        item.CommercialTerms.SourcePolicyVersion,
-                        item.CommercialTerms.TermsCapturedAt),
-                    Services(order, item.Id)))
+                    order.Services
+                        .Where(service => service.OrderItemId == item.Id)
+                        .OrderBy(service => service.Id)
+                        .Select(Service)
+                        .ToList()))
                 .ToList();
 
-        private static IReadOnlyList<ProjectedService> Services(Order order, long itemId)
-            => order.Services
-                .Where(service => service.OrderItemId == itemId)
-                .OrderBy(service => service.Id)
-                .Select(service => new ProjectedService(
-                    service.Id,
-                    service.SourceServiceRef,
-                    service.Type,
-                    service.CommercialStatus,
-                    service.ServiceCode,
-                    service.Name,
-                    service.PriceTreatment,
-                    service.SupplierPartyRef,
-                    service.DeliveryProviderRef,
-                    DecimalRepresentation.Text(service.Quantity),
-                    service.QuantityUnit,
-                    service.Beneficiaries.Select(beneficiary => beneficiary.TravelerId).OrderBy(id => id).ToList(),
-                    service.Coverage.Select(coverage => coverage.SegmentId).OrderBy(id => id).ToList(),
-                    new ProjectedSoldTerms(service.SoldTerms.Refundable, service.SoldTerms.Changeable, service.SoldTerms.Upgradable),
-                    new ProjectedFulfillmentProfile(
-                        service.FulfillmentProfile.ProfileRef,
-                        service.FulfillmentProfile.ProfileVersion,
-                        service.FulfillmentProfile.Assurance,
-                        service.FulfillmentProfile.ReservationRequirement,
-                        service.FulfillmentProfile.DocumentKind,
-                        service.FulfillmentProfile.DocumentAuthority,
-                        service.FulfillmentProfile.FundingRequirement,
-                        service.FulfillmentProfile.CapacityUnits,
-                        service.FulfillmentProfile.ResourceUnitPolicyRef,
-                        service.FulfillmentProfile.DeliveryControlPolicyRef,
-                        service.FulfillmentProfile.DependencyTreatmentPolicyRef,
-                        service.FulfillmentProfile.PartialFulfillmentSupported),
-                    AirTransport(service)))
-                .ToList();
+        private static ProjectedService Service(OrderService service) => new(
+            service.Id,
+            service.CommercialStatus,
+            service.TravellerId,
+            service.SegmentId,
+            service.CabinClassId,
+            service.RbdId,
+            service.BookingClass,
+            Baggage(service.CheckedBaggage),
+            Baggage(service.CabinBaggage),
+            service.SoldTerms.Refundable,
+            service.SoldTerms.Changeable,
+            service.SoldTerms.Upgradable);
 
-        private static ProjectedAirTransport? AirTransport(OrderService service)
-            => service.AirTransport is { } detail
-                ? new ProjectedAirTransport(
-                    detail.CabinRef,
-                    detail.RbdRef,
-                    detail.BookingClass,
-                    Baggage(detail.CheckedBaggage),
-                    Baggage(detail.CabinBaggage))
-                : null;
-
-        private static ProjectedBaggage? Baggage(BaggageAllowance? allowance)
-            => allowance is null
-                ? null
-                : new ProjectedBaggage(
-                    allowance.Pieces,
-                    allowance.Weight is null ? null : DecimalRepresentation.Text(allowance.Weight.Value),
-                    allowance.WeightUnit);
+        private static ProjectedBaggage? Baggage(BaggageAllowance? allowance) => allowance is null
+            ? null
+            : new ProjectedBaggage(
+                allowance.Pieces,
+                allowance.Weight is null ? null : DecimalRepresentation.Text(allowance.Weight.Value),
+                allowance.WeightUnit);
 
         private static IReadOnlyList<ProjectedPricingLine> Pricing(Order order)
             => order.PricingLines
@@ -191,26 +139,24 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                 .Select(line => new ProjectedPricingLine(
                     line.Id,
                     line.OrderItemId,
-                    line.SourceLineRef,
+                    line.SourceOccurrencePath,
                     line.Component,
                     line.Effect,
                     line.Direction,
-                    line.Role,
-                    line.SourceCode,
-                    line.SourceName,
-                    line.SourceReference,
+                    line.Code,
+                    line.Name,
+                    line.Reference,
                     line.CalculationKind,
                     Money(line.SaleValue),
                     Money(line.OriginalValue),
                     line.BasisType,
                     line.BasisId,
-                    line.SourceBasisRef,
                     line.SourceConversionRef,
                     line.AppliedConversion is { } conversion
                         ? new ProjectedConversion(
                             conversion.SourceConversionRef,
-                            conversion.FromCurrencyRef,
-                            conversion.ToCurrencyRef,
+                            conversion.FromCurrencyId,
+                            conversion.ToCurrencyId,
                             DecimalRepresentation.Text(conversion.Rate),
                             conversion.DecimalPlaces,
                             conversion.RoundingToken)
@@ -220,19 +166,16 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                         : null))
                 .ToList();
 
-        private static ProjectedParty? Party(BusinessContextType? contextType, long? partyId)
-            => contextType is null || partyId is null ? null : new ProjectedParty(contextType.Value, partyId.Value);
-
         private static IReadOnlyList<ProjectedComponentTotal> ComponentTotals(Order order)
-            => order.ComponentTotals
-                .OrderBy(total => total.Component)
-                .ThenBy(total => total.Effect)
-                .Select(total => new ProjectedComponentTotal(
-                    total.Component,
-                    total.Effect,
-                    DecimalRepresentation.Text(total.DebitAmount),
-                    DecimalRepresentation.Text(total.CreditAmount),
-                    total.CurrencyRef))
+            => order.PricingLines
+                .GroupBy(line => (line.Component, line.Effect))
+                .OrderBy(group => group.Key.Component)
+                .ThenBy(group => group.Key.Effect)
+                .Select(group => new ProjectedComponentTotal(
+                    group.Key.Component,
+                    group.Key.Effect,
+                    DecimalRepresentation.Text(group.Where(line => line.Direction == OrderPricingLineDirection.Debit).Sum(line => line.SaleValue.Amount)),
+                    DecimalRepresentation.Text(group.Where(line => line.Direction == OrderPricingLineDirection.Credit).Sum(line => line.SaleValue.Amount))))
                 .ToList();
 
         private static IReadOnlyList<ProjectedFareConstruction> FareConstructions(Order order)
@@ -240,66 +183,34 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                 .OrderBy(construction => construction.Id)
                 .Select(construction => new ProjectedFareConstruction(
                     construction.Id,
-                    construction.Assurance,
-                    construction.SourceContextRef,
                     construction.Items.Select(item => item.OrderItemId).OrderBy(id => id).ToList(),
-                    construction.PricingGroups
-                        .OrderBy(group => group.Id)
-                        .Select(group => new ProjectedFareGroup(
-                            group.Id,
-                            group.PassengerTypeCode,
-                            group.Quantity,
-                            group.Travelers.Select(traveler => traveler.TravelerId).OrderBy(id => id).ToList()))
-                        .ToList(),
                     construction.PricingUnits
                         .OrderBy(unit => unit.Sequence)
                         .Select(unit => new ProjectedFareUnit(
                             unit.Id,
-                            unit.PricingGroupId,
                             unit.Sequence,
-                            unit.SourceUnitRef,
-                            unit.SourceKindRaw,
                             unit.Type,
-                            unit.CombinationMethod,
-                            unit.CoveredBounds.Select(bound => bound.SourceBoundRef).OrderBy(reference => reference, StringComparer.Ordinal).ToList(),
+                            unit.CoveredBounds
+                                .Select(bound => bound.CoveredBoundOfferId)
+                                .OrderBy(value => value, StringComparer.Ordinal)
+                                .ToList(),
                             unit.Components
                                 .OrderBy(component => component.Sequence)
-                                .Select(Component)
+                                .Select(component => new ProjectedFareComponent(
+                                    component.Id,
+                                    component.Sequence,
+                                    component.AirFareId,
+                                    component.FareBasis,
+                                    component.FareFamily,
+                                    component.FareType,
+                                    component.CabinClassId,
+                                    component.RbdId,
+                                    component.BookingClass,
+                                    component.TicketingRestrictionMinutes))
                                 .ToList()))
                         .ToList()))
                 .ToList();
 
-        private static ProjectedFareComponent Component(FareComponent component) => new(
-            component.Id,
-            component.Sequence,
-            component.SourceFareRef,
-            component.FareBasis,
-            component.FareFamily,
-            component.FareType,
-            component.CabinRef,
-            component.RbdRef,
-            component.BookingClass,
-            component.TicketingRestrictionMinutes,
-            component.FareOwnerRef,
-            component.TariffRef,
-            component.RuleRef,
-            component.RoutingRef,
-            component.CoveredServices.Select(covered => covered.OrderServiceId).OrderBy(id => id).ToList(),
-            component.CoveredSegments.Select(covered => covered.OrderSegmentId).OrderBy(id => id).ToList());
-
-        private static IReadOnlyList<ProjectedItemServiceLink> ItemServiceLinks(Order order)
-            => order.ItemServiceLinks
-                .OrderBy(link => link.Id)
-                .Select(link => new ProjectedItemServiceLink(
-                    link.Id,
-                    link.OrderItemId,
-                    link.OrderServiceId,
-                    link.LinkedByChangeId,
-                    link.TravelersAtAssociation.Select(scope => scope.TravelerId).OrderBy(id => id).ToList(),
-                    link.SegmentsAtAssociation.Select(scope => scope.SegmentId).OrderBy(id => id).ToList()))
-                .ToList();
-
-        private static ProjectedMoney Money(Money money)
-            => new(DecimalRepresentation.Text(money.Amount), money.CurrencyRef);
+        private static ProjectedMoney Money(Money money) => new(DecimalRepresentation.Text(money.Amount), money.CurrencyId);
     }
 }

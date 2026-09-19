@@ -27,10 +27,10 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         [Fact]
         public void Commission_as_settlement_only_is_allowed_and_as_customer_charge_is_not()
         {
-            PricingLineMatrix.EnsureAllowed(PricingComponentType.Commission, PricingEffect.SettlementOnly, OrderPricingLineDirection.Debit, PricingLineRole.Original, new SettlementAttribution("agency:77", "COMMISSION"));
+            PricingLineMatrix.EnsureAllowed(PricingComponentType.Commission, PricingEffect.SettlementOnly, OrderPricingLineDirection.Debit, new SettlementAttribution("agency:77", "COMMISSION"));
 
             Assert.Throws<BusinessException>(() =>
-                PricingLineMatrix.EnsureAllowed(PricingComponentType.Commission, PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, PricingLineRole.Original, null));
+                PricingLineMatrix.EnsureAllowed(PricingComponentType.Commission, PricingEffect.CustomerBalance, OrderPricingLineDirection.Debit, null));
         }
 
         [Theory]

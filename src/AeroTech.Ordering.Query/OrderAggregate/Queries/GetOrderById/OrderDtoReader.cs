@@ -3,7 +3,6 @@ using AeroTech.Ordering.Query._Shared.DbContexts;
 using AeroTech.Ordering.Query.OrderAggregate.Dto;
 using AeroTech.Ordering.Query.OrderAggregate.Models;
 using AeroTech.Ordering.Query.OrderAggregate.Projection;
-using AeroTech.Ordering.Query.OrderAggregate.Projection.Compatibility;
 using AeroTech.Ordering.Application._Shared.Authorization;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,13 +34,9 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrderById
                 : order;
         }
 
-        private static OrderDto PublicOrder(OrderDetailsReadModel row) => row.ProjectionSchemaVersion switch
-        {
-            OrderProjectionJson.SchemaVersion => OrderProjectionMapper.ToPublicOrder(OrderProjectionJson.Read(row.DetailsJson)),
-            OrderProjectionJson.LegacyInternalSchemaVersion => LegacyProjectionReader.ReadInternalSchemaThree(row.DetailsJson),
-            OrderDtoJson.SchemaVersion => LegacyProjectionReader.ReadPublicSchemaTwo(row.DetailsJson),
-            _ => throw ExceptionFactory.UnsupportedCapability($"order projection schema {row.ProjectionSchemaVersion} cannot be read")
-        };
+        private static OrderDto PublicOrder(OrderDetailsReadModel row) => row.ProjectionSchemaVersion == OrderProjectionJson.SchemaVersion
+            ? OrderProjectionMapper.ToPublicOrder(OrderProjectionJson.Read(row.DetailsJson))
+            : throw ExceptionFactory.UnsupportedCapability($"order projection schema {row.ProjectionSchemaVersion} cannot be read");
 
         private async Task<IReadOnlyList<OrderTravellerDto>> NamedTravellersAsync(OrderDto order, CancellationToken cancellationToken)
         {

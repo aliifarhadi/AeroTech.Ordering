@@ -1,9 +1,7 @@
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.Exceptions;
-using AeroTech.Ordering.Domain.OrderPreparationAggregate;
 using AeroTech.Ordering.Persistence.CommandReceiptAggregate;
 using AeroTech.Ordering.Persistence.OrderAggregate;
-using AeroTech.Ordering.Persistence.OrderPreparationAggregate;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,17 +15,12 @@ namespace AeroTech.Ordering.Persistence._Shared.Transactions
         private static readonly (string Index, CommitConflictKind Kind)[] UniqueIndexes =
         {
             (CommandReceiptConfiguration.ScopeKeyIndex, CommitConflictKind.CommandReceiptKey),
-            (OrderPreparationConfiguration.ConsumptionIndex, CommitConflictKind.PreparationConsumption),
             (OrderConfiguration.SourcePreparationIndex, CommitConflictKind.PreparationConsumption),
             (OrderConfiguration.ReferenceIndex, CommitConflictKind.OrderReference)
         };
 
         public static CommitConflictException? Translate(DbUpdateException exception)
         {
-            if (exception is DbUpdateConcurrencyException concurrency
-                && concurrency.Entries.Any(entry => entry.Entity is OrderPreparation))
-                return new CommitConflictException(CommitConflictKind.PreparationConsumption, "order preparation changed concurrently", exception);
-
             if (exception.InnerException is not SqlException sql)
                 return null;
 

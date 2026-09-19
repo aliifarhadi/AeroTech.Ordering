@@ -5,9 +5,11 @@ using AeroTech.Ordering.Domain.OrderAggregate;
 using AeroTech.Ordering.Domain.OrderAggregate.Arguments;
 using AeroTech.Ordering.Domain.OrderAggregate.DomainEvents;
 using AeroTech.Ordering.Domain.OrderAggregate.ValueObjects;
+using AeroTech.Ordering.Domain.OrderPreparationAggregate;
+using AeroTech.Ordering.Domain.OrderPreparationAggregate.Arguments;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
+using AeroTech.Ordering.Domain.Ports.Offers;
 using AeroTech.Ordering.Domain.Tests._Shared;
-using AeroTech.Ordering.Domain.Tests.OrderPreparationAggregate;
 using Xunit;
 
 namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
@@ -24,7 +26,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
             Assert.Single(order.Items);
             Assert.Single(order.Services);
             Assert.Equal(120.00m, order.CustomerTotal.Amount);
-            Assert.Equal("EUR", order.CustomerTotal.CurrencyRef);
+            Assert.Equal("EUR", order.CustomerTotal.CurrencyId);
             Assert.Equal(1, order.CommercialVersion);
             Assert.Equal(1, order.FinancialSequence);
             Assert.Equal(1, order.OrderRevision);
@@ -46,7 +48,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         public void Technical_stop_keeps_one_service_and_two_legs()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
+                .Traveller("PAX-A")
                 .Segment("SEG-A", "LEG-1", "LEG-2")
                 .AirService("SERVICE-A", "PAX-A", "SEG-A")
                 .Package("ITEM-A", "SERVICE-A")
@@ -63,8 +65,8 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         public void Source_priced_package_for_two_travelers_and_two_segments_is_one_item_with_four_services()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
-                .Traveler("PAX-B")
+                .Traveller("PAX-A")
+                .Traveller("PAX-B")
                 .Segment("SEG-1")
                 .Segment("SEG-2")
                 .AirService("S-A1", "PAX-A", "SEG-1")
@@ -86,103 +88,30 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         }
 
         [Fact]
-        public void Round_trip_and_two_one_way_constructions_are_retained_as_supplied()
-        {
-            var roundTrip = Accept(RoundTripBuilder(
-                Unit("PU-RT", FarePricingUnitType.RoundTrip, ["OUT", "IN"], null,
-                    Component("FC-RT", "YRT", ["S-OUT", "S-IN"]))), Bind("PAX-A"));
-
-            var twoOneWays = Accept(RoundTripBuilder(
-                Unit("PU-OUT", FarePricingUnitType.OneWay, ["OUT"], null, Component("FC-OUT", "YOW", ["S-OUT"])),
-                Unit("PU-IN", FarePricingUnitType.OneWay, ["IN"], null, Component("FC-IN", "YOW", ["S-IN"]))), Bind("PAX-A"));
-
-            Assert.Equal(twoOneWays.Segments.Select(segment => segment.SourceSegmentRef), roundTrip.Segments.Select(segment => segment.SourceSegmentRef));
-            Assert.Equal(FareConstructionAssurance.SourceProvided, roundTrip.FareConstructions.Single().Assurance);
-
-            var roundTripUnit = Assert.Single(roundTrip.FareConstructions.Single().PricingUnits);
-            Assert.Equal(FarePricingUnitType.RoundTrip, roundTripUnit.Type);
-            Assert.Equal(FareCombinationMethod.FiledFare, roundTripUnit.CombinationMethod);
-            Assert.Equal(["IN", "OUT"], roundTripUnit.CoveredBounds.Select(bound => bound.SourceBoundRef).OrderBy(reference => reference));
-            Assert.Equal(2, Assert.Single(roundTripUnit.Components).CoveredServices.Count);
-
-            Assert.Equal(2, twoOneWays.FareConstructions.Single().PricingUnits.Count);
-            Assert.All(twoOneWays.FareConstructions.Single().PricingUnits, unit => Assert.Equal(FarePricingUnitType.OneWay, unit.Type));
-            Assert.All(twoOneWays.FareConstructions.Single().FareComponents, component => Assert.Single(component.CoveredServices));
-        }
-
-        [Fact]
-        public void Opaque_context_is_retained_without_invented_links()
-        {
-            var builder = CandidateBuilder.OneWayFare100Tax20(Now)
-                .OpaqueUnits(new CandidatePricingUnit("PU-1", "OpaqueKind", FarePricingUnitType.Unspecified, FareCombinationMethod.Unspecified, ["BOUND-1"], null,
-                    [new CandidateFareComponent("AIRFARE-77", "YOW", "FLEX", "Published", "CABIN-1", "RBD-1", "Y", 45, null, null, null, null, [], [])]));
-
-            var order = Accept(builder, Bind("PAX-A"));
-            var construction = order.FareConstructions.Single();
-            var unit = Assert.Single(construction.PricingUnits);
-            var component = Assert.Single(unit.Components);
-
-            Assert.Equal(FareConstructionAssurance.Opaque, construction.Assurance);
-            Assert.Empty(construction.PricingGroups);
-            Assert.Equal("OpaqueKind", unit.SourceKindRaw);
-            Assert.Equal(FareCombinationMethod.Unspecified, unit.CombinationMethod);
-            Assert.Equal("AIRFARE-77", component.SourceFareRef);
-            Assert.Equal(45, component.TicketingRestrictionMinutes);
-            Assert.Empty(component.CoveredServices);
-            Assert.Empty(component.CoveredSegments);
-            Assert.Equal(order.Items.Single().Id, Assert.Single(construction.Items).OrderItemId);
-        }
-
-        [Fact]
-        public void Extended_group_line_is_stored_once_with_quantity_metadata()
-        {
-            var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
-                .Traveler("PAX-B")
-                .Segment("SEG-1")
-                .AirService("S-A", "PAX-A", "SEG-1")
-                .AirService("S-B", "PAX-B", "SEG-1")
-                .Package("PACKAGE", "S-A", "S-B")
-                .Line("GROUP-FARE", "PACKAGE", PricingComponentType.Fare, 200m, "PACKAGE", basisType: PricingBasisType.OrderItem)
-                .SourceProvidedConstruction(Unit("PU-1", FarePricingUnitType.OneWay, ["OUT"],
-                    new CandidatePricingGroup(["PAX-A", "PAX-B"], PassengerTypeCode.ADT, 2),
-                    Component("FC-1", "YOW", ["S-A", "S-B"])));
-
-            var order = Accept(builder, Bind("PAX-A"), Bind("PAX-B"));
-            var group = Assert.Single(order.FareConstructions.Single().PricingGroups);
-
-            Assert.Equal(200m, order.CustomerTotal.Amount);
-            Assert.Equal(200m, order.PricingLines.Single().SaleValue.Amount);
-            Assert.Equal(2, group.Quantity);
-            Assert.Equal(2, group.Travelers.Count);
-            Assert.Equal(group.Id, Assert.Single(order.FareConstructions.Single().PricingUnits).PricingGroupId);
-        }
-
-        [Fact]
         public void Sale_equivalent_is_the_customer_value_and_original_currency_is_retained()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
+                .Traveller("PAX-A")
                 .Segment("SEG-A")
                 .AirService("SERVICE-A", "PAX-A", "SEG-A")
                 .Package("ITEM-A", "SERVICE-A")
-                .Line("FARE", "ITEM-A", PricingComponentType.Fare, 92m, "SERVICE-A", original: new Money(100m, "USD"));
+                .Line("FARE", "ITEM-A", PricingComponentType.Fare, 92m, "SERVICE-A", original: new Money(100m, 999));
 
             var order = Accept(builder, Bind("PAX-A"));
             var line = order.PricingLines.Single();
 
             Assert.Equal(92m, order.CustomerTotal.Amount);
-            Assert.Equal("EUR", order.CustomerTotal.CurrencyRef);
-            Assert.Equal(new Money(100m, "USD"), line.OriginalValue);
-            Assert.Equal(new Money(92m, "EUR"), line.SaleValue);
+            Assert.Equal("EUR", order.CustomerTotal.CurrencyId);
+            Assert.Equal(new Money(100m, 999), line.OriginalValue);
+            Assert.Equal(new Money(92m, CandidateBuilder.SaleCurrencyId), line.SaleValue);
         }
 
         [Fact]
         public void Repeated_source_traveler_binding_is_rejected_before_any_order()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
-                .Traveler("PAX-B")
+                .Traveller("PAX-A")
+                .Traveller("PAX-B")
                 .Segment("SEG-1")
                 .AirService("S-A", "PAX-A", "SEG-1")
                 .AirService("S-B", "PAX-B", "SEG-1")
@@ -203,15 +132,15 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         public void Incomplete_or_inconsistent_traveler_binding_is_rejected(string defect)
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
-                .Traveler("PAX-I", PassengerTypeCode.INF)
+                .Traveller("PAX-A")
+                .Traveller("PAX-I", PassengerTypeCode.INF)
                 .Segment("SEG-1")
                 .AirService("S-A", "PAX-A", "SEG-1")
                 .AirService("S-I", "PAX-I", "SEG-1")
                 .Package("PACKAGE", "S-A", "S-I")
                 .Line("FARE", "PACKAGE", PricingComponentType.Fare, 120m, "PACKAGE", basisType: PricingBasisType.OrderItem);
 
-            TravelerBinding[] bindings = defect switch
+            TravellerBinding[] bindings = defect switch
             {
                 "missing" => [Bind("PAX-A")],
                 "foreign" => [Bind("PAX-A"), Bind("PAX-Z", "CLIENT-Z", PassengerTypeCode.INF)],
@@ -225,11 +154,11 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         }
 
         [Fact]
-        public void Infant_guardian_is_linked_to_the_same_order_traveler()
+        public void Infant_guardian_is_linked_to_the_same_order_traveller()
         {
             var builder = new CandidateBuilder(Now)
-                .Traveler("PAX-A")
-                .Traveler("PAX-I", PassengerTypeCode.INF)
+                .Traveller("PAX-A")
+                .Traveller("PAX-I", PassengerTypeCode.INF)
                 .Segment("SEG-1")
                 .AirService("S-A", "PAX-A", "SEG-1")
                 .AirService("S-I", "PAX-I", "SEG-1")
@@ -238,38 +167,14 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
 
             var order = Accept(builder, Bind("PAX-A", "CLIENT-A"), Bind("PAX-I", "CLIENT-I", PassengerTypeCode.INF, "CLIENT-A"));
 
-            var adult = order.Travelers.Single(traveler => traveler.SourceTravellerRef == "PAX-A");
-            var infant = order.Travelers.Single(traveler => traveler.SourceTravellerRef == "PAX-I");
-            Assert.Equal(adult.Id, infant.InfantParentTravelerId);
+            var adult = order.Travellers.Single(traveller => traveller.SourceTravellerRef == "PAX-A");
+            var infant = order.Travellers.Single(traveller => traveller.SourceTravellerRef == "PAX-I");
+            Assert.Equal(adult.Id, infant.InfantParentTravellerId);
         }
 
-        private static CandidatePricingUnit Unit(
-            string sourceUnitRef,
-            FarePricingUnitType type,
-            IReadOnlyList<string> coveredBounds,
-            CandidatePricingGroup? group,
-            params CandidateFareComponent[] components)
-            => new(sourceUnitRef, null, type, FareCombinationMethod.FiledFare, coveredBounds, group, components);
-
-        private static CandidateFareComponent Component(string sourceFareRef, string fareBasis, IReadOnlyList<string> coveredServiceRefs)
-            => new(sourceFareRef, fareBasis, null, "Published", null, null, "Y", null, null, null, null, null, coveredServiceRefs, []);
-
-        private static CandidateBuilder RoundTripBuilder(params CandidatePricingUnit[] units)
-            => new CandidateBuilder(Now)
-                .Traveler("PAX-A")
-                .Journey("OUT")
-                .Segment("OUT-1")
-                .Journey("IN")
-                .Segment("IN-1")
-                .AirService("S-OUT", "PAX-A", "OUT-1")
-                .AirService("S-IN", "PAX-A", "IN-1")
-                .Package("PACKAGE", "S-OUT", "S-IN")
-                .Line("FARE", "PACKAGE", PricingComponentType.Fare, 300m, "PACKAGE", basisType: PricingBasisType.OrderItem)
-                .SourceProvidedConstruction(units);
-
-        public static Order Accept(CandidateBuilder builder, params TravelerBinding[] bindings)
+        public static Order Accept(CandidateBuilder builder, params TravellerBinding[] bindings)
         {
-            var preparation = OrderPreparationTests.Capture(builder, CandidateBuilder.ReferenceProfile);
+            var preparation = CapturePreparation(builder);
 
             return Order.AcceptOriginalSale(
                 new AcceptOriginalSaleArgs(
@@ -278,15 +183,25 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
                     preparation,
                     builder.SalesScope,
                     bindings,
-                    [new ContactDetails(ContactRole.Primary, "traveler@example.invalid", null)],
+                    [new ContactDetails(ContactRole.Primary, "traveller@example.invalid", null)],
                     Now,
                     Now,
                     null),
                 new SequentialIdGenerator());
         }
 
-        public static TravelerBinding Bind(string sourceRef, string? clientRef = null, PassengerTypeCode passengerType = PassengerTypeCode.ADT, string? guardian = null)
-            => new(sourceRef, clientRef ?? $"CLIENT-{sourceRef}", "Sample", "Traveler", passengerType,
+        internal static OrderPreparation CapturePreparation(CandidateBuilder builder)
+            => OrderPreparation.Capture(new CaptureOrderPreparationArgs(
+                7001,
+                7002,
+                builder.SalesScope,
+                builder.Build(),
+                new OfferSourceProfile(CandidateBuilder.ReferenceProfile, "1.0", CandidateBuilder.ReferenceProfile),
+                new SourceEvidence("evidence", new string('a', 64), "application/json", "{}"),
+                Now));
+
+        public static TravellerBinding Bind(string sourceRef, string? clientRef = null, PassengerTypeCode passengerType = PassengerTypeCode.ADT, string? guardian = null)
+            => new(sourceRef, clientRef ?? $"CLIENT-{sourceRef}", "Sample", "Traveller", passengerType,
                 passengerType == PassengerTypeCode.INF ? new DateOnly(2026, 1, 1) : new DateOnly(1990, 1, 1), guardian);
     }
 }

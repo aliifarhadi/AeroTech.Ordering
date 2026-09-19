@@ -12,14 +12,14 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
         string OrderReference,
         CommercialSummary Status,
         string GrandTotal,
-        string CurrencyRef)
+        int CurrencyId)
     {
         public static CreateOrderFromOfferResult From(Order order) => new(
             order.Id,
             order.OrderReference,
             order.CommercialSummary,
             DecimalRepresentation.Text(order.CustomerTotal.Amount),
-            order.CustomerTotal.CurrencyRef);
+            order.CustomerTotal.CurrencyId);
 
         public string ToReceiptJson() => CanonicalJson.Write(new Dictionary<string, object?>
         {
@@ -27,7 +27,7 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
             ["orderReference"] = OrderReference,
             ["status"] = Status.ToString(),
             ["grandTotal"] = GrandTotal,
-            ["currencyRef"] = CurrencyRef
+            ["currencyId"] = CurrencyId
         });
 
         public static CreateOrderFromOfferResult FromReceiptJson(string json)
@@ -40,7 +40,7 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
                 root.GetProperty("orderReference").GetString()!,
                 Enum.Parse<CommercialSummary>(root.GetProperty("status").GetString()!),
                 root.GetProperty("grandTotal").GetString()!,
-                root.GetProperty("currencyRef").GetString()!);
+                root.GetProperty("currencyId").GetInt32());
         }
     }
 }

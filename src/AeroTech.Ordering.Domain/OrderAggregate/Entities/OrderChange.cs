@@ -17,7 +17,6 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             int commercialVersion,
             BusinessContextType actorContextType,
             long? actorId,
-            string sourceDecisionRef,
             DateTimeOffset committedAt)
         {
             Id = id;
@@ -26,7 +25,6 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             CommercialVersion = commercialVersion;
             ActorContextType = actorContextType;
             ActorId = actorId;
-            SourceDecisionRef = sourceDecisionRef;
             CommittedAt = committedAt;
         }
 
@@ -39,8 +37,6 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         public BusinessContextType ActorContextType { get; private set; }
 
         public long? ActorId { get; private set; }
-
-        public string SourceDecisionRef { get; private set; } = null!;
 
         public DateTimeOffset CommittedAt { get; private set; }
     }

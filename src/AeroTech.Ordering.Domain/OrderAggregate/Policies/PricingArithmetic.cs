@@ -6,7 +6,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Policies
 {
     public static class PricingArithmetic
     {
-        public static Money CustomerTotal(IEnumerable<PricedAmount> lines, string saleCurrencyRef)
+        public static Money CustomerTotal(IEnumerable<PricedAmount> lines, int currencyId)
         {
             var total = 0m;
 
@@ -15,14 +15,14 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Policies
                 if (line.Effect != PricingEffect.CustomerBalance)
                     continue;
 
-                if (!string.Equals(line.SaleValue.CurrencyRef, saleCurrencyRef, StringComparison.Ordinal))
-                    throw ExceptionFactory.PricingRuleViolated($"customer line currency {line.SaleValue.CurrencyRef} differs from sale currency {saleCurrencyRef}");
+                if (line.SaleValue.CurrencyId != currencyId)
+                    throw ExceptionFactory.PricingRuleViolated($"customer line currency {line.SaleValue.CurrencyId} differs from sale currency {currencyId}");
 
                 EnsureMagnitude(line.SaleValue);
                 total += PricingLineMatrix.Sign(line.Direction) * line.SaleValue.Amount;
             }
 
-            return new Money(total, saleCurrencyRef);
+            return new Money(total, currencyId);
         }
 
         public static void EnsureMagnitude(Money value)

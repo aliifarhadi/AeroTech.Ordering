@@ -2,7 +2,6 @@ using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
-using AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.Tests._Shared
@@ -10,30 +9,25 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
     public sealed class CandidateBuilder
     {
         public const string ReferenceProfile = "REFERENCE-OFFER-2.0";
-        public const string SaleCurrency = "EUR";
-        public const string SaleCurrencyCode = "EUR";
-        public const string ReferenceFulfillmentProfile = "REFERENCE-AIR-ETKT";
-        public const string ReferenceFulfillmentProfileVersion = "1";
+        public const int SaleCurrencyId = 978;
 
-        private readonly List<CandidateTraveler> _travelers = new();
+        private readonly DateTimeOffset _now;
+        private readonly List<CandidateTraveller> _travellers = new();
         private readonly List<CandidateJourney> _journeys = new();
         private readonly List<CandidateSegment> _segments = new();
-        private readonly List<CandidateItem> _items = new();
         private readonly List<CandidateService> _services = new();
+        private readonly List<CandidateItem> _items = new();
         private readonly List<CandidatePricingLine> _lines = new();
         private readonly List<CandidatePricingUnit> _units = new();
-        private readonly DateTimeOffset _now;
+
         private AuthorizedSalesScope _scope;
-        private string _offerId = "REFERENCE-PRICED-OW-001";
-        private AcceptanceAssurance _assurance = AcceptanceAssurance.OwnerBound;
+        private string _offerId = "OFFER-1";
         private string _profile = ReferenceProfile;
-        private FareConstructionAssurance _constructionAssurance = FareConstructionAssurance.Opaque;
-        private ValidityFact? _offerValidity;
-        private ValidityFact? _priceValidity;
-        private ValidityFact? _ticketingValidity;
-        private ObservedTimeFact? _observedTicketingDeadline;
-        private string? _sourceJourneyTypeRaw;
-        private JourneyType? _journeyType;
+        private AcceptanceAssurance _assurance = AcceptanceAssurance.OwnerBound;
+        private JourneyType _journeyType = JourneyType.OneWay;
+        private DateTimeOffset? _offerExpiresAt;
+        private DateTimeOffset? _priceValidUntil;
+        private DateTimeOffset? _lastTicketingDate;
         private decimal? _customerTotalOverride;
 
         public CandidateBuilder(DateTimeOffset now, AuthorizedSalesScope? scope = null)
@@ -47,8 +41,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             string callerScope = "customer:100/actor:1",
             long ownerAirlineId = 1,
             SalesChannel channel = SalesChannel.BackOffice,
-            SalesContextSnapshot? salesContext = null,
-            BuyerSnapshot? buyer = null)
+            SalesContextSnapshot? salesContext = null)
             => new(
                 ownerAirlineId,
                 customerId,
@@ -58,7 +51,6 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                     ownerAirlineId,
                     SellingOfficeKind.AirlineOffice,
                     10),
-                buyer ?? BuyerSnapshot.NotSupplied,
                 callerScope,
                 new InitiatingActorSnapshot(BusinessContextType.Airline, 1));
 
@@ -80,144 +72,102 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
         {
             _assurance = AcceptanceAssurance.LocalCandidateOnly;
             _profile = profile;
-            _offerValidity = new ValidityFact(ValidityState.NotSupplied, null, "AirOffer", null, "Not supplied by source");
-            _priceValidity = new ValidityFact(ValidityState.NotSupplied, null, "AirPrice", null, "Not supplied by source");
             return this;
         }
 
-        public CandidateBuilder Validity(ValidityFact offer, ValidityFact price, ValidityFact ticketing)
+        public CandidateBuilder Validity(DateTimeOffset? offerExpiresAt, DateTimeOffset? priceValidUntil, DateTimeOffset? lastTicketingDate)
         {
-            _offerValidity = offer;
-            _priceValidity = price;
-            _ticketingValidity = ticketing;
+            _offerExpiresAt = offerExpiresAt;
+            _priceValidUntil = priceValidUntil;
+            _lastTicketingDate = lastTicketingDate;
             return this;
         }
 
-        public CandidateBuilder ObservedTicketingDeadline(ObservedTimeFact observed)
+        public CandidateBuilder JourneyKind(JourneyType journeyType)
         {
-            _observedTicketingDeadline = observed;
-            return this;
-        }
-
-        public CandidateBuilder SourceJourneyType(string? raw, JourneyType? journeyType = null)
-        {
-            _sourceJourneyTypeRaw = raw;
             _journeyType = journeyType;
             return this;
         }
 
-        public CandidateBuilder Traveler(string reference, PassengerTypeCode passengerType = PassengerTypeCode.ADT)
+        public CandidateBuilder Traveller(string reference, PassengerTypeCode passengerType = PassengerTypeCode.ADT)
         {
-            _travelers.Add(new CandidateTraveler(reference, passengerType));
+            _travellers.Add(new CandidateTraveller(reference, passengerType));
             return this;
         }
 
-        public CandidateBuilder Journey(string reference, string? directionRaw = null, BoundDirection? direction = null)
+        public CandidateBuilder Journey(string boundId, BoundDirection direction = BoundDirection.Outbound)
         {
-            _journeys.Add(new CandidateJourney(reference, _journeys.Count + 1, directionRaw, direction, "AIRPORT-A", "AIRPORT-B"));
+            _journeys.Add(new CandidateJourney(boundId, _journeys.Count + 1, direction, 1001, 1002));
             return this;
         }
 
-        public CandidateBuilder Segment(string reference, params string[] legs)
-            => Segment(reference, null, legs);
+        public CandidateBuilder Segment(string segmentKey, params long[] legs)
+            => Segment(segmentKey, null, legs);
 
-        public CandidateBuilder Segment(string reference, CandidateSegment? replacement, params string[] legs)
+        public CandidateBuilder Segment(string segmentKey, CandidateSegment? replacement, params long[] legs)
         {
             if (_journeys.Count == 0)
                 Journey("BOUND-1");
 
-            var departure = _now.AddDays(14).AddHours(_segments.Count * 6);
-            var arrival = departure.AddHours(2);
-            var journeyRef = _journeys[^1].JourneyRef;
-
-            var legRefs = legs.Length == 0 ? [$"LEG-{reference}"] : legs;
-            var segmentLegs = legRefs
-                .Select((leg, index) => new CandidateSegmentLeg(leg, index + 1, "AIRPORT-A", "T1", "AIRPORT-B", "T2", departure, arrival))
-                .ToList();
+            var boundId = _journeys[^1].BoundId;
+            var sequence = _segments.Count(segment => segment.BoundId == boundId) + 1;
+            var legIds = legs.Length == 0 ? [9000L + _segments.Count] : legs;
 
             _segments.Add(replacement ?? new CandidateSegment(
-                reference,
-                journeyRef,
+                segmentKey,
+                boundId,
+                sequence,
                 SegmentKind.ScheduledAir,
-                "AIRPORT-A",
-                "T1",
-                "AIRPORT-B",
-                "T2",
-                departure,
-                arrival,
-                $"FLIGHT-{reference}",
-                $"XX{_segments.Count + 100}",
-                "1",
-                "CARRIER-M",
-                "CARRIER-O",
-                $"CAPACITY-{reference}",
+                1001,
+                null,
+                1002,
+                null,
+                _now.AddDays(10),
+                _now.AddDays(10).AddHours(2),
+                7000 + _segments.Count,
+                "XX100",
+                1,
+                21,
+                21,
+                8000 + _segments.Count,
                 120,
-                "AIRCRAFT-1",
-                segmentLegs));
+                1,
+                legIds.Select((legId, index) => new CandidateSegmentLeg(
+                    legId,
+                    index + 1,
+                    1001,
+                    null,
+                    1002,
+                    null,
+                    _now.AddDays(10),
+                    _now.AddDays(10).AddHours(2))).ToList()));
 
             return this;
         }
 
         public CandidateBuilder AirService(
-            string reference,
-            string traveler,
-            string segment,
-            IReadOnlyDictionary<string, string>? details = null,
+            string serviceKey,
+            string travellerRef,
+            string segmentKey,
+            int? cabinClassId = 1,
+            long? rbdId = 25,
+            string? bookingClass = "Y",
             BaggageAllowance? checkedBaggage = null,
             BaggageAllowance? cabinBaggage = null,
             SoldTermFlags? soldTerms = null)
         {
             _services.Add(new CandidateService(
-                reference,
-                OrderServiceType.AirTransportation,
-                null,
-                null,
-                ServicePriceTreatment.SupplierOpaque,
-                null,
-                null,
-                [traveler],
-                [segment],
-                1,
-                OrderItemUnitOfMeasure.PassengerSegment,
-                ServiceDetailSchemaRegistry.AirTransportSchema,
-                ServiceDetailSchemaRegistry.AirTransportSchemaVersion,
-                details ?? new Dictionary<string, string> { [ServiceDetailSchemaRegistry.CabinRef] = "ECONOMY", [ServiceDetailSchemaRegistry.BookingClass] = "Y" },
+                serviceKey,
+                travellerRef,
+                segmentKey,
+                cabinClassId,
+                rbdId,
+                bookingClass,
                 checkedBaggage,
                 cabinBaggage,
-                soldTerms ?? new SoldTermFlags(null, null, null),
-                CertifiedProfile()));
+                soldTerms ?? new SoldTermFlags(null, null, null)));
             return this;
         }
-
-        public static CandidateFulfillmentProfile CertifiedProfile()
-            => new(
-                ReferenceFulfillmentProfile,
-                ReferenceFulfillmentProfileVersion,
-                FulfillmentProfileAssurance.Certified,
-                ReservationRequirement.FlightCapacity,
-                FulfillmentDocumentKind.Etkt,
-                DocumentAuthority.Local,
-                FundingRequirement.Required,
-                1,
-                null,
-                null,
-                null,
-                true);
-
-        public static CandidateFulfillmentProfile UncertifiedProfile(string profileRef, string version = "1")
-            => new(
-                profileRef,
-                version,
-                FulfillmentProfileAssurance.NotCertified,
-                ReservationRequirement.Unresolved,
-                FulfillmentDocumentKind.Unresolved,
-                null,
-                FundingRequirement.Unresolved,
-                null,
-                null,
-                null,
-                null,
-                null);
 
         public CandidateBuilder Service(CandidateService service)
         {
@@ -225,71 +175,61 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             return this;
         }
 
-        public CandidateBuilder Package(string reference, params string[] services)
+        public CandidateBuilder Package(string itemKey, params string[] services)
         {
-            _items.Add(new CandidateItem(
-                reference,
-                OrderItemKind.OfferPackage,
-                null,
-                services,
-                new Money(0, SaleCurrency),
-                new ProductSnapshot("AirOffer", _offerId, null, null, null, null, null, null)));
+            _items.Add(new CandidateItem(itemKey, OrderItemKind.OfferPackage, services.ToList(), new Money(0m, SaleCurrencyId)));
+            return this;
+        }
+
+        public CandidateBuilder Item(CandidateItem item)
+        {
+            _items.Add(item);
             return this;
         }
 
         public CandidateBuilder Line(
-            string reference,
+            string occurrencePath,
             string item,
             PricingComponentType component,
             decimal amount,
-            string basisRef,
+            string basisKey,
             PricingEffect effect = PricingEffect.CustomerBalance,
             OrderPricingLineDirection? direction = null,
             Money? original = null,
             PricingBasisType basisType = PricingBasisType.OrderService,
-            string? sourceCode = null,
-            string? sourceName = null,
-            string? sourceReference = null,
+            string? code = null,
+            string? name = null,
+            string? reference = null,
             PricingCalculationKind calculationKind = PricingCalculationKind.Amount,
             AppliedConversion? appliedConversion = null,
             SettlementAttribution? settlementAttribution = null)
         {
-            var originalValue = original ?? new Money(amount, SaleCurrency);
+            var originalValue = original ?? new Money(amount, SaleCurrencyId);
             var conversionRef = appliedConversion?.SourceConversionRef
-                ?? (originalValue.CurrencyRef == SaleCurrency ? null : $"ROE-{reference}");
+                ?? (originalValue.CurrencyId == SaleCurrencyId ? null : $"ROE-{occurrencePath}");
 
             _lines.Add(new CandidatePricingLine(
-                reference,
+                occurrencePath,
                 item,
                 component,
                 effect,
                 direction ?? (component == PricingComponentType.Discount ? OrderPricingLineDirection.Credit : OrderPricingLineDirection.Debit),
-                PricingLineRole.Original,
-                sourceCode,
-                sourceName,
-                sourceReference,
+                code,
+                name,
+                reference,
                 calculationKind,
                 originalValue,
-                new Money(amount, SaleCurrency),
-                $"source/{reference}",
+                new Money(amount, SaleCurrencyId),
                 basisType,
-                basisRef,
+                basisKey,
                 conversionRef,
                 appliedConversion,
                 settlementAttribution));
             return this;
         }
 
-        public CandidateBuilder SourceProvidedConstruction(params CandidatePricingUnit[] units)
+        public CandidateBuilder Units(params CandidatePricingUnit[] units)
         {
-            _constructionAssurance = FareConstructionAssurance.SourceProvided;
-            _units.AddRange(units);
-            return this;
-        }
-
-        public CandidateBuilder OpaqueUnits(params CandidatePricingUnit[] units)
-        {
-            _constructionAssurance = FareConstructionAssurance.Opaque;
             _units.AddRange(units);
             return this;
         }
@@ -301,32 +241,37 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
         }
 
         public static CandidatePricingUnit Unit(
-            string sourceUnitRef,
-            CandidatePricingGroup? group,
+            int sequence,
+            FarePricingUnitType type,
+            IReadOnlyList<string> coveredBoundOfferIds,
             params CandidateFareComponent[] components)
-            => new(sourceUnitRef, null, FarePricingUnitType.Unspecified, FareCombinationMethod.Unspecified, [], group, components);
+            => new(sequence, type, coveredBoundOfferIds, components.ToList());
 
         public static CandidateFareComponent Component(
-            string sourceFareRef,
-            IReadOnlyList<string>? coveredServiceRefs = null,
-            IReadOnlyList<string>? coveredSegmentRefs = null,
-            string? fareBasis = null)
-            => new(sourceFareRef, fareBasis, null, null, null, null, null, null, null, null, null, null,
-                coveredServiceRefs ?? [], coveredSegmentRefs ?? []);
+            long airFareId,
+            string? fareBasis = "YOW",
+            int? cabinClassId = 1,
+            long? rbdId = 25,
+            string? bookingClass = "Y")
+            => new(airFareId, fareBasis, "FLEX", "Published", cabinClassId, rbdId, bookingClass, null);
 
         public NormalizedCandidate Build()
         {
             var items = _items.Select(item => item with
             {
                 AcceptedTotal = new Money(
-                    _lines.Where(line => line.ItemRef == item.ItemRef && line.Effect == PricingEffect.CustomerBalance)
+                    _lines.Where(line => line.ItemKey == item.ItemKey && line.Effect == PricingEffect.CustomerBalance)
                         .Sum(line => (line.Direction == OrderPricingLineDirection.Debit ? 1 : -1) * line.SaleValue.Amount),
-                    SaleCurrency)
+                    SaleCurrencyId)
             }).ToList();
 
             var total = _customerTotalOverride ?? _lines
                 .Where(line => line.Effect == PricingEffect.CustomerBalance)
                 .Sum(line => (line.Direction == OrderPricingLineDirection.Debit ? 1 : -1) * line.SaleValue.Amount);
+
+            var units = _units.Count > 0
+                ? _units
+                : [Unit(1, FarePricingUnitType.OneWay, _journeys.Select(journey => journey.BoundId).ToList(), Component(4242))];
 
             return new NormalizedCandidate(
                 NormalizedCandidate.CurrentSchemaVersion,
@@ -339,32 +284,28 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 _assurance,
                 _now,
                 _now,
-                new CandidateValidity(
-                    _offerValidity ?? new ValidityFact(ValidityState.Known, _now.AddMinutes(10), "AirOffer", $"OFFER-{_offerId}", null),
-                    _priceValidity ?? new ValidityFact(ValidityState.Known, _now.AddMinutes(5), "AirPrice", $"PRICE-{_offerId}", null),
-                    _ticketingValidity ?? new ValidityFact(ValidityState.NotSupplied, null, "Unresolved owner", null, "Not supplied by source; no implied infinite validity"),
-                    _observedTicketingDeadline),
-                new CandidateSalesContext(_scope.OwnerAirlineId, _scope.FinancialCustomerId, _scope.SalesContext, _scope.Buyer),
-                _travelers.ToList(),
-                _journeys.ToList(),
-                _segments.ToList(),
-                items,
-                _services.ToList(),
-                _lines.ToList(),
-                new Money(total, SaleCurrency),
-                SaleCurrencyCode,
-                _sourceJourneyTypeRaw,
+                _offerExpiresAt ?? _now.AddHours(2),
+                _priceValidUntil ?? _now.AddHours(1),
+                _lastTicketingDate,
+                new CandidateSalesContext(_scope.OwnerAirlineId, _scope.FinancialCustomerId, _scope.SalesContext),
                 _journeyType,
-                new CandidateFareConstruction(_constructionAssurance, $"CONTEXT-{_offerId}", _units.ToList()));
+                _travellers,
+                _journeys,
+                _segments,
+                items,
+                _services,
+                _lines,
+                new Money(total, SaleCurrencyId),
+                new CandidateFareConstruction(units));
         }
 
         public static CandidateBuilder OneWayFare100Tax20(DateTimeOffset now, AuthorizedSalesScope? scope = null)
             => new CandidateBuilder(now, scope)
-                .Traveler("PAX-A")
-                .Segment("SEG-A")
-                .AirService("SERVICE-A", "PAX-A", "SEG-A")
-                .Package("ITEM-A", "SERVICE-A")
-                .Line("PRICE-FARE", "ITEM-A", PricingComponentType.Fare, 100.00m, "SERVICE-A")
-                .Line("PRICE-TAX", "ITEM-A", PricingComponentType.Tax, 20.00m, "SERVICE-A");
+                .Traveller("PAX-A")
+                .Segment("SEG-1")
+                .AirService("S-A", "PAX-A", "SEG-1")
+                .Package("ITEM-A", "S-A")
+                .Line("fare", "ITEM-A", PricingComponentType.Fare, 100m, "S-A")
+                .Line("tax", "ITEM-A", PricingComponentType.Tax, 20m, "S-A");
     }
 }

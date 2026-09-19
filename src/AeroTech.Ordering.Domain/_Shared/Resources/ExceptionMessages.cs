@@ -29,7 +29,7 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
 
         public const string OfferSourceUnavailable = "The offer source is unavailable: {0}.";
 
-        public const string TravelerBindingInvalid = "Traveler binding is invalid: {0}.";
+        public const string TravellerBindingInvalid = "Traveller binding is invalid: {0}.";
 
         public const string ContactInvalid = "Contact is invalid: {0}.";
 
