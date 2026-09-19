@@ -1,6 +1,8 @@
 # AirOffer Wire-to-Domain Loss Audit
 
-Stage: 06-S1-create-order-conformance · 2026-09-19 · HEAD `e861711`
+Stage: 06-S1-create-order-conformance · **revision 2** · 2026-09-19 · HEAD `506ccee`
+
+Field enumeration and destinations are unchanged from revision 1 and were re-verified. Only the §9 closure target changed.
 
 ## Method
 
@@ -190,9 +192,11 @@ This defeats INV-006 in substance ("Create consumes exactly one previously captu
 
 **Smallest fail-closed validation** (documented, not implemented in this run): in `AirOfferCandidateMapper.Map`, before any other work,
 
-> if `details.OfferId` is non-empty and not ordinally equal to `requestedOfferId`, throw `AirOfferContractMismatchException`.
+> if `details.OfferId` is null, empty, or not ordinally equal to `requestedOfferId`, throw `AirOfferContractMismatchException`.
 
-That is one comparison inside the existing mismatch path, so the adapter already maps it to `OfferResolutionOutcome.ContractMismatch` and nothing is persisted. No alias, equivalence, normalisation or case-folding semantics are invented. A **null or empty** `data.offerId` is deliberately left tolerated, because the observed contract marks it optional (`string?`) and tightening that is an owner question, not an agent's.
+That is one comparison inside the existing mismatch path, so the adapter already maps it to `OfferResolutionOutcome.ContractMismatch` and nothing is persisted. No alias, equivalence, normalisation or case-folding semantics are invented.
+
+**Revision 2 correction.** Revision 1 recommended tolerating a missing `data.offerId` "because the observed contract marks it optional (`string?`)". That reasoning used our own C# mirror class as contract authority, which it is not. `CONTRACTS/02-AIROFFER.md` line 13 lists the root fields as `OfferId, PricedAt, LastTicketingDate?, CurrencyId, CurrencyCode, JourneyType, …` — `LastTicketingDate?` is the **only** root field the Pack marks optional, and `OfferId` carries no `?`. A response with no offer id is therefore already off-contract, and accepting it would leave an Order whose provenance rests on nothing the owner returned. Missing and mismatched are both `ContractMismatch`, and both need a negative test.
 
 ## 10. Rate-of-exchange semantics — known limit
 
@@ -206,7 +210,7 @@ The adapter consequently preserves the rate row exactly as the source states it 
 
 | Field | Why it is unread | Is the fact lost? | Decision |
 |---|---|---|---|
-| `AirOfferDetailsWire.OfferId` | never compared | **the check is missing**, not the fact | **FIX_S1_SEMANTICS** (§9) |
+| `AirOfferDetailsWire.OfferId` | never compared — neither for absence nor for disagreement | **the check is missing**, not the fact | **FIX_S1_SEMANTICS** (§9, closure target corrected in revision 2) |
 | `AirOfferCouponWire.CouponId` | the service identity is synthesised as `{TravellerRef}\|{BoundId}\|{FlightId}` | in the normalized record yes; in raw evidence no | **KEEP** — justified in `DOMAIN-BENCHMARK-MATRIX.md` §C4 |
 | `AirOfferCouponWire.Sequence` | the coupon ordinal survives positionally inside every `SourceLineRef` (`tickets/{i}/coupons/{j}/pricings/{k}`) | no — recoverable from the line path | **KEEP** |
 | `AirOfferTicketWire.TravellerIndex` | `TravellerRef` is the identity the caller binds against and it is persisted | in the normalized record yes; ordering is reconstructable from the raw payload | **KEEP** |

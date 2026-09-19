@@ -1,153 +1,197 @@
 # Open Decisions — S1 Create-Order Conformance
 
-Stage: 06-S1-create-order-conformance · 2026-09-19 · HEAD `e861711`
+Stage: 06-S1-create-order-conformance · **revision 2** · 2026-09-19 · HEAD `506ccee`
 
-A decision is raised here only where owner-contract semantics are genuinely unknown, an external benchmark materially disagrees with a recorded choice, two correct canonical homes exist with different future cost, or public-contract compatibility needs an explicit choice. Everything else was decided in the matrix and needs no owner time.
+Revision 1 raised four decisions and got two of the recommendations wrong. Both are corrected here. Four more are added for the gaps revision 1 never audited. Decisions already settled by the Pack or by an existing owner answer are listed at the end and need no owner time.
 
-**Four** decisions are raised. Two are consequences of defects found in this audit; two are pre-existing reports that need an explicit closing answer.
+**Eight** decisions. Two recommendations changed; four are new.
 
 ---
 
-## OD-CLOSE-01 — Where the settlement party and category live
+## OD-CLOSE-01 — Settlement attribution on a pricing line *(recommendation corrected)*
 
-**Problem:**
-DOMAIN/03 §13 states "SettlementOnly requires party/category/currency and is excluded from customer payable totals." `PricingLine` carries `Effect` and `Component`, so a `Commission` + `SettlementOnly` line is *structurally* accepted, but there is no `SettlementPartyRef` and no `SettlementCategory` anywhere in the Domain, the candidate, SQL, the projection or the validator. A settlement line can therefore be accepted today with no counterparty and no category, which the Pack forbids.
+**Problem:** `DOMAIN/03` §13 — "SettlementOnly requires party/category/currency and is excluded from customer payable totals." No party and no category exist in any layer: not `PricingLine`, not `CandidatePricingLine`, not SQL, not the projection, not `PricingLineMatrix`. A settlement line can be accepted today with neither.
 
-**Evidence:**
-- `src/AeroTech.Ordering.Domain/OrderAggregate/Entities/PricingLine.cs` — no settlement members.
-- `src/AeroTech.Ordering.Domain/OrderPreparationAggregate/ValueObjects/CandidatePricingLine.cs` — none.
-- `src/AeroTech.Ordering.Domain/OrderAggregate/Policies/PricingLineMatrix.cs` — enforces `Commission ≠ CustomerBalance` and `Tax ≠ SettlementOnly`, but nothing about party or category.
-- `PricingLineConfiguration.cs` — SQL checks mirror only those two rules.
-- Historical `Ordering/k8s-stg` `OrderPricingLine` had `SettlementPartyRef` and `SettlementCategory`.
-- No test at any layer persists a settlement commission line; `PricingArithmeticTests` exercises the arithmetic on plain `PricedAmount` arrays only.
+**Evidence:** `PricingLine.cs`, `CandidatePricingLine.cs`, `PricingLineMatrix.cs`, `PricingLineConfiguration.cs`. Historical `Ordering/k8s-stg` `OrderPricingLine` had `SettlementPartyRef` and `SettlementCategory`. No test at any layer persists a settlement commission line, and there is no `SC_S1_013` test.
 
-**Industry benchmark:**
-IATA Settlement with Orders describes settlement as running "between Airlines and Sellers (Agents, OTAs, TMCs, etc.), using the current BSP agency program framework" — an exchange with a **named counterparty**, distinct from what the passenger pays. How commission relates to the customer-payable amount is `NOT PUBLICLY PROVEN` on the open pages, so the benchmark supports "a settlement line needs a party", not a specific field shape.
+**Industry benchmark:** IATA AIDM Commission — "A remuneration either an amount of money, or a set percentage of the value involved, **paid to an agent** in relations to a commercial transaction", with attributes Amount, **Code**, **Commission Code**, Percentage Applied To Amount, Percentage Percent, Remark Text, Taxable Indicator, all 0..1. IATA models the category as a **code**, not a closed vocabulary. IATA Settlement with Orders names the counterparties as "Airlines and Sellers (Agents, OTAs, TMCs, etc.)". The Reference Business Architecture separates "Customer Order Accounting" from "Partners/Suppliers Order Accounting".
 
-**Pack / owner rule:**
-DOMAIN/03 §13 (party/category/currency required); INV-013 (settlement commission is not customer debt); SC-S1-013; and `S1-API-READABILITY-OWNER-DECISION-2026-09-18` line 64: "the settlement/commission half of SC-S1-013 stays proven."
+**Pack / owner rule:** `DOMAIN/03` §13; INV-013; SC-S1-013; `S1-API-READABILITY-OWNER-DECISION-2026-09-18` line 64 — "the settlement/commission half of SC-S1-013 stays proven."
 
-**Current code:** the "not customer debt" half is enforced in the matrix and in SQL. The "requires party/category" half is neither representable nor enforced.
+**Revision 1's recommendation was wrong.** It proposed making `SettlementCategory` "a new `Ordering/Enums` enum … so an unknown category fails closed". That invents a closed vocabulary the owner has never defined, which `GOVERNANCE/05` and `CLAUDE.md` both forbid, and AIDM shows the industry treats it as a code.
 
 **Options:**
+- **(a)** `SettlementAttribution(PartyRef, CategoryCode)` — a nullable owned value on `PricingLine`, both source-owned strings, **required iff `Effect == SettlementOnly`**, with a SQL constraint that prevents half-population.
+- **(b)** Two loose nullable columns on the line with the same conditional rule.
+- **(c)** Defer the whole settlement half and record SC-S1-013 as fully deferred, not half-proven.
+- **(d)** Leave it.
 
-- **(a) Two nullable members on `PricingLine` plus a conditional rule.** Add `SettlementPartyRef` and `SettlementCategory` to `CandidatePricingLine` and `PricingLine`; require both whenever `Effect == SettlementOnly` in `PricingLineMatrix` and mirror it as a SQL check; add the missing `SC_S1_013` scenario test through the reference source.
-- **(b) A small owned `SettlementAttribution` value object** (`PartyRef`, `Category`) nullable on the line, required when SettlementOnly.
-- **(c) Defer the whole settlement half to the slice that first settles**, and record that SC-S1-013 is fully deferred, not half-proven.
-- **(d) Leave it.** A settlement line stays acceptable without a party.
+**Recommendation: (a).** It matches how every other multi-field accepted fact is modelled here (`AppliedConversion`, `BaggageAllowance`, `ProductSnapshot`), makes presence a single decision rather than two columns that can disagree, and extends to partner/interline settlement, which needs the same counterparty concept. Currency stays on the line's `Money`. Both members are source/contract facts — **no new AeroTech enum**. No Commission aggregate, no calculation, no BSP engine, and no assumption that the settlement party equals the seller. S1 certifies an **amount-based** commission end to end; AIDM's percentage and percentage-applied-to-amount are legitimate future source facts for which `PricingCalculationKind` is already the seam, and `OD-P-18` stays binding — AirOffer's `Amount` is never read as a percentage value.
 
-**Recommendation: (b).**
-It matches how every other multi-field accepted fact in this codebase is modelled (`AppliedConversion`, `BaggageAllowance`, `ProductSnapshot`), it makes "present or absent" a single decision rather than two independently-nullable columns that can disagree, and the conditional rule then reads as one line in `PricingLineMatrix`. `SettlementCategory` should be a new `Ordering/Enums` enum, not a free string, so an unknown category fails closed like every other vocabulary. Currency is already on the line's `Money`, so nothing extra is needed for it.
-
-**Consequence of each option:**
-
-- (a) works and is slightly less code, but two loose nullable columns can drift apart, and a later third settlement attribute means a third loose column.
-- (b) one more value object; one migration; the rule is enforceable in one place; extends cleanly to partner/interline settlement, which needs the same counterparty concept.
-- (c) honest and cheap, but it contradicts a decision the owner already made in writing, and it leaves INV-013 only half-proven while S1 is closed.
-- (d) leaves the codebase able to persist a Pack-violating record. Not acceptable as a closure state.
+**Consequences:** (a) one value object, one migration, one rule, one SQL check, one scenario test. (b) two columns that can drift apart, and a third settlement attribute later means a third loose column. (c) contradicts a decision the owner already made in writing and leaves INV-013 half-proven at closure. (d) leaves the codebase able to persist a Pack-violating record.
 
 **Answer:**
 
 ---
 
-## OD-CLOSE-02 — Fail-closed check on `data.offerId`
+## OD-CLOSE-02 — Fail-closed check on `data.offerId` *(recommendation corrected)*
 
-**Problem:**
-`AirOfferSourceAdapter` never compares the `offerId` in the Details response to the one it requested. A 200 response for a *different* offer is accepted, and the accepted Order records the **requested** offer id while carrying the other offer's money, journeys, services and fare construction.
+**Problem:** `AirOfferSourceAdapter` never compares the response `offerId` to the requested one. A 200 for a different offer is accepted, and the Order records the **requested** id while carrying the other offer's money, journeys, services and fare construction.
 
-**Evidence:**
-- `AirOfferSourceAdapter.Interpret` → `AirOfferCandidateMapper.Map(request.OfferId, envelope.Data, …)`.
-- Receiver-qualified search for `details.OfferId` / `Data.OfferId` in the mapper and adapter: **no match** (`AIROFFER-WIRE-LOSS-AUDIT.md` §9).
-- `AirOfferCandidateMapper` writes `requestedOfferId` into `CandidateSource.OfferId` and `ProductSnapshot.SourceOfferId`.
-- The raw payload is retained, so the mismatch is detectable after the fact — but the accepted record and the public `offerId` are already wrong.
+**Evidence:** `AirOfferSourceAdapter.Interpret` → `AirOfferCandidateMapper.Map(request.OfferId, envelope.Data, …)`; receiver-qualified search for `details.OfferId` returns nothing; the mapper writes `requestedOfferId` into `CandidateSource.OfferId` and `ProductSnapshot.SourceOfferId`.
 
-**Industry benchmark:**
-Not a vendor question. IATA frames the Offer→Order transition as the Order being the fulfilment of a specific Offer (I2); an Order that names an Offer it did not come from breaks that pairing at its root.
+**Pack / owner rule:** INV-006 — "no external calls or **silent repricing**". `CONTRACTS/02-AIROFFER.md` line 13 lists the root fields as `OfferId, PricedAt, LastTicketingDate?, CurrencyId, CurrencyCode, JourneyType, …` — **`LastTicketingDate?` is the only root field marked optional; `OfferId` is not.**
 
-**Pack / owner rule:**
-INV-006 — "Create consumes exactly one previously captured, explicitly accepted preparation; **no external calls or silent repricing**." A silently substituted offer is the strongest form of silent repricing. CONTRACTS/02-AIROFFER also records `OfferId` as a root response field, so the owner does return it.
-
-**Current code:** no check.
+**Revision 1's recommendation was wrong.** It tolerated a missing `data.offerId` "because the observed contract types it `string?`", using our own C# mirror class as contract authority. The Pack is authority; the mirror's nullability is an implementation detail.
 
 **Options:**
+- **(a)** Strict on both: null or empty → `ContractMismatch`; non-equal (ordinal) → `ContractMismatch`; exact match → proceed.
+- **(b)** Strict only on mismatch, tolerate missing *(revision 1's position)*.
+- **(c)** Warn only, record in evidence, accept.
+- **(d)** Leave it.
 
-- **(a) Strict.** Non-empty `data.offerId` must equal `requestedOfferId` ordinally, else `AirOfferContractMismatchException`. A null or empty value is tolerated, because the observed contract types it `string?`.
-- **(b) Strict, including null.** A missing `data.offerId` is also a mismatch.
-- **(c) Warn only.** Record the discrepancy in evidence and accept.
-- **(d) Leave it.**
+**Recommendation: (a).** One comparison at the top of `Map`, inside a method that already throws `ContractMismatch` six times, so the adapter's failure path handles it and nothing is persisted. No trim, no case-fold, no alias, no normalisation. Negative tests for **both** cases.
 
-**Recommendation: (a).**
-One ordinal comparison at the top of `Map`, inside a method that already throws `ContractMismatch` six times, so the adapter's existing failure path handles it and nothing is persisted. It invents no alias, equivalence, trimming or case-folding semantics. Tolerating a *missing* id is the conservative reading of a contract that declares the field optional — tightening that is an owner question, not an agent's, which is why (b) is offered separately.
-
-**Consequence of each option:**
-
-- (a) closes the defect with the smallest possible change; a real AirOffer response that omits the id still works.
-- (b) also closes it, but a response that legitimately omits an optional field would start failing, and no evidence says AirOffer always populates it.
-- (c) leaves a wrong accepted record in the database with a note beside it. Provenance must be right, not annotated.
-- (d) unacceptable — the Order claims an offer that never priced it.
+**Consequences:** (a) closes the defect completely and matches the Pack's own field list. (b) accepts an Order whose provenance rests on nothing the owner returned. (c) leaves a wrong accepted record with a note beside it. (d) unacceptable.
 
 **Answer:**
 
 ---
 
-## OD-CLOSE-03 — Close the eight unanswered stage-04 cleanup decisions
+## OD-CLOSE-03 — Reconcile the stage-04 cleanup decisions *(reframed — do not blanket-answer)*
 
-**Problem:**
-`reports/00-decisions/S1-CLEANUP-OPEN-DECISIONS.md` has ten items. Two are answered (`OD-C-01` schema `Order`, `OD-C-01b` schema `Operations`, and `OD-C-02` `SalesChannel` is allowed). **Eight `Answer:` lines are still empty** — `OD-C-03` through `OD-C-10`. Two of them are not cosmetic:
+**Problem:** eight `Answer:` lines in `S1-CLEANUP-OPEN-DECISIONS.md` are empty. Revision 1 recommended answering all eight. That is wrong in method: several are already substantively ratified by later owner decisions, and one contains a real contradiction that a blanket answer would bury.
 
-- **`OD-C-05`** records that removing the allocation and reversal policies means "pack scenario SC-S1-014 and the reversal half of SC-S1-013 are no longer proven in S1". `S1-API-READABILITY-OWNER-DECISION-2026-09-18` line 63 does ratify that deferral, so the substance is decided — but the register still reads as open, and INV-014 is an **S1-introduced** invariant that is now unproven.
-- **`OD-C-06`** records that `PrepareOrderFromOffer` no longer exists as a command and the preparation happens inside Create, so Pack `CMD-001` survives only as an internal step, and the `/order-preparations` route named in SLICES/S1 is gone.
+**Reconciliation table:**
 
-**Evidence:** `grep -n "^Answer:" reports/00-decisions/S1-CLEANUP-OPEN-DECISIONS.md` returns eight empty lines; `SLICES/S1.md` still lists `/{surface}/v1/order-preparations` and `CMD-001` as required API rail.
+| Decision | Already ratified elsewhere? | Exact authority | Current code | True remaining decision? | Recommended answer |
+|---|---|---|---|---|---|
+| `OD-C-03` | no | — | (as the entry describes) | yes — minor | confirm as built |
+| **`OD-C-04`** public `/operations/{id}` and `GetOperation` deleted | **contradicted** | `S1-API-READABILITY-OWNER-DECISION` line 60: "Pack QRY-002 `GetOperation` … **remains reachable on the internal surface only**" | search for `GetOperation` / `operations/` across `src`: **no match** — nothing exists on any surface | **YES — a genuine contradiction** | either confirm full deletion (and amend the earlier decision), or restore QRY-002 on `Internal/v1` as that decision states |
+| `OD-C-05` allocation and reversal removed | **yes, substantively** | `S1-API-READABILITY-OWNER-DECISION` line 63 defers SC-S1-014 and the reversal half of SC-S1-013 | as described | no | record as ratified by that decision; note INV-014 is an S1-introduced invariant now unproven |
+| `OD-C-06` Prepare merged into Create | **yes, substantively** | the same decision's one-call Create | as described | no | record as ratified |
+| `OD-C-07` small Create response | **yes, substantively** | the same decision's response shape | as described | no | record as ratified |
+| `OD-C-08` | no | — | as described | yes — minor | confirm as built |
+| **`OD-C-09`** candidate detail dictionary | partly | — | `details` dictionary still carries three typed concepts | **YES, but split it** | the *serialized canonical* `details` shape and digest stay unchanged; the *in-memory* model may become typed. Answer those two halves separately. |
+| `OD-C-10` | no | — | as described | yes — minor | confirm as built |
 
-**Industry benchmark:** none — this is internal governance.
-
-**Pack / owner rule:** `BLOCKED-DECISIONS.md` states plainly: "Empty Answer lines/recommendations in historical reports remain unanswered."
-
-**Current code:** already built as those entries describe. The code and the register disagree about whether that was approved.
-
-**Options:**
-- **(a)** Answer all eight in the register, confirming or reversing each.
-- **(b)** Answer only `OD-C-05` and `OD-C-06` now and leave the cosmetic six.
-- **(c)** Leave them; treat the stage-04 brief as the approval.
-
-**Recommendation: (a).**
-S1 cannot be declared closed while eight decisions that shaped its public contract and its scenario coverage are formally unanswered, and the Pack says so explicitly. It is a writing task, not an engineering one.
-
-**Consequence of each option:**
-- (a) the register matches the code; S1 closure has a clean paper trail.
-- (b) the two material ones are settled, six small contradictions remain in the record.
-- (c) the Pack's own rule is violated, and a later reviewer cannot tell approved design from drift.
+**Recommendation:** answer `OD-C-04` and `OD-C-09` deliberately; mark `OD-C-05`, `OD-C-06` and `OD-C-07` as ratified-by-reference with the exact citation; confirm the remaining three as built. Do **not** mark anything closed that no owner decision actually covers — `BLOCKED-DECISIONS.md` says "Empty Answer lines … remain unanswered."
 
 **Answer:**
 
 ---
 
-## OD-CLOSE-04 — Public exposure of pricing code and name
+## OD-CLOSE-04 — Public exposure of pricing code and name *(explicitly separated from S1 approval)*
 
-**Problem:**
-`PricingLine.SourceCode` and `.SourceName` are now preserved and are in the internal projection, but the public `OrderPriceLineDto` exposes only the component enum and the amounts. An airline user reading an order sees "Tax — 20.00" where the source said "AT — Airport tax". The previous stage deliberately did not change the ratified contract, and left the choice here.
+**Problem:** `PricingLine.SourceCode` / `.SourceName` / `.SourceReference` are preserved and are in the internal projection; the public `OrderPriceLineDto` exposes only the component enum and the amounts.
 
-**Evidence:** `src/AeroTech.Ordering.Query/OrderAggregate/Dto/OrderDto.cs` `OrderPriceLineDto`; `IMPLEMENTATION-PLAN.md` §16 lists this as one of three offered-but-not-applied additive exposures.
+**This is not a domain blocker and must not gate S1 domain approval.**
 
-**Industry benchmark:** none needed — this is a usability and contract-compatibility question, not a semantic one.
+**Recommendation:** keep all three preserved internally. Add `code` and `name` to `OrderPriceLineDto` only if the owner wants richer `GET` usability now — it is additive and backward compatible. **Do not** expose `SourceReference` by default: it is an opaque owner handle, not a display field.
 
-**Pack / owner rule:** `API-CONTRACTS.md` governs the surface; `OD-P-15` states explicitly that "changing the public HTTP response is a separate API-contract choice".
+**Answer:**
 
-**Current code:** preserved internally, not exposed.
+---
 
-**Options:**
-- **(a)** Add `code` and `name` to `OrderPriceLineDto` (additive, backward compatible).
-- **(b)** Expose them only on `/backoffice` and `/internal`, not on `/ota` or `/service`.
-- **(c)** Leave the contract as it is.
+## OD-CLOSE-05 — Accepted Buyer / Seller / SalesContext snapshot *(new)*
 
-**Recommendation: (a).**
-It is additive, every surface already returns the same `OrderDto`, and a tax code is the first thing an airline user looks for. Option (b) would make one canonical DTO behave differently per surface, which is the pattern stage 04 removed.
+**Problem:** `DOMAIN/01` §2 requires an immutable `SalesContext` and a `BuyerSnapshot` **at accepted creation**. Neither exists. `DOMAIN/04` §5 says "Buyer, financial Customer, Traveler, payer, agency/seller and actor are separate references" and "SalesContext … remain historical". Today:
 
-**Consequence of each option:**
-- (a) OpenAPI gains two optional string fields; existing consumers are unaffected; `OpenApiDocumentTests` expectations change once, deliberately.
-- (b) reintroduces per-surface DTO variance.
-- (c) the data stays invisible to every caller until some later slice needs it.
+- `BuyerActorContextType` / `BuyerActorId` hold the **initiating actor**, not a buyer.
+- `TravelAgencyId` is resolved to a `FinancialCustomerId` and then dropped; it survives only inside the `agency:{id}` fragment of the `CallerScope` **string** on `OrderPreparations` and `CommandReceipts` — recoverable by parsing an idempotency key, which is not a snapshot.
+- `SellingOfficeId` is one untyped `long` holding **two namespaces**: airline office on Backoffice, travel-agency office on OtaPanel.
+
+**Evidence:** `AuthorizedScopeResolver.cs`, `CallerScopeKey.cs`, `Order.cs`.
+
+**Industry benchmark:** AIDM Distribution Chain Role Code defines exactly three roles — **Carrier** ("carries the passenger, baggage, or goods"), **Distributor** ("a certain type of Consolidator, an Aggregator, more generally an intermediary"), **Seller** ("offers a shopping capability to a shopper") — and states these are roles "within the distribution chain mechanism itself, not an entity's primary business classification".
+
+**What each surface actually has today:**
+
+| Surface | Financial customer | Buyer fact available? | Seller org fact available? | Seller office | Distributor fact available? | Actor | Authority / source | Can snapshot without inference? |
+|---|---|---|---|---|---|---|---|---|
+| Backoffice | request parameter, checked active | **no** | the owner airline itself (implicit) | `_caller.AirlineOfficeId` — airline namespace | no | `_caller.AirlineUserId` | token + request | yes, if "seller = owner airline" is ratified |
+| OtaPanel | derived from `TravelAgencyId` via `ICustomerDirectory` | **no** | **yes — `_caller.TravelAgencyId`, currently discarded** | `_caller.TravelAgencyOfficeId` — agency namespace | no | `_caller.TravelAgencyUserId` | token | yes, once the agency id is persisted |
+| Ota (PartnerAPI) | `_caller.CustomerId` | **no** | not distinguishable from the customer | `_caller.TravelAgencyOfficeId` (nullable) | `_caller.PartnerApiAccessProfileId` — currently stored as `BuyerActorId` | same profile id | token | partly |
+| Service | request parameter | **no** | **no** | request parameter (nullable) | no | `_caller.ActorId` when authenticated | request | no |
+
+**Decision required:**
+1. Exact role definitions for this deployment, mapped to Carrier / Distributor / Seller.
+2. The authoritative source of each role **per surface**.
+3. The minimum immutable snapshot to persist at acceptance.
+4. `NotSupplied` semantics — an explicit not-supplied state is preferable to a guessed identity, but only after the snapshot semantics are defined.
+5. Whether `SellingOfficeId` is split by namespace or carries an explicit office-kind.
+
+**Recommendation:** define a small immutable `SalesContext` owned value on `Order` carrying channel, seller organisation reference **with its kind**, seller office reference **with its kind**, distributor reference where a surface supplies one, and the initiating actor renamed away from "Buyer". Persist `TravelAgencyId` as the seller organisation on OtaPanel. Leave `Buyer` explicitly `NotSupplied` until a surface actually supplies a buyer identity — no surface does today. **Do not** build a distribution-chain engine; there is no chain input.
+
+**Consequences of not deciding:** historical seller identity stays dependent on mutable ReferenceData or on parsing an authorization key; a later office join silently mis-joins two namespaces; and S14 split and interline settlement inherit the same hole.
+
+**Answer:**
+
+---
+
+## OD-CLOSE-06 — Component totals semantics *(new)*
+
+**Problem:** `DOMAIN/01` §2 — "Derived-but-persisted: CommercialSummary, CustomerTotal **and complete current component totals**." Only the first two exist.
+
+**Industry benchmark:** AIDM `Price` carries **Base Amount**, **Total Amount** and **Equivalent Amount**, and associates to **Fee, Markup, Tax Summary, Discount, Surcharge, Currency Conversion**, at both **Order (Total Price role)** and **Order Item** level. A component summary beside a grand total is the industry shape.
+
+**This is not an information-loss emergency** — every canonical line survives and the totals are derivable. It is a Pack conformance gap.
+
+**Decision required:**
+1. Are the totals **customer-effective only**, or do they cover all effects?
+2. Is a settlement commission a component total while staying outside `CustomerTotal`?
+3. Are totals keyed by **component**, or by component **and effect**?
+4. Which currency — sale currency only, or also original?
+5. Are they **canonical domain state** or a **deterministic persisted read summary** rebuilt with the projection?
+6. Order level only, or Order **and** OrderItem (AIDM has both)?
+
+**Options for shape:**
+- **(a)** A child table `OrderComponentTotals(OrderId, Component, Effect, Amount, CurrencyRef)` — relational, queryable, no speculative columns, extends to new components for free.
+- **(b)** A fixed owned value with one column per component family — fewer joins, but freezes the taxonomy and adds eleven columns for a vocabulary that already has eleven members.
+- **(c)** Compute on read only, and treat the Pack line as satisfied by the lines themselves.
+
+**Recommendation: (a), keyed by component + effect, sale currency, and classified as a deterministic persisted summary rebuilt with the projection** — so it can never disagree with the lines. Explicitly **no** JSON dictionary and **no** twenty speculative columns. Order level first; item level when a slice needs it. But questions 1–6 are the owner's to settle, and the Pack wording alone does not settle 1, 2 or 5.
+
+**Answer:**
+
+---
+
+## OD-CLOSE-07 — FulfillmentProfileSnapshot target shape *(new)*
+
+**Problem:** `DOMAIN/02` §23 lists eight semantics; the current record covers four and a half.
+
+| Pack semantic | Present? | Vocabulary defined in Pack? | Current source supplies? | Reference profile can supply? | Needed before |
+|---|---|---|---|---|---|
+| profile ID / version | yes | n/a | yes | yes | — |
+| reservation requirement | yes | yes (`ReservationRequirement`) | no (`Unresolved`) | yes | S2 |
+| resource quantity / **unit policy** | partial — `CapacityUnits` is a quantity, not a policy | **no** | no | yes | **S2** |
+| document requirement / type / **authority** | partial — kind only | type yes; **authority no** | no | yes | **S4** |
+| funding requirement | yes (`FundingRequirement`) | yes | no (`Unresolved`) | yes | S3 |
+| **delivery provider / control policy** | **no** | **no** | no | partly | S12 |
+| **dependency treatment** | **no** | **no** | no | yes | **S6** |
+| **partial-fulfillment support** | **no** | not as a vocabulary — it is a boolean in Pack wording | no | yes | **S6** |
+
+**Decision required:** for the four semantics whose vocabulary the Pack does **not** define — unit policy, document authority, delivery/control policy, dependency treatment — either the owner supplies the vocabulary, or the snapshot carries a source-owned code the way `SettlementAttribution.CategoryCode` will.
+
+**Recommendation:** decide the **shape** now (fields exist, values stay `Unresolved`/`NotCertified` for the live profile) so S2/S4/S6 never migrate accepted snapshots. Add `PartialFulfillmentSupported` as a nullable boolean now — Pack wording defines it without needing a vocabulary. For the other three, prefer a source-owned code over an invented enum. **No fulfillment engine, no rule framework.**
+
+**Answer:**
+
+---
+
+## OD-CLOSE-08 — FundingObligation scope and disposition *(new)*
+
+**Problem:** `DOMAIN/06` — "`FundingObligation` fields: ObligationId, OrderId, Version, Purpose, sale currency, exact amount, **Service/Item/PricingLine scope**, accepted ChangeId, superseded obligation ref, source pricing decision and **current disposition**."
+
+Current: item scope only (`OrderItemId?`), no disposition. `Order.ObligationRevision` — the Pack's discovery watermark — does not exist either. Revision 1 wrongly called this "fully sufficient for S3".
+
+**Decision required:**
+1. Scope shape — one nullable column per scope kind, or a scope-kind discriminator plus one reference?
+2. Does the S1 original-sale obligation stay **item**-scoped? (It should — that is what it is.)
+3. Is the **disposition** vocabulary defined by the Pack? `DOMAIN/06` names behaviours (supersede, release, rebind) but never enumerates the states. If it does not, the owner must supply them — do **not** invent a payment status.
+4. Is `Order.ObligationRevision` needed now, or with S3?
+
+**Recommendation:** design the scope shape now so item-only does not harden into an invariant — a scope-kind discriminator plus one reference is smaller than three nullable FKs and reads better. Keep the S1 obligation item-scoped. Defer `ObligationRevision` to S3. **Raise the disposition vocabulary to the owner**; nothing in the Pack enumerates it, and inventing `Open/Settled/Released` would be exactly the guessing this process forbids. No payment behavior now.
 
 **Answer:**
 
@@ -155,13 +199,13 @@ It is additive, every surface already returns the same `OrderDto`, and a tax cod
 
 ## Explicitly **not** raised as decisions
 
-These were considered and settled by evidence, so they do not need owner time:
-
 | Considered | Why no decision is needed |
 |---|---|
-| Seat number on `AirTransportDetail` | DOMAIN/02's typed-details table already assigns seat product and requested seat to the **Seat** type in S6. Settled by the Pack. |
-| An ETKT coupon entity for `AirOfferCouponWire.CouponId` | The Pack states these are a priced projection, not issued coupons; identity cannot be lost (raw evidence) or collide (fails closed). Settled in `DOMAIN-BENCHMARK-MATRIX.md` §C4. |
-| `Stop`, bound `direction`, root `journeyType` vocabularies | Already an open owner item — `OD-P-12` and handoff `OR-002`. Not duplicated here. |
-| `PricingLine` quantity / UoM / unit price | Already rejected by the owner in `OD-P-17`; no source supplies it. |
-| `CommercialSource` on `OrderItem` | Already carried at item granularity by `ProductSnapshot.SourceSystem`. |
-| The rate-of-exchange from/to pair not matching the line's currencies | Evidence is preserved and nothing interprets it; the interpretation question is already inside `OR-002`. |
+| Seat number on `AirTransportDetail` | `DOMAIN/02`'s typed-details table gives Seat its own row and S6 its slice; corroborated by AIDM M2 and Navitaire N3 |
+| An ETKT coupon entity for `AirOfferCouponWire.CouponId` | the Pack calls these a priced projection; identity cannot be lost (raw evidence) or collide (fails closed) |
+| `Stop`, bound `direction`, root `journeyType` vocabularies | already open as `OD-P-12` and handoff `OR-002` |
+| `PricingLine` quantity / UoM / unit price | rejected by the owner in `OD-P-17`; no source supplies it |
+| `CommercialSource` on `OrderItem` | already carried at item granularity by `ProductSnapshot.SourceSystem` |
+| Rate-of-exchange from/to pair vs the line's currencies | evidence preserved, nothing interprets it; the question is inside `OR-002` |
+| Commercial lifecycle vocabulary | **not a decision** — `DOMAIN/02` §48 and §52 enumerate the states exactly, and no owner decision overrides them. It is an implementation correction, planned in `IMPLEMENTATION-PLAN.md` §A4. |
+| Percentage commission numeric fields | AIDM proves they are legitimate future source facts; AirOffer supplies none, so there is nothing to decide until an owner does |

@@ -1,36 +1,53 @@
 # Full-Domain Future Readiness
 
-Stage: 06-S1-create-order-conformance · 2026-09-19 · HEAD `e861711`
+Stage: 06-S1-create-order-conformance · **revision 2**, reclassified after independent review · 2026-09-19 · HEAD `506ccee`
 
-The question is **not** whether later behavior exists — it must not. It is whether an S1 decision already taken would force a destructive redesign when that behavior arrives.
+Revision 1 said "13 of 14 families are clean `DEFER_IMPLEMENTATION`". That verdict is **withdrawn**. It collapsed two different questions — *is the behavior deferred* and *is the domain shape correct* — into one answer, and answered both with the first.
 
-For each family: do the canonical identities already exist; would S1 force a redesign; is the missing concept already specified in the Pack; does it need a new owner decision.
+Revision 2 uses five classes:
 
-| # | Family | Slice | Canonical identities sufficient? | S1 forces destructive redesign? | Already specified in Pack? | Needs a new owner decision? | Verdict |
-|---|---|---|---|---|---|---|---|
-| 1 | **Reservation / capacity** | S2 | Yes. `OrderSegment.SourceCapacityRef` retains the AirOffer `FlightCapacityId` as a **source reference**, deliberately named so it is not mistaken for owned capacity truth. `FulfillmentProfileSnapshot.ReservationRequirement` exists and reads `Unresolved` for the live profile. | No | DOMAIN/05, S2 | No — BD-002/BD-003 already scope the gap | `DEFER_IMPLEMENTATION` |
-| 2 | **Payment / funding** | S3 | Yes. `FundingObligation` already exists per item with `Version`, `Purpose`, `SourceDecisionRef` and `SupersededObligationId`. Applications and evidence are separate tables the Pack names. | No | DOMAIN/06, DOMAIN/13 | No — BD-005 scopes it | `DEFER_IMPLEMENTATION` |
-| 3 | **ETKT / EMD issuance** | S4/S7 | Yes. `OrderService` is the unit a document coupon attaches to, and `FulfillmentDocumentKind` exists on the profile (currently `Unresolved`). Document tables are a separate DOMAIN/13 group. | No | DOMAIN/07 | No — BD-006 scopes it | `DEFER_IMPLEMENTATION` |
-| 4 | **Cancellation** | S5 | Mostly. `OrderItemCommercialStatus` / `OrderServiceCommercialStatus` vocabularies exist. `OrderItem` lacks supersession/cancellation references, which DOMAIN/02 §7 names. | No — they are additive columns on an existing entity | DOMAIN/09, DOMAIN/02 §7 | No | `DEFER_IMPLEMENTATION` |
-| 5 | **Seat / bag / meal / lounge** | S6 | Yes, and this is the important one. DOMAIN/02's typed-details table gives **Seat** its own row ("Exactly one traveler and related air service; seat product/characteristics, requested seat when sold by identifier"). `OrderService` already carries `Type`, `DetailSchema`, `DetailSchemaVersion` and one nullable typed detail navigation; adding `SeatDetail` follows the identical pattern. Crucially, S1 did **not** put a seat field on `AirTransportDetail`. | **No.** Had S1 added `SeatNumber` to `AirTransportDetail`, S6 would have had to migrate seat data out of the air product and reconcile two homes for the same fact. It did not. | DOMAIN/02, SLICES/S6 | No — BD-008 scopes supplier products | `DEFER_IMPLEMENTATION` |
-| 6 | **Refund** | S9 | Partly. `PricingLineRole.Reversal` and `PricingComponentType.Penalty` exist in the vocabulary. `AllocationSet`/`Allocation` were removed by owner decision, and DOMAIN/03 warns "RefundBasis is NOT an implicit allocation purpose or entitlement", so the removal does not pre-commit refund semantics. | No — allocations return as new tables when a slice needs them | DOMAIN/09, DOMAIN/03 §39 | No | `DEFER_IMPLEMENTATION` |
-| 7 | **Exchange / reprice** | S10 | Yes, and better than before this stage. The typed fare-construction graph is the thing an exchange needs to reason about fare coupling; under the old JSON blob it would have had to parse a string. `FareConstruction.SupersededByConstructionId` already exists. | No | DOMAIN/09, DOMAIN/03 §47 | No — BD-007 scopes AirPrice | `DEFER_IMPLEMENTATION` |
-| 8 | **Disruption** | S11 | Yes. Journeys and segments are now first-class with external flight id and version, which is what a disruption case must match against. `OrderJourney`/`OrderSegment` carry no operational state, which is correct — DOMAIN/04 §21 says a schedule change never edits the sold snapshot. | No | DOMAIN/11 | No — BD-010 scopes it | `DEFER_IMPLEMENTATION` |
-| 9 | **Delivery / consumption** | S12 | Yes. `OrderService` is the unit an observation correlates to; observation tables are a separate DOMAIN/13 group and sold truth stays untouched. | No | DOMAIN/11, DOMAIN/13 | No — BD-009 scopes it | `DEFER_IMPLEMENTATION` |
-| 10 | **Traveler correction** | S13 | Yes. `OrderTraveler` separates `SourceTravellerRef` (owner identity) from `ClientTravelerRef` (caller identity) from `TravelerIdentity` (the PII), and the PII already lives in its own table read through a separate authorized path. A name correction touches one of the three without disturbing the others. | No | DOMAIN/04 | No | `DEFER_IMPLEMENTATION` |
-| 11 | **Split** | S14 | Partly. `OrderItemServiceLink.ScopeAtAssociation` — added in the previous stage — is exactly the mechanism split needs to reconstruct an old item's contents without joining the service's *current* owner. `Order.RootOrderId` exists; parent/lineage does not. | No — `OrderLineage` is additive | DOMAIN/12, DOMAIN/02 §13 | No — BD-012 scopes it | `DEFER_IMPLEMENTATION` |
-| 12 | **Group / charter** | S15 | Yes. Group blocks are a separate DOMAIN/13 table group that materialises ordinary Orders; nothing in S1 obstructs it. | No | DOMAIN/12 | No — BD-012 | `DEFER_IMPLEMENTATION` |
-| 13 | **Interline / partner** | later | Partly. `OrderSegment.MarketingCarrierRef` and `.OperatingCarrierRef` are now on the segment, which is the identity an interline settlement needs. No partner settlement concept exists. | No | DOMAIN/12, BD-012 | Yes, eventually — the partner settlement counterparty is the same gap as agency settlement (see 14) | `BLOCKED_OWNER_CONTRACT` |
-| 14 | **Agency settlement** | S1 (partly) and later | **No — this is the one gap.** `PricingEffect.SettlementOnly` and `PricingComponentType.Commission` exist and the arithmetic excludes them from `CustomerTotal`, but `SettlementPartyRef` and `SettlementCategory` do not exist anywhere. DOMAIN/03 §13 requires them whenever Effect is SettlementOnly, and IATA's Settlement with Orders frames settlement as an airline↔seller exchange that needs a named counterparty. | **Not destructive, but it is already due.** The owner kept the settlement half of SC-S1-013 in S1, so this is a current gap rather than a future one. | DOMAIN/03 §13 | No — the Pack already states the requirement; only implementation is missing | **`FIX_S1_SEMANTICS`** |
+- **`STRUCTURALLY_READY`** — canonical identities exist, shape is Pack-conformant, only behavior is missing.
+- **`ADDITIVE_FUTURE_EXTENSION`** — a later slice adds columns or tables; nothing existing must change.
+- **`DOMAIN_SHAPE_GAP`** — the shape must be decided now or a later slice will have to migrate accepted data.
+- **`BLOCKED_OWNER_CONTRACT`** — the values depend on an owner contract that does not exist.
+- **`CURRENT_S1_GAP`** — not a future question at all; S1 is already wrong.
+
+| # | Family | Slice | Canonical identities | Would an S1 decision force a destructive redesign? | Classification |
+|---|---|---|---|---|---|
+| 1 | Reservation / capacity | S2 | `OrderSegment.SourceCapacityRef` retains the AirOffer `FlightCapacityId` as a *source reference*; `FulfillmentProfileSnapshot.ReservationRequirement` exists and reads `Unresolved` | **Partly.** The identities are right, but `FulfillmentProfileSnapshot` is missing resource quantity/unit **policy** and partial-fulfillment support, which S2 is the first slice to need. Adding them later means rewriting accepted snapshots. | **`DOMAIN_SHAPE_GAP`** (shape) + `BLOCKED_OWNER_CONTRACT` (values, BD-002/003) |
+| 2 | Payment / funding | S3 | `FundingObligation` has version, purpose, money, change and supersession | **Yes, for scope.** `DOMAIN/06` requires **Service / Item / PricingLine** scope and a **current disposition**; today only nullable `OrderItemId` exists. A fee-only `MonetaryCharge` needs line scope and an S6 added service needs service scope. Freezing item-only scope now is the destructive choice. | **`DOMAIN_SHAPE_GAP`** (revision 1 wrongly called this sufficient) |
+| 3 | ETKT / EMD issuance | S4/S7 | `OrderService` is the unit a coupon attaches to; `FulfillmentDocumentKind` exists | **Partly.** The Pack's snapshot requires document **authority**, not just kind. Document tables themselves are a clean additive group. | **`DOMAIN_SHAPE_GAP`** (authority field) + `BLOCKED_OWNER_CONTRACT` (BD-006) |
+| 4 | Cancellation | S5 | commercial status vocabularies exist | **Yes.** `OrderServiceCommercialStatus` lacks `Replaced` and `Expired` and carries `Exchanged`/`Suspended`, which the Pack does not define on this axis; `OrderItemCommercialStatus` lacks four derived states. Cancelling with the wrong vocabulary means migrating accepted rows later. | **`DOMAIN_SHAPE_GAP`** |
+| 5 | Seat / bag / meal / lounge | S6 | `OrderService` carries `Type`, `DetailSchema`, `DetailSchemaVersion` and one nullable typed-detail navigation; `ServiceDetailSchemaRegistry` is the gate; **no seat field on `AirTransportDetail`** | **No.** Adding `SeatDetail` follows the identical pattern. Corroborated by AIDM M2 (Service associates a Delivery Provider) and N3 (Navitaire sells seat fees as a retail capability distinct from the flight). The one caution is the candidate-side string dictionary, which is maintainability, not shape. | **`STRUCTURALLY_READY`** |
+| 6 | Refund | S9 | `PricingLineRole.Reversal` and `PricingComponentType.Penalty` exist; allocations were removed by owner decision | **No.** `DOMAIN/03` warns "RefundBasis is NOT an implicit allocation purpose or entitlement", so the removal pre-commits nothing. Allocations return as new tables. | **`ADDITIVE_FUTURE_EXTENSION`** |
+| 7 | Exchange / reprice | S10 | typed fare-construction graph; `FareConstruction.SupersededByConstructionId` | **No for fare coupling — yes for status.** The graph is exactly what an exchange needs. But `Exchanged` currently sits on the commercial axis where the Pack says `Replaced` belongs. | **`STRUCTURALLY_READY`** for the graph; the status half is inside family 4 |
+| 8 | Disruption | S11 | journeys and segments with external flight id and version; no operational state on the sold snapshot | **No.** `DOMAIN/04` §21 says a schedule change never edits the sold snapshot, and it cannot here. | **`STRUCTURALLY_READY`** + `BLOCKED_OWNER_CONTRACT` (BD-010) |
+| 9 | Delivery / consumption | S12 | `OrderService` is the correlation unit; observations are a separate table group | **No — but only if `Suspended` leaves the commercial axis.** AIDM M2 carries `Status Code` and `Delivery Status Code` as separate attributes, and `OrderServiceDeliveryStatus` already exists as the right home. | **`STRUCTURALLY_READY`** once family 4 is corrected |
+| 10 | Traveler correction | S13 | `SourceTravellerRef` / `ClientTravelerRef` / `TravelerIdentity` are three separate things, and the PII already lives in its own table behind its own authorized read | **No.** A name correction touches one of the three. | **`STRUCTURALLY_READY`** |
+| 11 | Split | S14 | `OrderItemServiceLink.ScopeAtAssociation` reconstructs an old item's contents without joining current ownership, exactly as `DOMAIN/02` §13 demands; `RootOrderId` exists | **Partly.** `OrderItemCommercialStatus` has no `Partitioned`, which is the state split produces, and there is no parent/lineage. Lineage is additive; the missing status is not. | **`DOMAIN_SHAPE_GAP`** (status) + `ADDITIVE_FUTURE_EXTENSION` (lineage) |
+| 12 | Group / charter | S15 | group blocks are a separate table group materialising ordinary Orders | **No.** | **`ADDITIVE_FUTURE_EXTENSION`** + `BLOCKED_OWNER_CONTRACT` (BD-012) |
+| 13 | Interline / partner | later | `MarketingCarrierRef` and `OperatingCarrierRef` are on the segment — the identity interline settlement needs | **Yes, through the same hole as family 14.** AIDM M2 associates **Interline Settlement Information** to Service and M3 associates Commission to it; without a settlement counterparty concept there is nowhere to put either. | **`CURRENT_S1_GAP`** (shares the settlement attribution gap) + `BLOCKED_OWNER_CONTRACT` (BD-012) |
+| 14 | Agency settlement | S1 and later | `SettlementOnly` and `Commission` exist; the arithmetic excludes them from `CustomerTotal` | **Already wrong today.** `DOMAIN/03` §13 requires party/category whenever Effect is SettlementOnly; neither exists. The owner kept this half of SC-S1-013 in S1. | **`CURRENT_S1_GAP`** |
+| 15 | Accepted sales provenance | S1 | `FinancialCustomerId`, `Channel`, `SellingOfficeId`, two actor fields | **Already wrong today.** `DOMAIN/01` §2 requires immutable `SalesContext` and `BuyerSnapshot` at accepted creation. Neither exists; `BuyerActor*` holds the initiating actor; `TravelAgencyId` is resolved away and survives only inside an idempotency scope string; `SellingOfficeId` mixes two office namespaces. | **`CURRENT_S1_GAP`** + **`FIX_DOMAIN_DESIGN`** |
 
 ## Summary
 
-Thirteen of fourteen families are clean `DEFER_IMPLEMENTATION`: the canonical identities exist, the Pack already specifies the missing pieces, and no S1 decision would force a destructive redesign.
+| Classification | Families |
+|---|---|
+| `STRUCTURALLY_READY` | 5 — seat/ancillary, exchange graph, disruption, delivery, traveler correction |
+| `ADDITIVE_FUTURE_EXTENSION` | 2 — refund, group; plus the lineage half of split |
+| `DOMAIN_SHAPE_GAP` | 5 — reservation snapshot, funding scope/disposition, document authority, cancellation vocabulary, split status |
+| `BLOCKED_OWNER_CONTRACT` | 5 value-side blocks (BD-002/003, BD-006, BD-010, BD-012) |
+| `CURRENT_S1_GAP` | 3 — agency settlement, interline settlement, accepted sales provenance |
 
-Three S1 decisions actively **improved** future readiness and are worth naming:
+## What still holds from revision 1
 
-1. **Seat stayed out of `AirTransportDetail`.** The single most common way to corrupt this model was avoided.
-2. **The fare-construction graph became typed.** S10 exchange work can now query fare coupling instead of parsing a JSON column.
-3. **`ScopeAtAssociation` was added to the item–service link.** S14 split can reconstruct historical item contents without reading current ownership — which DOMAIN/02 §13 explicitly forbids relying on.
+Three S1 decisions genuinely improved future readiness and are unchanged:
 
-One family — agency (and by extension partner) settlement — is not a future-readiness question at all. It is a present S1 gap.
+1. **Seat stayed out of `AirTransportDetail`** — corroborated by AIDM M2 and by the Pack's typed-details table, which gives Seat its own row.
+2. **The fare-construction graph became typed** — S10 can query fare coupling instead of parsing a JSON column.
+3. **`ScopeAtAssociation` was added to the item–service link** — S14 can reconstruct historical item contents without relying on current ownership.
+
+## What revision 1 got wrong here
+
+It declared `FundingObligation` "fully sufficient for S3" without comparing it to the `DOMAIN/06` field list, and it rated `FulfillmentProfileSnapshot` `BLOCKED_OWNER_CONTRACT` and stopped — conflating blocked *values* with an incomplete *shape*. Both are corrected above.
