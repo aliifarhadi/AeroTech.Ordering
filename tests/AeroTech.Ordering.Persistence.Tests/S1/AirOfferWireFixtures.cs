@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using System.Text.Json;
 
@@ -20,7 +20,9 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             bool withTerminals = false,
             int? ticketingRestrictionMinutes = null,
             decimal? conversionRate = null,
-            string? offerId = "SYNTHETIC-PRICED-OFFER")
+            string? offerId = "SYNTHETIC-PRICED-OFFER",
+            string? pricingUnitKind = "OneWay",
+            bool withPricingUnits = true)
         {
             var couponTotal = couponFare + couponTax;
             var saleFare = lineCurrencyId == 978 ? couponFare : equivalent ?? couponFare;
@@ -85,11 +87,11 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                             }
                         }
                     },
-                    pricingUnits = new[]
+                    pricingUnits = !withPricingUnits ? Array.Empty<object>() : new object[]
                     {
                         new
                         {
-                            kind = "OneWay",
+                            kind = pricingUnitKind,
                             coveredBoundOfferIds = new[] { "BOUND-1" },
                             fareComponents = new[]
                             {

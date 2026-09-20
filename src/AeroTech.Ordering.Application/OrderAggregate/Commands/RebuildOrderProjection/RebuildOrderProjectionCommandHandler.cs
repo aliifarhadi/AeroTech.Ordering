@@ -1,4 +1,4 @@
-using AeroTech.Framework.Core.Domain.Repository;
+﻿using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Application._Shared.Authorization;
@@ -72,7 +72,7 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProj
             var result = new RebuildOrderProjectionResult(order.Id, _ids.NewId(), order.OrderRevision, order.CommercialVersion, false);
 
             _receipts.Add(CommandReceipt.Completed(
-                result.OperationId,
+                result.ReceiptId,
                 receiptScope,
                 _digester.CanonicalizationVersion,
                 digest,

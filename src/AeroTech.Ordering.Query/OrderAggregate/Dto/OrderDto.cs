@@ -1,4 +1,4 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
 
 namespace AeroTech.Ordering.Query.OrderAggregate.Dto
@@ -16,6 +16,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Dto
         JourneyType JourneyType,
         DateTimeOffset? LastTicketingDate,
         MoneyDto CustomerTotal,
+        string? SaleCurrencyCode,
         IReadOnlyList<OrderTravellerDto> Travellers,
         IReadOnlyList<OrderContactDto> Contacts,
         IReadOnlyList<OrderSegmentDto> Itinerary,
@@ -59,6 +60,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Dto
 
     public sealed record OrderServiceDto(
         long ServiceId,
+        OrderServiceType ServiceType,
         OrderServiceCommercialStatus Status,
         long TravellerId,
         long SegmentId,

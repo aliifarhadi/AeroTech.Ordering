@@ -1,4 +1,4 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
@@ -9,6 +9,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         PricingComponentType Component,
         PricingEffect Effect,
         OrderPricingLineDirection Direction,
+        PricingLineRole Role,
         string? Code,
         string? Name,
         string? Reference,

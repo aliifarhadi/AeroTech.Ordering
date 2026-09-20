@@ -1,4 +1,4 @@
-using AeroTech.Messages.Aegis.Enums;
+﻿using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
 using AeroTech.Ordering.Domain._Shared.Contracts;
@@ -43,6 +43,7 @@ namespace AeroTech.Ordering.Application._Shared.Authorization
                     ownerAirlineId,
                     SellingOfficeKind.AirlineOffice,
                     sellingOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Backoffice, financialCustomerId, sellingOfficeId, CallerScopeKey.None),
                 new InitiatingActorSnapshot(BusinessContextType.Airline, _caller.AirlineUserId));
         }
@@ -64,6 +65,7 @@ namespace AeroTech.Ordering.Application._Shared.Authorization
                     travelAgencyId,
                     SellingOfficeKind.TravelAgencyOffice,
                     sellingOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.OtaPanel, financialCustomerId, sellingOfficeId, CallerScopeKey.Agency(travelAgencyId)),
                 new InitiatingActorSnapshot(BusinessContextType.TravelAgency, _caller.TravelAgencyUserId));
         }
@@ -88,6 +90,7 @@ namespace AeroTech.Ordering.Application._Shared.Authorization
                     SalesChannel.PartnerAPI,
                     sellingOfficeId is null ? null : SellingOfficeKind.TravelAgencyOffice,
                     sellingOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Ota, financialCustomerId, sellingOfficeId, principalScope),
                 new InitiatingActorSnapshot(BusinessContextType.PartnerApi, _caller.PartnerApiAccessProfileId));
         }
@@ -101,15 +104,13 @@ namespace AeroTech.Ordering.Application._Shared.Authorization
             if (sellingOfficeId is null != sellingOfficeKind is null)
                 throw ExceptionFactory.AuthorizedScopeRequired("a selling office identifier together with its kind");
 
-            if (sellingOfficeKind == SellingOfficeKind.NotRecorded)
-                throw ExceptionFactory.AuthorizedScopeRequired("a recorded selling office kind");
-
             await EnsureActiveCustomerAsync(financialCustomerId, cancellationToken);
 
             return new AuthorizedSalesScope(
                 await OwnerAirlineIdAsync(cancellationToken),
                 financialCustomerId,
                 SalesContextSnapshot.SellerNotSupplied(SalesChannel.System, sellingOfficeKind, sellingOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Service, financialCustomerId, sellingOfficeId, CallerScopeKey.None),
                 new InitiatingActorSnapshot(BusinessContextType.Service, _caller.IsAuthenticated ? _caller.ActorId : null));
         }

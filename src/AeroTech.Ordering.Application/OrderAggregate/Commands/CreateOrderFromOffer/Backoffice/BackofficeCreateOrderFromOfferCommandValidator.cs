@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Backoffice
 {
@@ -6,7 +6,7 @@ namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromO
     {
         public BackofficeCreateOrderFromOfferCommandValidator()
         {
-            RuleFor(command => command.CustomerId).GreaterThan(0);
+            RuleFor(command => command.FinancialCustomerId).GreaterThan(0);
             RuleFor(command => command.AirlineOfficeId).GreaterThan(0);
             RuleFor(command => command.OfferId).NotEmpty();
             RuleFor(command => command.IdempotencyKey).NotEmpty();

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using AeroTech.Ordering.Persistence.Tests._Shared;
 using Microsoft.Extensions.Hosting;
 using Xunit;
@@ -54,6 +54,31 @@ namespace AeroTech.Ordering.Persistence.Tests.Api
                     "POST /Syncer/v1/OperatorSettings"
                 ],
                 operations);
+        }
+
+        [Fact]
+        public async Task The_create_surfaces_name_the_financial_customer_by_its_role()
+        {
+            await using var host = await OrderingApiHost.StartAsync(_fixture, Environments.Development);
+
+            using var parsed = JsonDocument.Parse(await host.Client.GetStringAsync("swagger/v1/swagger.json"));
+            var schemas = parsed.RootElement.GetProperty("components").GetProperty("schemas");
+
+            foreach (var schema in new[] { "BackofficeCreateOrderFromOfferRequest", "ServiceCreateOrderFromOfferRequest" })
+            {
+                var properties = schemas.GetProperty(schema).GetProperty("properties").EnumerateObject()
+                    .Select(property => property.Name)
+                    .ToList();
+
+                Assert.Contains("financialCustomerId", properties);
+                Assert.DoesNotContain("customerId", properties);
+            }
+
+            var officeKind = schemas.GetProperty("SellingOfficeKind").GetProperty("enum").EnumerateArray()
+                .Select(value => value.ToString())
+                .ToList();
+
+            Assert.DoesNotContain("NotRecorded", officeKind);
         }
     }
 }

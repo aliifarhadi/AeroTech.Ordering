@@ -54,8 +54,8 @@ commercial column.
 | Removed | Why |
 |---|---|
 | `ServiceDetailSchemaRegistry`, `DetailSchema`, `DetailSchemaVersion`, dynamic `Details` dictionary | A registry with one entry and a string dictionary carrying three typed concepts (cabin, RBD, booking class), which are now typed members. |
-| `OrderService.Type`, `ServiceCode`, `Name`, `PriceTreatment`, `SupplierPartyRef`, `DeliveryProviderRef`, `ServiceVersion`, `Quantity`, `QuantityUnit` | Constants or never supplied by AirOffer; S1 has exactly one service type and nothing mutates a service. |
-| `FulfillmentProfileSnapshot` (12 members) and `CandidateFulfillmentProfile` | Values were mapper constants and `Unresolved`, including the invented profile id `AIROFFER-OBSERVED-AIR-UNCERTIFIED`. `IsCertified` had no consumer. Returns with a certified fulfillment owner contract. |
+| `OrderService.ServiceCode`, `Name`, `PriceTreatment`, `SupplierPartyRef`, `DeliveryProviderRef`, `ServiceVersion`, `Quantity`, `QuantityUnit` | Constants or never supplied by AirOffer, and nothing mutates a service in S1. **Revision 2:** `ServiceType` is back — a service declares its type, it is the EF discriminator for `OrderAirTransportService`, and it reaches the projection and the public DTO. |
+| the invented fulfillment profile id `AIROFFER-OBSERVED-AIR-UNCERTIFIED` and its version constant | A mapper constant presented as an owner profile. **Revision 2:** `FulfillmentProfileSnapshot` and `CandidateFulfillmentProfile` are back, with `ProfileRef`/`ProfileVersion` nullable and null — deleting the whole sale-time fulfillment context to remove the fake id also removed a Pack-required fact. A profile that claims `Certified` without naming itself is now refused. |
 | `OrderServiceBeneficiary`, `OrderServiceCoverage`, `SoleCoveredSegmentId` | Collections that always held exactly one row, plus a derived workaround for that fact. |
 
 ### Missing beneficiary — how the scenario is still covered
@@ -102,7 +102,7 @@ The previous runtime-validation test was removed because the invalid state it as
 | Removed | Why |
 |---|---|
 | `OrderPreparation.ConsumedByOrderId`, `ConsumedAt`, `IsConsumed`, `Consume()`, the consumption index and CHECK, `CommitConflictKind.PreparationConsumption` translation | `CreateOrderFromOfferService` captures, accepts and consumes inside one `SaveChangesAsync`; a preparation can never commit unconsumed. The only thing exercising `Consume()` was a test calling it twice on an in-memory object. Concurrency is protected by the idempotency receipt. |
-| `OrderPreparation.Channel`, `SellingOfficeId`, `ActorContextType`, `ActorId`, `ClientReference`, `CreatedAt` | Duplicated from the candidate, the scope or the Order with no index or behaviour needing the copy. `CallerScope` is kept because it is indexed for idempotency. |
+| `OrderPreparation.Channel`, `SellingOfficeId`, `ActorContextType`, `ActorId`, `ClientReference`, `CreatedAt` | Duplicated from the candidate, the scope or the Order with no index or behaviour needing the copy. `CallerScope` is kept because it is one of the inputs to the snapshot digest, which binds the accepted candidate to the scope that accepted it; it is not indexed. |
 | `CommandReceipt.Status`, `CompletedAt`, `PreparationId`, `OperationId` | Only `Completed` is constructible; `CompletedAt` always equalled `CreatedAt`; the preparation is reachable through `Order.SourcePreparationId`; no current behaviour reads an operation id. |
 | `CommandReceiptStatus` (shared Contracts) | Internal receipt vocabulary that did not belong in the shared public contract. |
 
@@ -113,15 +113,15 @@ The previous runtime-validation test was removed because the invalid state it as
 | `AcceptedSource` (14-member value object) | A mega-wrapper duplicating the preparation row. Reduced to `SourceOfferId`, `SourcePreparationId` and `AcceptedSnapshotDigest`, which are what anything actually reads. |
 | `AcceptedSource.PreparationId` | Duplicate of `Order.SourcePreparationId`. |
 | `Order.SourceJourneyTypeRaw` | Dual modelling; `"RoundTrip"` maps to the existing `JourneyType` enum and an unknown value now fails closed. |
-| `Order.Buyer` / `BuyerSnapshot` | Every current surface records `NotSupplied`; no surface supplies a buyer identity. Returns when one does. |
+| — | **Revision 2:** `Order.Buyer` / `BuyerSnapshot` are back. Every current surface records `NotSupplied`, but Pack DOMAIN/01 and DOMAIN/04 keep Buyer distinct from FinancialCustomer, Seller, Actor and Traveller, and absence is itself the accepted fact. |
 | `Order.IsSandboxScoped` | A convenience over the removed `AcceptedSource`. |
-| `OrderComponentTotal` (+ configuration, + its fabricated `Id`, which the previous migration generated with `ROW_NUMBER`) | Derived from the committed pricing lines. Now computed in the projector. |
-| `FundingObligationScope`, `FundingObligation.OrderServiceId`, `PricingLineId`, `SupersededObligationId` | S1 never produces a service- or line-scoped obligation. The obligation itself is kept because original-sale liability is a stable identity. |
-| `PricingLine.Role`, `OriginalPricingLineId` | Always `Original` / null; reversals are an explicitly deferred slice. |
+| `OrderComponentTotal.Id` (the fabricated surrogate the previous migration generated with `ROW_NUMBER`) and `CurrencyRef:string` | **Revision 2:** the table itself is back — Pack DOMAIN/01 defines complete component totals as derived *and persisted*. Only the fabricated identity went: the key is now `(OrderId, Component, Effect)` and the currency is `CurrencyId:int`. |
+| `FundingObligation.SourceDecisionRef`, `SupersededObligationId` | A local preparation reference dressed as an external decision identity, and a lineage field no S1 flow writes. **Revision 2:** `OrderServiceId`, `PricingLineId` and a typed `FundingObligationScope` are back — item-only scope silently dropped the liability of a customer-balance line with no item. The source pricing decision is now the typed `PriceChangeSetId`. |
+| `PricingLine.OriginalPricingLineId` | Always null; reversals are an explicitly deferred slice. **Revision 2:** `Role` is back — Pack DOMAIN/03 makes `LineRole` a first-class monetary semantic, and every S1 row being `Original` does not make it redundant. |
 | `PriceChangeSet.BaseCommercialVersion` | Constant `0`, no consumer. |
-| `OrderItemServiceLink` (+ its two child tables) | Nothing in S1 changes item membership; `ScopeAtAssociation` is an S14 need. |
+| `OrderItemServiceLinkTravelers`, `OrderItemServiceLinkSegments` | Overbuilt children; the typed air service already owns traveller and segment scope, and `ScopeAtAssociation` is an S14 need. **Revision 2:** the link itself is back — Pack DOMAIN/02 requires immutable historical item↔service membership. |
 
-## 9. Legacy compatibility (removed under the approved rebaseline)
+## 9. Legacy compatibility (removed under the proposed rebaseline, which is not yet authorized)
 
 | Removed | Why |
 |---|---|
@@ -131,15 +131,16 @@ The previous runtime-validation test was removed because the invalid state it as
 | `OrderDtoJson` schema-2 path | Same. Projection schema restarts at `1`. |
 | `PackExamples.cs` (~900 lines of schema-3 candidate JSON) | Kept only to feed four fixtures. Each business intent now has an explicit replacement test built with the current builder: one-way reference, incorrect total, settlement tax, and missing beneficiary (see §4). A 900-line schema-3 artifact is exactly what this cleanup exists to remove. |
 
-`SellingOfficeKind.NotRecorded` is **retained**: the Service2Service surface rejects it on new requests, but it remains
-the honest value for a channel whose office namespace cannot be proven.
+**Revision 2:** `SellingOfficeKind.NotRecorded` is now **removed** from the shared enum, together with the two
+validation branches that existed only to reject it. With no deployed S1 schema there is no writer that can produce it,
+and an office identifier whose namespace cannot be proven fails closed instead of being recorded as unknown.
 
 ## Counts
 
 | | |
 |---|---|
 | Files deleted across `src/`, `tests/`, `Contracts/` | 50 |
-| Domain `.cs` files | 107 → 84 |
-| Mapped tables in `OrderingDbContext` | 32 → 22 |
-| Mapped properties in the model snapshot | 338 → 235 |
+| Domain `.cs` files | 107 → 91 |
+| Mapped tables in `OrderingDbContext` | 34 → 25 |
+| Mapped properties in the model snapshot | 475 → 322 |
 | Persisted columns removed or collapsed | see `BEFORE-AFTER-MODEL.md` |

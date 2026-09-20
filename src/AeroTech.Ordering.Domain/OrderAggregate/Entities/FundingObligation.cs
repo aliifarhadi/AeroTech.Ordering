@@ -1,6 +1,7 @@
 using AeroTech.Framework.Core.Domain.Entities;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
+using AeroTech.Ordering.Domain.OrderAggregate.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 {
@@ -15,16 +16,20 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             long orderId,
             FundingObligationPurpose purpose,
             Money amount,
-            long orderItemId,
-            long changeId)
+            FundingObligationScope scope,
+            long changeId,
+            long priceChangeSetId)
         {
             Id = id;
             OrderId = orderId;
             Version = 1;
             Purpose = purpose;
             Amount = amount;
-            OrderItemId = orderItemId;
+            OrderItemId = scope.OrderItemId;
+            OrderServiceId = scope.OrderServiceId;
+            PricingLineId = scope.PricingLineId;
             ChangeId = changeId;
+            PriceChangeSetId = priceChangeSetId;
         }
 
         public long OrderId { get; private set; }
@@ -35,8 +40,14 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 
         public Money Amount { get; private set; } = null!;
 
-        public long OrderItemId { get; private set; }
+        public long? OrderItemId { get; private set; }
+
+        public long? OrderServiceId { get; private set; }
+
+        public long? PricingLineId { get; private set; }
 
         public long ChangeId { get; private set; }
+
+        public long PriceChangeSetId { get; private set; }
     }
 }

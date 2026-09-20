@@ -1,4 +1,4 @@
-using AeroTech.Framework.Presentation.Responses;
+﻿using AeroTech.Framework.Presentation.Responses;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Backoffice;
 using AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrderById.Backoffice;
@@ -29,7 +29,7 @@ namespace AeroTech.Ordering.RestApi.V1.OrderAggregate.Controllers
         public async Task<IActionResult> CreateFromOffer([FromBody] BackofficeCreateOrderFromOfferRequest request, CancellationToken cancellationToken)
         {
             var command = new BackofficeCreateOrderFromOfferCommand(
-                request.CustomerId,
+                request.FinancialCustomerId,
                 request.AirlineOfficeId,
                 request.OfferId,
                 request.Travellers.ToInputs(),

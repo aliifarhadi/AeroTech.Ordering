@@ -1,6 +1,6 @@
 # Test Results
 
-Stage: 07-S1-domain-simplification · 2026-09-20 · branch `k8s-stg`
+Stage: 07-S1-domain-simplification (revision 2) · 2026-09-20 · branch `k8s-stg`
 
 Raw output is in `01-runs/`. Nothing here is reconstructed from memory; every figure below is in a file in that folder.
 
@@ -8,93 +8,148 @@ Raw output is in `01-runs/`. Nothing here is reconstructed from memory; every fi
 
 | Command | Result | Evidence |
 |---|---|---|
-| `dotnet build AeroTech.Ordering.sln -o "$TEMP/ordbuild6"` | Build succeeded, 0 errors, 2 warnings (both pre-existing `NU1510`) | `01-runs/SOLUTION-BUILD.txt` |
-| `dotnet test tests/AeroTech.Ordering.Domain.Tests` | **Passed — 58 / 58**, 0 failed, 0 skipped, 233 ms | `01-runs/DOMAIN-TESTS.txt` |
-| `dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "Category!=Live"` | **Passed — 134 / 134**, 0 failed, 0 skipped, 49 s | `01-runs/PERSISTENCE-TESTS.txt` |
+| `dotnet build AeroTech.Ordering.sln` | Build succeeded, 0 errors, 2 warnings (both pre-existing `NU1510`) | `01-runs/SOLUTION-BUILD.txt` |
+| `dotnet test tests/AeroTech.Ordering.Domain.Tests` | **Passed — 78 / 78**, 0 failed, 0 skipped, 841 ms | `01-runs/DOMAIN-TESTS.txt` |
+| `dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "Category!=Live"` | **Passed — 153 / 153**, 0 failed, 0 skipped, 1 m 41 s | `01-runs/PERSISTENCE-TESTS.txt` |
 | `dotnet ef migrations has-pending-model-changes` (`OrderingDbContext`) | No changes since the last migration | `01-runs/HAS-PENDING-MODEL-CHANGES.txt` |
 | same, `OrderQueryDbContext` and `ReferenceDbContext` | No changes since the last migration | run inline, same output |
 
-`Category=Live` tests were not run: they need `ORDERING_LIVE_AIROFFER_BASEURL` and a currently priced offer id. The
-recorded live payload is still covered by `AirOfferLiveOwnerTests.Recorded_live_owner_response_is_normalized_and_sold`,
-which is in the 134.
+The persistence suite covers the API/OpenAPI tests (`Api/`), the architecture tests (`Architecture/`) and the fresh
+SQL Server migration test (`MigrationUpgradeTests`); they are inside the 153. `Category=Live` tests were not run — they
+need `ORDERING_LIVE_AIROFFER_BASEURL` and a currently priced offer id. The recorded live payload is still covered by
+`AirOfferLiveOwnerTests.Recorded_live_owner_response_is_normalized_and_sold`.
 
-The persistence suite is inside the 3–4 minute bar (49 s). One earlier full run hung for over ten minutes with no
-SQL activity and was stopped; the next two full runs on the same build finished in 56 s and 53 s, so the hang was
-transient and is not reproducible. It is recorded here rather than left out.
+The run now takes about 1 m 41 s, up from about 50 s in revision 1, because each test database replays eight
+migrations. That cost disappears with the rebaseline (`MIGRATION-DECISION.md`).
 
-## What the new and rewritten tests prove
+## Tests added for the R2 corrections
 
-### Missing beneficiary — four levels of evidence
+### Typed service boundary
 
-The Pack scenario is **TESTED**, not dropped. The old runtime-validation test was removed because the invalid state it
-asserted can no longer be constructed; each level below fails against code that does not enforce it.
+| Test | Proves |
+|---|---|
+| `AcceptedShapeTests.An_accepted_air_service_declares_its_service_type_and_owns_its_air_facts` | the service carries `ServiceType = AirTransportation`, and traveller, segment, cabin, RBD, booking class and sold terms live on `OrderAirTransportService` |
+| `AcceptedShapePersistenceTests.The_service_type_survives_sql_the_projection_and_the_public_order` | `ServiceType` is the SQL discriminator column, and it reaches the projection document and the public `OrderDto` |
+| `AcceptOriginalSaleTests.An_accepted_service_is_bound_to_exactly_one_traveller_and_one_segment` | unchanged: the construction invariant still rejects a non-positive traveller or segment (20293) |
 
-| Level | Test | What it proves |
-|---|---|---|
-| Provider / ACL | `A_ticket_without_a_usable_traveller_reference_fails_closed_before_any_candidate(blank \| missing \| duplicate)` | a ticket with a blank, missing or repeated `travellerRef` is a `ContractMismatch` (20272) with no receipt and no preparation |
-| Canonical reader | `A_candidate_service_that_names_no_traveller_cannot_be_read` | a service object that omits `travellerRef` is a `ContractMismatch` (20272) in the schema-1 reader |
-| Candidate validation | `Pack_missing_beneficiary_is_rejected_at_the_candidate_boundary` | a service naming a traveller that is not in the candidate is rejected |
-| Domain construction | `An_accepted_service_is_bound_to_exactly_one_traveller_and_one_segment` | `OrderService` cannot be constructed with a non-positive `TravellerId` or `SegmentId` (20293) |
+### Buyer
 
-### The other three Pack intents carried off `PackExamples.cs`
+| Test | Proves |
+|---|---|
+| `AcceptedShapeTests.An_accepted_buyer_is_not_supplied_and_is_never_inferred_from_another_role` | `NotSupplied` is distinct from the financial customer, the seller and the initiating actor |
+| `AcceptedShapeTests.A_supplied_buyer_survives_acceptance_as_its_own_party` | a supplied buyer is carried through the candidate, the digest and the aggregate as its own party |
+| `AcceptedShapeTests.A_buyer_is_never_half_supplied` | context type and identifier are supplied together or not at all |
+
+### Component totals
+
+| Test | Proves |
+|---|---|
+| `AcceptedShapeTests.Component_totals_are_committed_once_per_component_and_effect` | totals are computed at acceptance from the committed lines, one row per `(Component, Effect)`, and their customer-balance net equals `CustomerTotal` |
+| `ComponentTotalPersistenceTests.A_component_total_is_identified_by_order_component_and_effect_on_sql_server` | the SQL primary key is exactly `OrderId, Component, Effect`, and a duplicate insert is refused by the database |
+| `ComponentTotalPersistenceTests.A_component_total_cannot_hold_a_negative_magnitude_on_sql_server` | `CK_OrderComponentTotals_Magnitudes` rejects a negative debit |
+| `ComponentTotalPersistenceTests.Component_totals_round_trip_through_sql_and_reconcile_with_the_committed_lines` | the projector reads the persisted rows rather than recomputing them |
+
+### Pricing line role
+
+| Test | Proves |
+|---|---|
+| `AcceptedShapeTests.Every_accepted_pricing_line_records_its_role` | every accepted line records `PricingLineRole.Original` |
+| `AcceptedShapePersistenceTests.Every_persisted_pricing_line_records_the_original_role` | the role survives SQL and the projection |
+
+### Funding
+
+| Test | Proves |
+|---|---|
+| `AcceptedShapeTests.Every_customer_balance_line_is_covered_by_a_funding_obligation` | obligations sum to `CustomerTotal`, each names exactly one scope, and each carries its price-change-set |
+| `AcceptedShapeTests.A_customer_balance_line_that_cannot_be_scoped_is_refused_at_the_candidate_boundary` | a customer-balance line with neither item nor service basis is rejected before acceptance, instead of silently losing its liability |
+| `AcceptedShapeTests.A_funding_obligation_names_exactly_one_scope` | the typed scope factory refuses a non-positive or absent identifier (20295) |
+| `ClosureConstraintTests.A_funding_obligation_needs_exactly_one_scope_on_sql_server` | `CK_FundingObligations_ExactlyOneScope` rejects both two scopes and no scope |
+
+### Fare construction
+
+| Test | Proves |
+|---|---|
+| `AcceptedShapeTests.A_candidate_without_a_supplied_fare_construction_commits_none` | no construction is fabricated |
+| `AcceptedShapeTests.The_candidate_builder_invents_no_covered_bound_offer_ids` | the test builder no longer manufactures a default unit whose covered bounds are journey bound ids |
+| `AcceptedShapeTests.A_fare_construction_links_only_the_items_the_source_named` | construction↔item links come from the source's own item keys, not from every order item |
+| `AcceptedShapeTests.A_fare_construction_naming_an_unknown_item_is_refused` | an unknown item key fails closed |
+| `AcceptedShapeTests.A_pricing_unit_keeps_the_owner_construction_type_it_was_sold_under` | the generic unit type and the owner construction type are both retained |
+| `AcceptedShapePersistenceTests.Every_owner_pricing_unit_kind_maps_to_its_own_construction_type` | all three real contract values — `OneWay`, `RoundTripFromOneWays`, `RoundTripFare` — map without collapsing the two round-trip constructions |
+| `AcceptedShapePersistenceTests.An_unknown_owner_pricing_unit_kind_fails_closed` | `RoundTrip`, which the mapper previously accepted and the contract never sends, is now a contract mismatch |
+| `AcceptedShapePersistenceTests.An_owner_that_supplies_no_pricing_units_commits_no_fare_construction` | absence at the ACL produces absence in the candidate and in the aggregate |
+
+### Fulfillment, currency, links, root, naming
+
+| Test | Proves |
+|---|---|
+| `AcceptedShapeTests.An_accepted_service_keeps_an_honest_fulfillment_profile_without_inventing_one` | `ProfileRef` and `ProfileVersion` are null, assurance is `NotCertified`, and reservation, document and funding requirements are `Unresolved` |
+| `AcceptedShapeTests.A_certified_fulfillment_profile_must_name_itself` | claiming `Certified` without a profile reference is refused |
+| `AcceptedShapePersistenceTests.The_fulfillment_snapshot_persists_honest_unresolved_values_with_no_invented_profile` | no row in SQL carries an invented profile id |
+| `AcceptedShapeTests.The_sale_currency_keeps_its_identity_and_the_source_code_snapshot` and `A_source_that_supplies_no_currency_code_records_none` | `CurrencyId` stays the identity; `SaleCurrencyCode` is one optional snapshot |
+| `AcceptedShapePersistenceTests.The_sale_currency_code_snapshot_survives_sql_and_the_public_order` | the live AirOffer `currencyCode` reaches SQL and the public DTO |
+| `AcceptedShapeTests.The_original_sale_records_one_item_service_link_per_service` and `AcceptedShapePersistenceTests.The_original_sale_persists_one_item_service_link_per_service` | the minimal link exists at original sale, with no traveller or segment children |
+| `AcceptedShapeTests.An_original_order_is_its_own_root` | the original order still sets `RootOrderId = Id` |
+| `ClosureConstraintTests.A_root_order_identifier_is_positive_but_is_not_pinned_to_the_order_identifier` | the database accepts a root that differs from the id, and still rejects zero |
+| `AcceptedShapePersistenceTests.A_projection_rebuild_returns_the_receipt_identifier_under_its_own_name` | the rebuild result exposes `ReceiptId`, the value is a real `CommandReceipt.Id`, and no `OperationId` member remains |
+| `OpenApiDocumentTests.The_create_surfaces_name_the_financial_customer_by_its_role` | the published document carries `financialCustomerId` and no `customerId`, and `SellingOfficeKind` has no `NotRecorded` |
+| `CommercialLifecycleVocabularyTests.A_selling_office_always_declares_the_namespace_it_belongs_to` | the shared enum has exactly `AirlineOffice` and `TravelAgencyOffice`, all positive |
+
+## Evidence preserved from revision 1
+
+### Missing beneficiary — four levels
+
+The Pack scenario stays **TESTED**. The old runtime-validation test was removed because the invalid state it asserted
+can no longer be constructed.
+
+| Level | Test |
+|---|---|
+| Provider / ACL | `A_ticket_without_a_usable_traveller_reference_fails_closed_before_any_candidate(blank \| missing \| duplicate)` |
+| Canonical reader | `A_candidate_service_that_names_no_traveller_cannot_be_read` |
+| Candidate validation | `Pack_missing_beneficiary_is_rejected_at_the_candidate_boundary` |
+| Domain construction | `An_accepted_service_is_bound_to_exactly_one_traveller_and_one_segment` |
+
+**Forced-failure proof for the ACL level.** With the single line `EnsureTravellerReferences(details.Tickets);` removed
+from `AirOfferCandidateMapper.Map`, the `duplicate` case goes red while `blank` and `missing` stay green, because an
+empty `travellerRef` is independently rejected downstream. Raw output of the unfixed run:
+`01-runs/ACL-GUARD-REMOVED-RED.txt`. The line was restored and the full suite re-run green afterwards.
+
+In this revision the three ACL cases were also given their own unique offer id per run, because the shared test
+database made the "nothing was persisted" assertion count preparations from other classes.
+
+### The three other Pack intents carried off `PackExamples.cs`
 
 | Intent | Replacement test |
 |---|---|
 | one-way reference candidate | `Pack_one_way_reference_candidate_is_valid` |
 | incorrect customer total | `Pack_incorrect_total_is_rejected_against_its_pricing_lines` |
-| settlement-only tax | `Pack_settlement_tax_is_rejected_by_the_component_matrix` (asserts 20279 and the component rule's own message, not the attribution rule) |
+| settlement-only tax | `Pack_settlement_tax_is_rejected_by_the_component_matrix` |
 
-`PackExamples.cs` (933 lines of schema-3 candidate JSON) was deleted only after all four intents had an explicit
-replacement built with the current builder.
+### Information preservation, PII boundary and rebuild
 
-**Forced-failure proof for the ACL level.** With the single line `EnsureTravellerReferences(details.Tickets);` removed
-from `AirOfferCandidateMapper.Map`, the `duplicate` case goes red — it reaches a generic candidate-contract message
-instead of naming the traveller reference — while `blank` and `missing` stay green, because an empty `travellerRef`
-is independently rejected downstream. So the ACL guard is the only thing that closes the repeated-reference case, and
-the two other cases are defended twice. Raw output of the unfixed run: `01-runs/ACL-GUARD-REMOVED-RED.txt`. The line
-was restored and the full suite re-run green afterwards.
-
-### Information preservation
-
-`InformationPreservationTests.Every_supplied_air_offer_fact_survives_wire_candidate_order_sql_and_projection` now
-asserts the typed identities end to end: `FlightId 7001`, `FlightCapacityId 5001`, `FlightVersion 4`,
-`AircraftId 9`, terminals `61`/`62`, legs `81`/`82`, `AirFareId 9001`, `CabinClassId 3`, `RbdId 44`, `CurrencyId 978`,
-`BoundDirection.Outbound`, `JourneyType.OneWay` and `LastTicketingDate`, at candidate, aggregate and projection level,
-with the owner called exactly once.
-
-`A_service_carries_only_its_own_facts_and_never_repeats_the_flight` replaces the schema-3 detail-dictionary test: it
-proves the service carries cabin, RBD and booking class only, and that flight number, marketing airline, operating
-airline and flight version live on the segment in the projection and in the public DTO.
-
-### Projection and rebuild
-
+`Every_supplied_air_offer_fact_survives_wire_candidate_order_sql_and_projection` still asserts the typed identities end
+to end, with the owner called exactly once.
 `Projection_rebuild_is_byte_identical_for_the_same_accepted_state` and
-`A_settlement_attribution_survives_sql_the_projection_and_a_rebuild` still pass against the single-schema projection
-(`SchemaVersion = 1`), with component totals now derived in the projector rather than stored.
+`A_settlement_attribution_survives_sql_the_projection_and_a_rebuild` still pass against the single-schema projection.
+`OrderDtoReader` still loads traveller identities and contacts only when the read scope permits protected payloads, and
+the projection JSON still carries no names or contacts — that design was not touched.
 
 ## Tests removed, and why
 
 | Test | Reason |
 |---|---|
-| `SC_S1_009_round_trip_and_two_one_way_constructions_are_persisted_as_supplied` | asserted `FareConstructionAssurance` and component↔service coverage rows that AirOffer never supplies and the model no longer has |
+| `SC_S1_009_round_trip_and_two_one_way_constructions_are_persisted_as_supplied` | asserted component↔service coverage rows that no owner supplies; the round-trip construction vocabulary is now covered by `Every_owner_pricing_unit_kind_maps_to_its_own_construction_type` |
 | `SC_S1_011_group_extended_line_is_persisted_once` | asserted `FarePricingGroup`, which AirOffer never supplies |
 | `SC_S1_021_unregistered_product_schema_is_unsupported_before_any_order` | asserted the detail-schema registry, which is gone |
-| `ProjectionSchemaTransitionTests` (whole file) | asserted schema-2/3 projection compatibility readers, retired by the approved rebaseline |
-| `A_funding_obligation_needs_exactly_one_scope_on_sql_server`, `A_component_total_is_unique_per_component_and_effect_on_sql_server`, `A_component_total_cannot_hold_a_negative_magnitude_on_sql_server` | the multi-scope obligation and the `OrderComponentTotals` table no longer exist |
+| `ProjectionSchemaTransitionTests` (whole file) | asserted schema-2/3 projection compatibility readers for undeployed development schemas, retired by the proposed rebaseline |
 | `S1_domain_parity_upgrade_preserves_accepted_rows_without_inventing_facts` | asserted the backfill behaviour of the migrations the rebaseline retires; see `MIGRATION-DECISION.md` |
 
-`ClosureConstraintTests` did not simply lose rows: the theory now also asserts `CK_PricingLines_OriginalMagnitude`,
-`CK_PricingLines_SaleMagnitude`, `CK_PricingLines_Direction`, `CK_FundingObligations_Version` and
-`CK_FundingObligations_Amount`, which the previous version did not cover.
+The component-total and funding-scope SQL tests that revision 1 removed are **back**, because the tables they assert
+are back.
 
-## Production defect found by the suite, not by review
+## Production defects found by the suite, not by review
 
-The Query side still mapped `OrderTravelerIdentityReadModel` to `Order.OrderTravelerIdentities` and
-`OrderTravelerReadModel` to `Order.OrderTravelers` after the command side had been renamed to the `Traveller`
-spelling. Every authenticated read of an order with traveller names failed with
-`Invalid object name 'Order.OrderTravelerIdentities'`. Both read models, both configurations and `OrderDtoReader` were
-corrected. This was invisible while the persistence project did not compile, which is the argument for getting the
-suite green before writing anything else.
-
-`OrderingApiSurfaceTests` also still read `offerId` and `grandTotal` from the order response; the public DTO exposes
-`sourceOfferId` and `customerTotal`. Corrected in the test, not in the contract.
+- The Query side still mapped `OrderTravelerIdentityReadModel` to `Order.OrderTravelerIdentities` after the command
+  side had been renamed, so every authenticated read of an order with traveller names failed. Corrected in revision 1
+  and still covered.
+- `OrderingApiSurfaceTests` read `offerId` and `grandTotal` from the order response; the public DTO exposes
+  `sourceOfferId` and `customerTotal`. Corrected in the test, not in the contract.

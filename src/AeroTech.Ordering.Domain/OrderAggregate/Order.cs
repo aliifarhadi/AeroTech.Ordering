@@ -1,4 +1,4 @@
-using AeroTech.Framework.Core.Domain.Aggregates;
+﻿using AeroTech.Framework.Core.Domain.Aggregates;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
@@ -26,6 +26,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
         private readonly List<PriceChangeSet> _priceChangeSets = new();
         private readonly List<PricingLine> _pricingLines = new();
         private readonly List<FareConstruction> _fareConstructions = new();
+        private readonly List<OrderItemServiceLink> _itemServiceLinks = new();
+        private readonly List<OrderComponentTotal> _componentTotals = new();
         private readonly List<FundingObligation> _fundingObligations = new();
 
         private Order()
@@ -44,7 +46,11 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
 
         public InitiatingActorSnapshot InitiatingActor { get; private set; } = null!;
 
+        public BuyerSnapshot Buyer { get; private set; } = null!;
+
         public int CurrencyId { get; private set; }
+
+        public string? SaleCurrencyCode { get; private set; }
 
         public string SourceOfferId { get; private set; } = null!;
 
@@ -94,6 +100,10 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
 
         public IReadOnlyCollection<FareConstruction> FareConstructions => _fareConstructions.AsReadOnly();
 
+        public IReadOnlyCollection<OrderItemServiceLink> ItemServiceLinks => _itemServiceLinks.AsReadOnly();
+
+        public IReadOnlyCollection<OrderComponentTotal> ComponentTotals => _componentTotals.AsReadOnly();
+
         public IReadOnlyCollection<FundingObligation> FundingObligations => _fundingObligations.AsReadOnly();
 
         public static Order AcceptOriginalSale(AcceptOriginalSaleArgs args, IIdGenerator ids)
@@ -120,7 +130,9 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
                 FinancialCustomerId = preparation.FinancialCustomerId,
                 SalesContext = candidate.SalesContext.Sales,
                 InitiatingActor = args.AcceptingScope.InitiatingActor,
+                Buyer = candidate.SalesContext.Buyer,
                 CurrencyId = candidate.CurrencyId,
+                SaleCurrencyCode = candidate.SaleCurrencyCode,
                 SourceOfferId = preparation.SourceOfferId,
                 SourcePreparationId = preparation.Id,
                 AcceptedSnapshotDigest = preparation.SnapshotDigest,
@@ -150,8 +162,9 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
             var (itemIds, serviceIds) = order.AddItemsAndServices(candidate, travellerIds, segmentIds, change.Id, ids);
 
             order.AddPricing(candidate, priceSet.Id, itemIds, serviceIds, segmentIds, ids);
+            order.AddComponentTotals();
             order.AddFareConstruction(candidate, change.Id, itemIds, ids);
-            order.AddOriginalSaleObligations(change.Id, ids);
+            order.AddOriginalSaleObligations(change.Id, priceSet.Id, ids);
 
             order.CommercialSummary = order._items.Any(item => item.CommercialStatus == OrderItemCommercialStatus.Active)
                 ? CommercialSummary.Active
@@ -221,7 +234,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
                 foreach (var serviceKey in sourceItem.ServiceKeys)
                 {
                     var source = sourceServices[serviceKey];
-                    var service = new OrderService(
+                    var service = new OrderAirTransportService(
                         ids.NewId(),
                         Id,
                         itemId,
@@ -232,6 +245,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
 
                     _services.Add(service);
                     serviceIds.Add(serviceKey, service.Id);
+                    _itemServiceLinks.Add(new OrderItemServiceLink(ids.NewId(), Id, itemId, service.Id, changeId));
                 }
 
                 var item = new OrderItem(itemId, Id, sourceItem, changeId);
@@ -273,12 +287,32 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
                 throw ExceptionFactory.PricingRuleViolated("committed lines differ from the accepted customer total");
         }
 
+        private void AddComponentTotals()
+        {
+            foreach (var group in _pricingLines
+                         .GroupBy(line => (line.Component, line.Effect))
+                         .OrderBy(group => group.Key.Component)
+                         .ThenBy(group => group.Key.Effect))
+                _componentTotals.Add(new OrderComponentTotal(
+                    Id,
+                    group.Key.Component,
+                    group.Key.Effect,
+                    group.Where(line => line.Direction == OrderPricingLineDirection.Debit).Sum(line => line.SaleValue.Amount),
+                    group.Where(line => line.Direction == OrderPricingLineDirection.Credit).Sum(line => line.SaleValue.Amount),
+                    CurrencyId));
+        }
+
         private void AddFareConstruction(
             NormalizedCandidate candidate,
             long changeId,
             IReadOnlyDictionary<string, long> itemIds,
             IIdGenerator ids)
-            => _fareConstructions.Add(new FareConstruction(ids.NewId(), Id, changeId, candidate.FareConstruction, itemIds, ids.NewId));
+        {
+            if (candidate.FareConstruction is not { } construction)
+                return;
+
+            _fareConstructions.Add(new FareConstruction(ids.NewId(), Id, changeId, construction, itemIds, ids.NewId));
+        }
 
         private IReadOnlyDictionary<string, long> AddTravellers(IReadOnlyList<TravellerBinding> bindings, IIdGenerator ids)
         {
@@ -306,21 +340,35 @@ namespace AeroTech.Ordering.Domain.OrderAggregate
                 _contacts.Add(new OrderContact(ids.NewId(), Id, index + 1, contacts[index]));
         }
 
-        private void AddOriginalSaleObligations(long changeId, IIdGenerator ids)
+        private void AddOriginalSaleObligations(long changeId, long priceChangeSetId, IIdGenerator ids)
         {
-            var customerLines = _pricingLines
-                .Where(line => line.Effect == PricingEffect.CustomerBalance && line.OrderItemId is not null)
-                .GroupBy(line => line.OrderItemId!.Value);
+            var customerLines = _pricingLines.Where(line => line.Effect == PricingEffect.CustomerBalance).ToList();
 
-            foreach (var group in customerLines)
+            foreach (var group in customerLines.GroupBy(ScopeOf))
             {
                 var amount = PricingArithmetic.CustomerTotal(
                     group.Select(line => new PricedAmount(line.Effect, line.Direction, line.SaleValue)),
                     CurrencyId);
 
                 _fundingObligations.Add(new FundingObligation(
-                    ids.NewId(), Id, FundingObligationPurpose.OriginalSale, amount, group.Key, changeId));
+                    ids.NewId(), Id, FundingObligationPurpose.OriginalSale, amount, group.Key, changeId, priceChangeSetId));
             }
+
+            var covered = _fundingObligations.Sum(obligation => obligation.Amount.Amount);
+
+            if (covered != CustomerTotal.Amount)
+                throw ExceptionFactory.FundingCoverageIncomplete(covered, CustomerTotal.Amount);
+        }
+
+        private FundingObligationScope ScopeOf(PricingLine line)
+        {
+            if (line.OrderItemId is { } itemId)
+                return FundingObligationScope.ForItem(itemId);
+
+            if (line.BasisType == PricingBasisType.OrderService && line.BasisId is { } serviceId)
+                return FundingObligationScope.ForService(serviceId);
+
+            return FundingObligationScope.ForPricingLine(line.Id);
         }
     }
 }

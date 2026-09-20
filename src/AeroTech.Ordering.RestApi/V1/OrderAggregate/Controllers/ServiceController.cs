@@ -1,4 +1,4 @@
-using AeroTech.Framework.Presentation.Responses;
+﻿using AeroTech.Framework.Presentation.Responses;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Service;
 using AeroTech.Ordering.Query.OrderAggregate.Queries.GetOrderById.Service;
@@ -29,7 +29,7 @@ namespace AeroTech.Ordering.RestApi.V1.OrderAggregate.Controllers
         public async Task<IActionResult> CreateFromOffer([FromBody] ServiceCreateOrderFromOfferRequest request, CancellationToken cancellationToken)
         {
             var command = new ServiceCreateOrderFromOfferCommand(
-                request.CustomerId,
+                request.FinancialCustomerId,
                 request.SellingOfficeId,
                 request.SellingOfficeKind,
                 request.OfferId,

@@ -1,4 +1,4 @@
-using AeroTech.Messages.Aegis.Enums;
+﻿using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
@@ -19,6 +19,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
         private readonly List<CandidateItem> _items = new();
         private readonly List<CandidatePricingLine> _lines = new();
         private readonly List<CandidatePricingUnit> _units = new();
+        private readonly List<string> _constructionItemKeys = new();
 
         private AuthorizedSalesScope _scope;
         private string _offerId = "OFFER-1";
@@ -29,6 +30,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
         private DateTimeOffset? _priceValidUntil;
         private DateTimeOffset? _lastTicketingDate;
         private decimal? _customerTotalOverride;
+        private string? _saleCurrencyCode;
 
         public CandidateBuilder(DateTimeOffset now, AuthorizedSalesScope? scope = null)
         {
@@ -41,7 +43,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             string callerScope = "customer:100/actor:1",
             long ownerAirlineId = 1,
             SalesChannel channel = SalesChannel.BackOffice,
-            SalesContextSnapshot? salesContext = null)
+            SalesContextSnapshot? salesContext = null,
+            BuyerSnapshot? buyer = null)
             => new(
                 ownerAirlineId,
                 customerId,
@@ -51,6 +54,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                     ownerAirlineId,
                     SellingOfficeKind.AirlineOffice,
                     10),
+                buyer ?? BuyerSnapshot.NotSupplied,
                 callerScope,
                 new InitiatingActorSnapshot(BusinessContextType.Airline, 1));
 
@@ -154,7 +158,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             string? bookingClass = "Y",
             BaggageAllowance? checkedBaggage = null,
             BaggageAllowance? cabinBaggage = null,
-            SoldTermFlags? soldTerms = null)
+            SoldTermFlags? soldTerms = null,
+            CandidateFulfillmentProfile? fulfillmentProfile = null)
         {
             _services.Add(new CandidateService(
                 serviceKey,
@@ -165,7 +170,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 bookingClass,
                 checkedBaggage,
                 cabinBaggage,
-                soldTerms ?? new SoldTermFlags(null, null, null)));
+                soldTerms ?? new SoldTermFlags(null, null, null),
+                fulfillmentProfile ?? CandidateFulfillmentProfile.Unresolved));
             return this;
         }
 
@@ -202,7 +208,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             string? reference = null,
             PricingCalculationKind calculationKind = PricingCalculationKind.Amount,
             AppliedConversion? appliedConversion = null,
-            SettlementAttribution? settlementAttribution = null)
+            SettlementAttribution? settlementAttribution = null,
+            PricingLineRole role = PricingLineRole.Original)
         {
             var originalValue = original ?? new Money(amount, SaleCurrencyId);
             var conversionRef = appliedConversion?.SourceConversionRef
@@ -214,6 +221,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 component,
                 effect,
                 direction ?? (component == PricingComponentType.Discount ? OrderPricingLineDirection.Credit : OrderPricingLineDirection.Debit),
+                role,
                 code,
                 name,
                 reference,
@@ -240,12 +248,42 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
             return this;
         }
 
+        public CandidateBuilder SaleCurrencyCode(string? code)
+        {
+            _saleCurrencyCode = code;
+            return this;
+        }
+
+        public CandidateBuilder ConstructionFor(params string[] itemKeys)
+        {
+            _constructionItemKeys.AddRange(itemKeys);
+            return this;
+        }
+
+        public CandidateBuilder OneWayConstruction(params string[] coveredBoundOfferIds)
+            => Units(Unit(1, FarePricingUnitType.OneWay, coveredBoundOfferIds, Component(4242)));
+
         public static CandidatePricingUnit Unit(
             int sequence,
             FarePricingUnitType type,
             IReadOnlyList<string> coveredBoundOfferIds,
             params CandidateFareComponent[] components)
-            => new(sequence, type, coveredBoundOfferIds, components.ToList());
+            => Unit(sequence, type, SourceTypeOf(type), coveredBoundOfferIds, components);
+
+        public static CandidatePricingUnit Unit(
+            int sequence,
+            FarePricingUnitType type,
+            AirFareConstructionType sourceConstructionType,
+            IReadOnlyList<string> coveredBoundOfferIds,
+            params CandidateFareComponent[] components)
+            => new(sequence, type, sourceConstructionType, coveredBoundOfferIds, components.ToList());
+
+        private static AirFareConstructionType SourceTypeOf(FarePricingUnitType type) => type switch
+        {
+            FarePricingUnitType.OneWay => AirFareConstructionType.OneWay,
+            FarePricingUnitType.RoundTrip => AirFareConstructionType.RoundTrip,
+            _ => AirFareConstructionType.Unspecified
+        };
 
         public static CandidateFareComponent Component(
             long airFareId,
@@ -269,9 +307,12 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 .Where(line => line.Effect == PricingEffect.CustomerBalance)
                 .Sum(line => (line.Direction == OrderPricingLineDirection.Debit ? 1 : -1) * line.SaleValue.Amount);
 
-            var units = _units.Count > 0
-                ? _units
-                : [Unit(1, FarePricingUnitType.OneWay, _journeys.Select(journey => journey.BoundId).ToList(), Component(4242))];
+            var construction = _units.Count == 0
+                ? null
+                : new CandidateFareConstruction(
+                    FareConstructionAssurance.SourceProvided,
+                    _constructionItemKeys.Count > 0 ? _constructionItemKeys : _items.Select(item => item.ItemKey).ToList(),
+                    _units);
 
             return new NormalizedCandidate(
                 NormalizedCandidate.CurrentSchemaVersion,
@@ -287,7 +328,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 _offerExpiresAt ?? _now.AddHours(2),
                 _priceValidUntil ?? _now.AddHours(1),
                 _lastTicketingDate,
-                new CandidateSalesContext(_scope.OwnerAirlineId, _scope.FinancialCustomerId, _scope.SalesContext),
+                new CandidateSalesContext(_scope.OwnerAirlineId, _scope.FinancialCustomerId, _scope.SalesContext, _scope.Buyer),
                 _journeyType,
                 _travellers,
                 _journeys,
@@ -296,7 +337,8 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
                 _services,
                 _lines,
                 new Money(total, SaleCurrencyId),
-                new CandidateFareConstruction(units));
+                _saleCurrencyCode,
+                construction);
         }
 
         public static CandidateBuilder OneWayFare100Tax20(DateTimeOffset now, AuthorizedSalesScope? scope = null)

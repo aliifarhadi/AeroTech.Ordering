@@ -1,4 +1,4 @@
-using AeroTech.Ordering.Query.OrderAggregate.Dto;
+﻿using AeroTech.Ordering.Query.OrderAggregate.Dto;
 
 namespace AeroTech.Ordering.Query.OrderAggregate.Projection
 {
@@ -17,6 +17,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
             document.JourneyType,
             document.LastTicketingDate,
             Money(document.CustomerTotal),
+            document.SaleCurrencyCode,
             document.Travellers.Select(Traveller).ToList(),
             [],
             document.Segments.Select(Segment).ToList(),
@@ -58,6 +59,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
 
         private static OrderServiceDto Service(ProjectedService service) => new(
             service.ServiceId,
+            service.ServiceType,
             service.Status,
             service.TravellerId,
             service.SegmentId,

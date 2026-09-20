@@ -258,7 +258,7 @@ namespace AeroTech.Ordering.Persistence.Tests.Api
         private static object BackofficeBody(string offerId, long customerId = S1Harness.CustomerId, long airlineOfficeId = S1Harness.AirlineOfficeId)
             => new Dictionary<string, object?>
             {
-                ["customerId"] = customerId.ToString(),
+                ["financialCustomerId"] = customerId.ToString(),
                 ["airlineOfficeId"] = airlineOfficeId.ToString(),
                 ["offerId"] = offerId,
                 ["travellers"] = Travellers(),
@@ -269,7 +269,7 @@ namespace AeroTech.Ordering.Persistence.Tests.Api
         private static object ServiceBody(string offerId, long customerId = S1Harness.CustomerId)
             => new Dictionary<string, object?>
             {
-                ["customerId"] = customerId.ToString(),
+                ["financialCustomerId"] = customerId.ToString(),
                 ["sellingOfficeId"] = null,
                 ["sellingOfficeKind"] = null,
                 ["offerId"] = offerId,

@@ -84,7 +84,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                 Assert.Equal(original, await ProjectionJsonAsync(restarted, orderId));
                 Assert.Equal(1, rebuilt.CommercialVersion);
                 Assert.True(replayed.ReplayedFromReceipt);
-                Assert.Equal(rebuilt.OperationId, replayed.OperationId);
+                Assert.Equal(rebuilt.ReceiptId, replayed.ReceiptId);
                 Assert.Equal(readsBefore, await restarted.Catalog.CountReadsAsync());
 
                 var order = await CreateOrderFromOfferTests.LoadOrderAsync(restarted, orderId);

@@ -1,4 +1,4 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 
 namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
@@ -21,7 +21,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         IReadOnlyList<CandidateService> Services,
         IReadOnlyList<CandidatePricingLine> PricingLines,
         Money CustomerTotal,
-        CandidateFareConstruction FareConstruction)
+        string? SaleCurrencyCode,
+        CandidateFareConstruction? FareConstruction)
     {
         public const string CurrentSchemaVersion = "1.0";
 

@@ -1,8 +1,9 @@
-using AeroTech.Framework.Core.Domain.Exceptions;
+﻿using AeroTech.Framework.Core.Domain.Exceptions;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderAggregate;
 using AeroTech.Ordering.Domain.OrderAggregate.Arguments;
+using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Domain.OrderAggregate.DomainEvents;
 using AeroTech.Ordering.Domain.OrderAggregate.ValueObjects;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate;
@@ -52,7 +53,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
         {
             var order = Accept(CandidateBuilder.OneWayFare100Tax20(Now), Bind("PAX-A"));
 
-            var service = order.Services.Single();
+            var service = Assert.IsType<OrderAirTransportService>(order.Services.Single());
 
             Assert.Equal(order.Travellers.Single().Id, service.TravellerId);
             Assert.Equal(order.Segments.Single().Id, service.SegmentId);

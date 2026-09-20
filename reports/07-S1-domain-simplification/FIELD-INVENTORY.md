@@ -287,7 +287,7 @@ Proven in `CreateOrderFromOfferService`: `CaptureAcceptedSource` → `Order.Acce
 | `OwnerBindingRef` | owner-bound assurance invariant | **KEEP** |
 | `PricedAt` | source pricing time | **KEEP** |
 | `OwnerAirlineId`, `FinancialCustomerId` | scope check at accept | **KEEP** |
-| `Channel`, `SellingOfficeId`, `ActorContextType`, `ActorId`, `CallerScope` | duplicated from the candidate/scope; only `CallerScope` has an index | **MOVE_TO_EVIDENCE** — keep `CallerScope` (idempotency), drop the rest |
+| `Channel`, `SellingOfficeId`, `ActorContextType`, `ActorId`, `CallerScope` | duplicated from the candidate/scope; `CallerScope` is **not** indexed, but it is one of the inputs to `OrderPreparation.ComputeDigest`, so it binds the snapshot to the scope that accepted it | **MOVE_TO_EVIDENCE** — keep `CallerScope` (accepted scope/digest binding), drop the rest |
 | `OfferValidity`, `PriceValidity`, `TicketingValidity` | `EnsureAcceptable` reads offer+price | **RETYPE** → `OfferExpiresAt?`, `PriceValidUntil?`; ticketing **DELETE** |
 | `ValidityFacts` (derived list) | none | **DELETE** |
 | `ClientReference` | duplicate of `Order.ClientReference` | **DELETE** |

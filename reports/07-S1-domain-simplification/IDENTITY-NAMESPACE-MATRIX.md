@@ -77,7 +77,7 @@ namespace is named and carries a blocking question.
 |---|---|---|
 | `OrderPreparation.Id` | `long` | `LocalDomainId` |
 | `OwnerAirlineId`, `FinancialCustomerId` | `long` | `ReferenceDataId` |
-| `CallerScope` | `string` | `Code` (idempotency scope key, indexed) |
+| `CallerScope` | `string` | `Code` (accepted scope key; an input to the snapshot digest, not an index) |
 | `SourceOwner`, `ProviderProfileId`, `ContractVersion`, `AcceptanceProfile`, `CanonicalizationVersion` | `string` | `Code` |
 | `SourceOfferId`, `OwnerBindingRef` | `string` | `ExternalOpaqueRef` |
 | `SourcePayloadHash`, `SnapshotDigest` | `string` | — (digests) |

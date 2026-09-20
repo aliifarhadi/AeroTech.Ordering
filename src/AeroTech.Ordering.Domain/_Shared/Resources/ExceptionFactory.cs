@@ -1,4 +1,4 @@
-using AeroTech.Framework.Core.Domain.Exceptions;
+﻿using AeroTech.Framework.Core.Domain.Exceptions;
 
 namespace AeroTech.Ordering.Domain._Shared.Resources
 {
@@ -97,5 +97,14 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
 
         public static BusinessException AirServiceScopeInvalid(params object?[] args) =>
             new(20293, ExceptionMessages.AirServiceScopeInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException ComponentTotalInvalid(params object[] args) =>
+            new(20294, ExceptionMessages.ComponentTotalInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException FundingObligationScopeInvalid(params object[] args) =>
+            new(20295, ExceptionMessages.FundingObligationScopeInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException FundingCoverageIncomplete(params object[] args) =>
+            new(20296, ExceptionMessages.FundingCoverageIncomplete, args) { HttpStatus = 422 };
     }
 }

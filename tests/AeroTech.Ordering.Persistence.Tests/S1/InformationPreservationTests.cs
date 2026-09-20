@@ -1,5 +1,6 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Query._Shared.DbContexts;
 using AeroTech.Ordering.Persistence.Tests._Shared;
 using AeroTech.Ordering.Query.OrderAggregate.Models;
@@ -92,7 +93,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             Assert.NotNull(legs[1].ArrivalDateTime);
             Assert.Equal(2, projectedSegment.Legs.Count);
 
-            var service = Assert.Single(order.Services);
+            var service = Assert.IsType<OrderAirTransportService>(Assert.Single(order.Services));
             Assert.True(service.SoldTerms.Refundable);
             Assert.True(service.SoldTerms.Changeable);
             Assert.False(service.SoldTerms.Upgradable);

@@ -144,6 +144,7 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
                     OwnerAirlineId,
                     SellingOfficeKind.AirlineOffice,
                     AirlineOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Backoffice, customerId, AirlineOfficeId, CallerScopeKey.None),
                 new InitiatingActorSnapshot(BusinessContextType.Airline, actorId));
 
@@ -152,6 +153,7 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
                 OwnerAirlineId,
                 customerId,
                 SalesContextSnapshot.SellerNotSupplied(SalesChannel.System, null, null),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Service, customerId, null, CallerScopeKey.None),
                 new InitiatingActorSnapshot(BusinessContextType.Service, null));
 
@@ -165,6 +167,7 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
                     TravelAgencyId,
                     SellingOfficeKind.TravelAgencyOffice,
                     AgencyOfficeId),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.OtaPanel, customerId, AgencyOfficeId, CallerScopeKey.Agency(TravelAgencyId)),
                 new InitiatingActorSnapshot(BusinessContextType.TravelAgency, AgencyUserId));
 
@@ -173,6 +176,7 @@ namespace AeroTech.Ordering.Persistence.Tests._Shared
                 OwnerAirlineId,
                 customerId,
                 SalesContextSnapshot.SellerNotSupplied(SalesChannel.PartnerAPI, null, null),
+                BuyerSnapshot.NotSupplied,
                 CallerScopeKey.ForSale(CallerScopeKey.Ota, customerId, null, CallerScopeKey.Partner(PartnerApiAccessProfileId)),
                 new InitiatingActorSnapshot(BusinessContextType.PartnerApi, PartnerApiAccessProfileId));
 

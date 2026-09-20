@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using AeroTech.Messages.Aegis.Enums;
@@ -40,7 +40,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                     ? Map(
                         ("kind", CandidateVocabulary.Name(candidate.SalesContext.Sales.SellingOfficeKind!.Value)),
                         ("officeId", candidate.SalesContext.Sales.SellingOfficeId!.Value))
-                    : null))),
+                    : null),
+                ("buyer", PartyNode(candidate.SalesContext.Buyer.ContextType, candidate.SalesContext.Buyer.BuyerId)))),
             ("journeyType", CandidateVocabulary.Name(candidate.JourneyType)),
             ("travellers", candidate.Travellers.Select(traveller => (object?)Map(
                 ("travellerRef", traveller.TravellerRef),
@@ -96,13 +97,15 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 ("soldTerms", Map(
                     ("refundable", service.SoldTerms.Refundable),
                     ("changeable", service.SoldTerms.Changeable),
-                    ("upgradable", service.SoldTerms.Upgradable))))).ToList()),
+                    ("upgradable", service.SoldTerms.Upgradable))),
+                ("fulfillmentProfile", FulfillmentNode(service.FulfillmentProfile)))).ToList()),
             ("pricingLines", candidate.PricingLines.Select(line => (object?)Map(
                 ("sourceOccurrencePath", line.SourceOccurrencePath),
                 ("itemKey", line.ItemKey),
                 ("component", CandidateVocabulary.Name(line.Component)),
                 ("effect", CandidateVocabulary.Name(line.Effect)),
                 ("direction", CandidateVocabulary.Name(line.Direction)),
+                ("role", CandidateVocabulary.Name(line.Role)),
                 ("code", line.Code),
                 ("name", line.Name),
                 ("reference", line.Reference),
@@ -115,10 +118,14 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 ("appliedConversion", ConversionNode(line.AppliedConversion)),
                 ("settlementAttribution", AttributionNode(line.SettlementAttribution)))).ToList()),
             ("customerTotal", MoneyNode(candidate.CustomerTotal)),
-            ("fareConstruction", Map(
-                ("pricingUnits", candidate.FareConstruction.PricingUnits.Select(unit => (object?)Map(
+            ("saleCurrencyCode", candidate.SaleCurrencyCode),
+            ("fareConstruction", candidate.FareConstruction is not { } construction ? null : Map(
+                ("assurance", CandidateVocabulary.Name(construction.Assurance)),
+                ("itemKeys", Strings(construction.ItemKeys)),
+                ("pricingUnits", construction.PricingUnits.Select(unit => (object?)Map(
                     ("sequence", unit.Sequence),
                     ("type", CandidateVocabulary.Name(unit.Type)),
+                    ("sourceConstructionType", CandidateVocabulary.Name(unit.SourceConstructionType)),
                     ("coveredBoundOfferIds", Strings(unit.CoveredBoundOfferIds)),
                     ("components", unit.Components.Select(component => (object?)Map(
                         ("airFareId", component.AirFareId),
@@ -147,7 +154,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
         {
             root.Only("schemaVersion", "source", "acceptanceAssurance", "pricedAt", "capturedAt", "offerExpiresAt",
                 "priceValidUntil", "lastTicketingDate", "salesContext", "journeyType", "travellers", "journeys",
-                "segments", "items", "services", "pricingLines", "customerTotal", "fareConstruction");
+                "segments", "items", "services", "pricingLines", "customerTotal", "saleCurrencyCode", "fareConstruction");
 
             var schemaVersion = root.String("schemaVersion");
 
@@ -157,8 +164,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             var source = root.Object("source");
             source.Only("owner", "offerId", "providerProfileId", "ownerBindingRef", "sourcePayloadHash");
 
-            var construction = root.Object("fareConstruction");
-            construction.Only("pricingUnits");
+            var construction = root.NullableObject("fareConstruction");
+            construction?.Only("assurance", "itemKeys", "pricingUnits");
 
             return new NormalizedCandidate(
                 schemaVersion,
@@ -189,18 +196,26 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 root.Array("services").Select(ReadService).ToList(),
                 root.Array("pricingLines").Select(ReadPricingLine).ToList(),
                 ReadMoney(root.Object("customerTotal")),
-                new CandidateFareConstruction(construction.Array("pricingUnits").Select(ReadPricingUnit).ToList()));
+                root.NullableString("saleCurrencyCode"),
+                construction is null
+                    ? null
+                    : new CandidateFareConstruction(
+                        construction.Value.Enum<FareConstructionAssurance>("assurance"),
+                        construction.Value.Strings("itemKeys"),
+                        construction.Value.Array("pricingUnits").Select(ReadPricingUnit).ToList()));
         }
 
         private static CandidateSalesContext ReadSalesContext(Node sales)
         {
-            sales.Only("ownerAirlineId", "financialCustomerId", "channel", "seller", "sellingOffice");
+            sales.Only("ownerAirlineId", "financialCustomerId", "channel", "seller", "sellingOffice", "buyer");
 
             var seller = sales.NullableObject("seller");
             var office = sales.NullableObject("sellingOffice");
+            var buyer = sales.NullableObject("buyer");
 
             seller?.Only("contextType", "partyId");
             office?.Only("kind", "officeId");
+            buyer?.Only("contextType", "partyId");
 
             return new CandidateSalesContext(
                 sales.Identifier("ownerAirlineId"),
@@ -210,7 +225,8 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                     seller?.Enum<BusinessContextType>("contextType"),
                     seller?.Identifier("partyId"),
                     office?.Enum<SellingOfficeKind>("kind"),
-                    office?.Identifier("officeId")));
+                    office?.Identifier("officeId")),
+                new BuyerSnapshot(buyer?.Enum<BusinessContextType>("contextType"), buyer?.Identifier("partyId")));
         }
 
         private static CandidateJourney ReadJourney(Node journey)
@@ -284,7 +300,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
         private static CandidateService ReadService(Node service)
         {
             service.Only("serviceKey", "travellerRef", "segmentKey", "cabinClassId", "rbdId", "bookingClass",
-                "checkedBaggage", "cabinBaggage", "soldTerms");
+                "checkedBaggage", "cabinBaggage", "soldTerms", "fulfillmentProfile");
 
             var terms = service.Object("soldTerms");
             terms.Only("refundable", "changeable", "upgradable");
@@ -301,12 +317,13 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 new SoldTermFlags(
                     terms.NullableBoolean("refundable"),
                     terms.NullableBoolean("changeable"),
-                    terms.NullableBoolean("upgradable")));
+                    terms.NullableBoolean("upgradable")),
+                ReadFulfillmentProfile(service.Object("fulfillmentProfile")));
         }
 
         private static CandidatePricingLine ReadPricingLine(Node line)
         {
-            line.Only("sourceOccurrencePath", "itemKey", "component", "effect", "direction", "code", "name",
+            line.Only("sourceOccurrencePath", "itemKey", "component", "effect", "direction", "role", "code", "name",
                 "reference", "calculationKind", "originalValue", "saleValue", "basisType", "basisKey",
                 "sourceConversionRef", "appliedConversion", "settlementAttribution");
 
@@ -316,6 +333,7 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
                 line.Enum<PricingComponentType>("component"),
                 line.Enum<PricingEffect>("effect"),
                 line.Enum<OrderPricingLineDirection>("direction"),
+                line.Enum<PricingLineRole>("role"),
                 line.NullableString("code"),
                 line.NullableString("name"),
                 line.NullableString("reference"),
@@ -331,11 +349,12 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
 
         private static CandidatePricingUnit ReadPricingUnit(Node unit)
         {
-            unit.Only("sequence", "type", "coveredBoundOfferIds", "components");
+            unit.Only("sequence", "type", "sourceConstructionType", "coveredBoundOfferIds", "components");
 
             return new CandidatePricingUnit(
                 unit.Integer("sequence"),
                 unit.Enum<FarePricingUnitType>("type"),
+                unit.Enum<AirFareConstructionType>("sourceConstructionType"),
                 unit.Strings("coveredBoundOfferIds"),
                 unit.Array("components").Select(ReadFareComponent).ToList());
         }
@@ -422,6 +441,41 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
         private static IReadOnlyDictionary<string, object?>? AttributionNode(SettlementAttribution? attribution) => attribution is null ? null : Map(
             ("partyRef", attribution.PartyRef),
             ("categoryCode", attribution.CategoryCode));
+
+        private static CandidateFulfillmentProfile ReadFulfillmentProfile(Node node)
+        {
+            node.Only("profileRef", "profileVersion", "assurance", "reservationRequirement", "documentKind",
+                "documentAuthority", "fundingRequirement", "capacityUnits", "resourceUnitPolicyRef",
+                "deliveryControlPolicyRef", "dependencyTreatmentPolicyRef", "partialFulfillmentSupported");
+
+            return new CandidateFulfillmentProfile(
+                node.NullableString("profileRef"),
+                node.NullableString("profileVersion"),
+                node.Enum<FulfillmentProfileAssurance>("assurance"),
+                node.Enum<ReservationRequirement>("reservationRequirement"),
+                node.Enum<FulfillmentDocumentKind>("documentKind"),
+                node.NullableEnum<DocumentAuthority>("documentAuthority"),
+                node.Enum<FundingRequirement>("fundingRequirement"),
+                node.NullableInteger("capacityUnits"),
+                node.NullableString("resourceUnitPolicyRef"),
+                node.NullableString("deliveryControlPolicyRef"),
+                node.NullableString("dependencyTreatmentPolicyRef"),
+                node.NullableBoolean("partialFulfillmentSupported"));
+        }
+
+        private static IReadOnlyDictionary<string, object?> FulfillmentNode(CandidateFulfillmentProfile profile) => Map(
+            ("profileRef", profile.ProfileRef),
+            ("profileVersion", profile.ProfileVersion),
+            ("assurance", CandidateVocabulary.Name(profile.Assurance)),
+            ("reservationRequirement", CandidateVocabulary.Name(profile.ReservationRequirement)),
+            ("documentKind", CandidateVocabulary.Name(profile.DocumentKind)),
+            ("documentAuthority", OptionalName(profile.DocumentAuthority)),
+            ("fundingRequirement", CandidateVocabulary.Name(profile.FundingRequirement)),
+            ("capacityUnits", profile.CapacityUnits),
+            ("resourceUnitPolicyRef", profile.ResourceUnitPolicyRef),
+            ("deliveryControlPolicyRef", profile.DeliveryControlPolicyRef),
+            ("dependencyTreatmentPolicyRef", profile.DependencyTreatmentPolicyRef),
+            ("partialFulfillmentSupported", profile.PartialFulfillmentSupported));
 
         private static IReadOnlyDictionary<string, object?> MoneyNode(Money money) => Map(
             ("amount", CanonicalJson.Amount(money.Amount)),

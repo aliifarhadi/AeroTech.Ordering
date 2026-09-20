@@ -10,6 +10,7 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
             long ownerAirlineId,
             long financialCustomerId,
             SalesContextSnapshot salesContext,
+            BuyerSnapshot buyer,
             string callerScope,
             InitiatingActorSnapshot initiatingActor)
         {
@@ -25,6 +26,7 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
             OwnerAirlineId = ownerAirlineId;
             FinancialCustomerId = financialCustomerId;
             SalesContext = salesContext;
+            Buyer = buyer;
             CallerScope = callerScope;
             InitiatingActor = initiatingActor;
         }
@@ -34,6 +36,8 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
         public long FinancialCustomerId { get; }
 
         public SalesContextSnapshot SalesContext { get; }
+
+        public BuyerSnapshot Buyer { get; }
 
         public string CallerScope { get; }
 

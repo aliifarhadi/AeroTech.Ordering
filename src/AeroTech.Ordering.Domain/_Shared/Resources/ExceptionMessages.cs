@@ -1,4 +1,4 @@
-namespace AeroTech.Ordering.Domain._Shared.Resources
+﻿namespace AeroTech.Ordering.Domain._Shared.Resources
 {
     public static class ExceptionMessages
     {
@@ -64,5 +64,11 @@ namespace AeroTech.Ordering.Domain._Shared.Resources
         public const string SettlementAttributionRequired = "A settlement-only pricing line requires a settlement party reference and category code.";
 
         public const string AirServiceScopeInvalid = "An air transport service covers exactly one traveller on one passenger segment: {0}.";
+
+        public const string ComponentTotalInvalid = "An order component total is invalid: {0}.";
+
+        public const string FundingObligationScopeInvalid = "A funding obligation names exactly one scope: {0}.";
+
+        public const string FundingCoverageIncomplete = "Funding obligations cover {0} but the customer balance is {1}.";
     }
 }

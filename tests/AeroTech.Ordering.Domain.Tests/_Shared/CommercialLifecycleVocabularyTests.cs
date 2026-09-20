@@ -1,4 +1,4 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
 using Xunit;
 
 namespace AeroTech.Ordering.Domain.Tests._Shared
@@ -48,10 +48,11 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
         public void A_selling_office_always_declares_the_namespace_it_belongs_to()
         {
             Assert.Equal(
-                ["NotRecorded", "AirlineOffice", "TravelAgencyOffice"],
+                ["AirlineOffice", "TravelAgencyOffice"],
                 Enum.GetNames<SellingOfficeKind>());
 
-            Assert.Equal(0, (int)SellingOfficeKind.NotRecorded);
+            Assert.DoesNotContain("NotRecorded", Enum.GetNames<SellingOfficeKind>());
+            Assert.All(Enum.GetValues<SellingOfficeKind>(), kind => Assert.True((int)kind > 0));
         }
     }
 }

@@ -1,4 +1,4 @@
-using AeroTech.Framework.Core.Domain.Entities;
+﻿using AeroTech.Framework.Core.Domain.Entities;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
 
@@ -19,6 +19,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             FareConstructionId = fareConstructionId;
             Sequence = source.Sequence;
             Type = source.Type;
+            SourceConstructionType = source.SourceConstructionType;
 
             foreach (var bound in source.CoveredBoundOfferIds)
                 _coveredBounds.Add(new FarePricingUnitCoveredBound(id, bound));
@@ -32,6 +33,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         public int Sequence { get; private set; }
 
         public FarePricingUnitType Type { get; private set; }
+
+        public AirFareConstructionType SourceConstructionType { get; private set; }
 
         public IReadOnlyCollection<FarePricingUnitCoveredBound> CoveredBounds => _coveredBounds.AsReadOnly();
 

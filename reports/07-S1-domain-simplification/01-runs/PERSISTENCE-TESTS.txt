@@ -1,4 +1,4 @@
-Test run for C:\Users\al.farhadi\AppData\Local\Temp\ordbuild6\AeroTech.Ordering.Persistence.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\Users\al.farhadi\AppData\Local\Temp\ordbuild9\AeroTech.Ordering.Persistence.Tests.dll (.NETCoreApp,Version=v10.0)
 A total of 1 test files matched the specified pattern.
 
-Passed!  - Failed:     0, Passed:   134, Skipped:     0, Total:   134, Duration: 49 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)
+Passed!  - Failed:     0, Passed:   153, Skipped:     0, Total:   153, Duration: 1 m 41 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)

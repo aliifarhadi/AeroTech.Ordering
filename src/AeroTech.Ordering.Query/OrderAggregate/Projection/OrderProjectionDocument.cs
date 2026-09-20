@@ -1,4 +1,4 @@
-using AeroTech.Messages.Aegis.Enums;
+﻿using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
 
@@ -16,6 +16,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         ProjectedSalesContext SalesContext,
         ProjectedActor InitiatingActor,
         int CurrencyId,
+        string? SaleCurrencyCode,
         ProjectedMoney CustomerTotal,
         JourneyType JourneyType,
         DateTimeOffset? LastTicketingDate,
@@ -40,7 +41,8 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         PricingComponentType Component,
         PricingEffect Effect,
         string DebitAmount,
-        string CreditAmount);
+        string CreditAmount,
+        int CurrencyId);
 
     public sealed record ProjectedMoney(string Amount, int CurrencyId);
 
@@ -100,6 +102,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
 
     public sealed record ProjectedService(
         long ServiceId,
+        OrderServiceType ServiceType,
         OrderServiceCommercialStatus Status,
         long TravellerId,
         long SegmentId,
@@ -121,6 +124,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         PricingComponentType Component,
         PricingEffect Effect,
         OrderPricingLineDirection Direction,
+        PricingLineRole Role,
         string? Code,
         string? Name,
         string? Reference,
@@ -145,6 +149,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
 
     public sealed record ProjectedFareConstruction(
         long ConstructionId,
+        FareConstructionAssurance Assurance,
         IReadOnlyList<long> ItemIds,
         IReadOnlyList<ProjectedFareUnit> Units);
 
@@ -152,6 +157,7 @@ namespace AeroTech.Ordering.Query.OrderAggregate.Projection
         long UnitId,
         int Sequence,
         FarePricingUnitType Type,
+        AirFareConstructionType SourceConstructionType,
         IReadOnlyList<string> CoveredBoundOfferIds,
         IReadOnlyList<ProjectedFareComponent> Components);
 

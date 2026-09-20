@@ -1,4 +1,4 @@
-using AeroTech.Ordering.Domain.OrderAggregate;
+﻿using AeroTech.Ordering.Domain.OrderAggregate;
 using AeroTech.Ordering.Domain.OrderAggregate.Contracts;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +28,8 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
                 .Include(order => order.FareConstructions).ThenInclude(construction => construction.Items)
                 .Include(order => order.FareConstructions).ThenInclude(construction => construction.PricingUnits).ThenInclude(unit => unit.CoveredBounds)
                 .Include(order => order.FareConstructions).ThenInclude(construction => construction.PricingUnits).ThenInclude(unit => unit.Components)
+                .Include(order => order.ItemServiceLinks)
+                .Include(order => order.ComponentTotals)
                 .Include(order => order.FundingObligations)
                 .SingleOrDefaultAsync(order => order.Id == orderId && order.OwnerAirlineId == ownerAirlineId, cancellationToken);
     }

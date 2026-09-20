@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
@@ -35,13 +35,13 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
             ["OpenJaw"] = JourneyType.OpenJaw
         };
 
-        private static readonly IReadOnlyDictionary<string, FarePricingUnitType> PricingUnitKinds = new Dictionary<string, FarePricingUnitType>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["OneWay"] = FarePricingUnitType.OneWay,
-            ["RoundTrip"] = FarePricingUnitType.RoundTrip,
-            ["OpenJaw"] = FarePricingUnitType.OpenJaw,
-            ["CircleTrip"] = FarePricingUnitType.CircleTrip
-        };
+        private static readonly IReadOnlyDictionary<string, (FarePricingUnitType Type, AirFareConstructionType SourceType)> PricingUnitKinds =
+            new Dictionary<string, (FarePricingUnitType, AirFareConstructionType)>(StringComparer.OrdinalIgnoreCase)
+            {
+                [nameof(AeroTech.Messages.AirOffer.Enums.PricingUnitKind.OneWay)] = (FarePricingUnitType.OneWay, AirFareConstructionType.OneWay),
+                [nameof(AeroTech.Messages.AirOffer.Enums.PricingUnitKind.RoundTripFromOneWays)] = (FarePricingUnitType.RoundTrip, AirFareConstructionType.RoundTripFromOneWays),
+                [nameof(AeroTech.Messages.AirOffer.Enums.PricingUnitKind.RoundTripFare)] = (FarePricingUnitType.RoundTrip, AirFareConstructionType.RoundTrip)
+            };
 
         public static NormalizedCandidate Map(
             string requestedOfferId,
@@ -159,7 +159,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 null,
                 null,
                 details.LastTicketingDate,
-                new CandidateSalesContext(scope.OwnerAirlineId, scope.FinancialCustomerId, scope.SalesContext),
+                new CandidateSalesContext(scope.OwnerAirlineId, scope.FinancialCustomerId, scope.SalesContext, scope.Buyer),
                 JourneyTypeOf(details.JourneyType),
                 details.Tickets.Select(ticket => new CandidateTraveller(ticket.TravellerRef, PassengerType(ticket.PassengerTypeCode))).ToList(),
                 journeys,
@@ -168,21 +168,39 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 services,
                 lines.Select(line => line with { ItemKey = PackageItemKey }).ToList(),
                 new Money(details.TotalAmount, currencyId),
-                new CandidateFareConstruction(details.PricingUnits
-                    .Select((unit, index) => new CandidatePricingUnit(
-                        index + 1,
-                        PricingUnitKind(unit.Kind),
-                        unit.CoveredBoundOfferIds.ToList(),
-                        unit.FareComponents.Select(component => new CandidateFareComponent(
-                            component.AirFareId,
-                            Text(component.FareBasis),
-                            Text(component.FareFamily),
-                            Text(component.FareType),
-                            component.CabinClassId,
-                            component.RbdId,
-                            Text(component.BookingClass),
-                            component.TicketingRestrictionMinutes)).ToList()))
-                    .ToList()));
+                Text(details.CurrencyCode),
+                FareConstruction(details));
+        }
+
+        private static CandidateFareConstruction? FareConstruction(AirOfferDetailsWire details)
+        {
+            if (details.PricingUnits.Count == 0)
+                return null;
+
+            return new CandidateFareConstruction(
+                FareConstructionAssurance.SourceProvided,
+                [PackageItemKey],
+                details.PricingUnits
+                    .Select((unit, index) =>
+                    {
+                        var kind = PricingUnitKindOf(unit.Kind);
+
+                        return new CandidatePricingUnit(
+                            index + 1,
+                            kind.Type,
+                            kind.SourceType,
+                            unit.CoveredBoundOfferIds.ToList(),
+                            unit.FareComponents.Select(component => new CandidateFareComponent(
+                                component.AirFareId,
+                                Text(component.FareBasis),
+                                Text(component.FareFamily),
+                                Text(component.FareType),
+                                component.CabinClassId,
+                                component.RbdId,
+                                Text(component.BookingClass),
+                                component.TicketingRestrictionMinutes)).ToList());
+                    })
+                    .ToList());
         }
 
         private static CandidateSegment Segment(string boundId, AirOfferFlightWire flight)
@@ -234,7 +252,8 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 Text(flight.BookingClass),
                 Baggage($"{path} checked baggage", coupon.BaggagePieces, coupon.BaggageWeight, coupon.BaggageUnit),
                 Baggage($"{path} cabin baggage", coupon.CabinBaggagePieces, coupon.CabinBaggageWeight, coupon.CabinBaggageUnit),
-                new SoldTermFlags(coupon.IsRefundable, coupon.IsChangeable, coupon.IsUpgradable));
+                new SoldTermFlags(coupon.IsRefundable, coupon.IsChangeable, coupon.IsUpgradable),
+                CandidateFulfillmentProfile.Unresolved);
 
         private static void EnsureRespondedOffer(string requestedOfferId, string? respondedOfferId)
         {
@@ -267,7 +286,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 ? mapped
                 : throw new AirOfferContractMismatchException($"journey type {journeyType ?? "(missing)"} is not a known journey type");
 
-        private static FarePricingUnitType PricingUnitKind(string? kind)
+        private static (FarePricingUnitType Type, AirFareConstructionType SourceType) PricingUnitKindOf(string? kind)
             => kind is not null && PricingUnitKinds.TryGetValue(kind, out var mapped)
                 ? mapped
                 : throw new AirOfferContractMismatchException($"pricing unit kind {kind ?? "(missing)"} is not a known pricing unit type");
@@ -347,6 +366,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                     component,
                     PricingEffect.CustomerBalance,
                     OrderPricingLineDirection.Debit,
+                    PricingLineRole.Original,
                     Text(row.Code),
                     Text(row.Name),
                     Text(row.Reference),
@@ -379,6 +399,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 component,
                 PricingEffect.CustomerBalance,
                 OrderPricingLineDirection.Debit,
+                PricingLineRole.Original,
                 Text(row.Code),
                 Text(row.Name),
                 Text(row.Reference),

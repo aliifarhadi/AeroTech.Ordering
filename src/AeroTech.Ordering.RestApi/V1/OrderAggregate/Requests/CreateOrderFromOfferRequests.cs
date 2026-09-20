@@ -1,9 +1,9 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
 
 namespace AeroTech.Ordering.RestApi.V1.OrderAggregate.Requests
 {
     public sealed record BackofficeCreateOrderFromOfferRequest(
-        long CustomerId,
+        long FinancialCustomerId,
         long AirlineOfficeId,
         string OfferId,
         IReadOnlyList<OrderTravellerRequest> Travellers,
@@ -11,7 +11,7 @@ namespace AeroTech.Ordering.RestApi.V1.OrderAggregate.Requests
         string? ClientReference);
 
     public sealed record ServiceCreateOrderFromOfferRequest(
-        long CustomerId,
+        long FinancialCustomerId,
         long? SellingOfficeId,
         SellingOfficeKind? SellingOfficeKind,
         string OfferId,

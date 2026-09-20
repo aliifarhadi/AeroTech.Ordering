@@ -1,4 +1,4 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.Resources;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderAggregate.Policies;
@@ -35,9 +35,10 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 EnsureSegment(segment, journeys);
 
             EnsureServices(candidate.Services, travellers, segments);
+            EnsureFulfillmentProfiles(candidate.Services);
             EnsureItems(candidate.Items, services);
             EnsurePricing(candidate, items, services, segments);
-            EnsureFareConstruction(candidate.FareConstruction);
+            EnsureFareConstruction(candidate.FareConstruction, items);
         }
 
         private static void EnsureSource(NormalizedCandidate candidate)
@@ -147,6 +148,29 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
             }
         }
 
+        private static void EnsureFulfillmentProfiles(IReadOnlyList<CandidateService> services)
+        {
+            foreach (var service in services)
+            {
+                var profile = service.FulfillmentProfile;
+
+                if (!Enum.IsDefined(profile.Assurance)
+                    || !Enum.IsDefined(profile.ReservationRequirement)
+                    || !Enum.IsDefined(profile.DocumentKind)
+                    || !Enum.IsDefined(profile.FundingRequirement))
+                    throw Mismatch($"service {service.ServiceKey} fulfillment profile carries an undefined vocabulary value");
+
+                if (profile.DocumentAuthority is { } authority && !Enum.IsDefined(authority))
+                    throw Mismatch($"service {service.ServiceKey} fulfillment profile document authority is not defined");
+
+                if (profile.Assurance == FulfillmentProfileAssurance.Certified && string.IsNullOrWhiteSpace(profile.ProfileRef))
+                    throw Mismatch($"service {service.ServiceKey} claims a certified fulfillment profile without naming it");
+
+                if (profile.CapacityUnits is <= 0)
+                    throw Mismatch($"service {service.ServiceKey} fulfillment profile capacity units must be positive when supplied");
+            }
+        }
+
         private static void EnsureItems(IReadOnlyList<CandidateItem> items, IReadOnlyDictionary<string, CandidateService> services)
         {
             var owner = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -199,6 +223,12 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
 
                 if (line.CalculationKind == PricingCalculationKind.NotRecorded)
                     throw Mismatch($"pricing line {line.SourceOccurrencePath} must record whether its source row was an amount or a percentage");
+
+                if (!Enum.IsDefined(line.Role))
+                    throw Mismatch($"pricing line {line.SourceOccurrencePath} role is not defined");
+
+                if (line.Effect == PricingEffect.CustomerBalance && line.ItemKey is null && line.BasisType != PricingBasisType.OrderService)
+                    throw Mismatch($"pricing line {line.SourceOccurrencePath} carries a customer balance with no item and no service basis, so its funding liability cannot be scoped");
 
                 EnsureConversion(line);
                 Require(line.BasisKey, $"pricing line {line.SourceOccurrencePath} basis reference");
@@ -272,8 +302,29 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 throw Mismatch($"pricing line {line.SourceOccurrencePath} basis service is outside its item");
         }
 
-        private static void EnsureFareConstruction(CandidateFareConstruction construction)
+        private static void EnsureFareConstruction(
+            CandidateFareConstruction? construction,
+            IReadOnlyDictionary<string, CandidateItem> items)
         {
+            if (construction is null)
+                return;
+
+            if (!Enum.IsDefined(construction.Assurance))
+                throw Mismatch("fare construction assurance is not defined");
+
+            if (construction.ItemKeys.Count == 0)
+                throw Mismatch("a fare construction must name the items it prices");
+
+            if (construction.ItemKeys.Distinct(StringComparer.Ordinal).Count() != construction.ItemKeys.Count)
+                throw Mismatch("a fare construction repeats an item");
+
+            foreach (var itemKey in construction.ItemKeys)
+                if (!items.ContainsKey(itemKey))
+                    throw Mismatch($"fare construction item {itemKey} is not a candidate item");
+
+            if (construction.PricingUnits.Count == 0)
+                throw Mismatch("a fare construction needs at least one pricing unit");
+
             var sequences = new HashSet<int>();
 
             foreach (var unit in construction.PricingUnits)
@@ -283,6 +334,9 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
 
                 if (!Enum.IsDefined(unit.Type))
                     throw Mismatch($"pricing unit {unit.Sequence} type is not defined");
+
+                if (!Enum.IsDefined(unit.SourceConstructionType))
+                    throw Mismatch($"pricing unit {unit.Sequence} source construction type is not defined");
 
                 if (unit.CoveredBoundOfferIds.Distinct(StringComparer.Ordinal).Count() != unit.CoveredBoundOfferIds.Count)
                     throw Mismatch($"pricing unit {unit.Sequence} repeats a covered bound offer id");

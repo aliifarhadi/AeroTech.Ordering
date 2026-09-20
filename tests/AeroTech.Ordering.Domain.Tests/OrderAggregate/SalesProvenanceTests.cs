@@ -1,4 +1,4 @@
-using AeroTech.Framework.Core.Domain.Exceptions;
+﻿using AeroTech.Framework.Core.Domain.Exceptions;
 using AeroTech.Messages.Aegis.Enums;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Messages.Shared.Enums;
@@ -57,6 +57,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
                 1,
                 901,
                 SalesContextSnapshot.SellerNotSupplied(SalesChannel.PartnerAPI, null, null),
+                BuyerSnapshot.NotSupplied,
                 "ota|customer:901|office:none|principal:partner:31337",
                 new InitiatingActorSnapshot(BusinessContextType.PartnerApi, 31337));
 
@@ -83,6 +84,7 @@ namespace AeroTech.Ordering.Domain.Tests.OrderAggregate
                 1,
                 900,
                 new SalesContextSnapshot(SalesChannel.AgencyPanel, BusinessContextType.TravelAgency, 77, SellingOfficeKind.TravelAgencyOffice, 55),
+                BuyerSnapshot.NotSupplied,
                 "otapanel|customer:900|office:55|principal:agency:77",
                 new InitiatingActorSnapshot(BusinessContextType.TravelAgency, 4242)));
 

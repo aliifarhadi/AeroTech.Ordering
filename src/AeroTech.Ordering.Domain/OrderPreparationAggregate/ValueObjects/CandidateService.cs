@@ -11,5 +11,6 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects
         string? BookingClass,
         BaggageAllowance? CheckedBaggage,
         BaggageAllowance? CabinBaggage,
-        SoldTermFlags SoldTerms);
+        SoldTermFlags SoldTerms,
+        CandidateFulfillmentProfile FulfillmentProfile);
 }

@@ -1,4 +1,4 @@
-using AeroTech.Framework.Core.Domain.Entities;
+﻿using AeroTech.Framework.Core.Domain.Entities;
 using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate.ValueObjects;
@@ -21,6 +21,7 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             Component = source.Component;
             Effect = source.Effect;
             Direction = source.Direction;
+            Role = source.Role;
             Code = source.Code;
             Name = source.Name;
             Reference = source.Reference;
@@ -47,6 +48,8 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
         public PricingEffect Effect { get; private set; }
 
         public OrderPricingLineDirection Direction { get; private set; }
+
+        public PricingLineRole Role { get; private set; }
 
         public string? Code { get; private set; }
 

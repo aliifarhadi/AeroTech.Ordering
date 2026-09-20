@@ -1,4 +1,5 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Ordering.Domain._Shared.Resources;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderAggregate;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
@@ -24,6 +25,7 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                 order.SalesContext.SellingOfficeId),
             new ProjectedActor(order.InitiatingActor.ContextType, order.InitiatingActor.ActorId),
             order.CurrencyId,
+            order.SaleCurrencyCode,
             Money(order.CustomerTotal),
             order.JourneyType,
             order.LastTicketingDate,
@@ -112,19 +114,24 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                         .ToList()))
                 .ToList();
 
-        private static ProjectedService Service(OrderService service) => new(
-            service.Id,
-            service.CommercialStatus,
-            service.TravellerId,
-            service.SegmentId,
-            service.CabinClassId,
-            service.RbdId,
-            service.BookingClass,
-            Baggage(service.CheckedBaggage),
-            Baggage(service.CabinBaggage),
-            service.SoldTerms.Refundable,
-            service.SoldTerms.Changeable,
-            service.SoldTerms.Upgradable);
+        private static ProjectedService Service(OrderService service) => service switch
+        {
+            OrderAirTransportService air => new ProjectedService(
+                air.Id,
+                air.ServiceType,
+                air.CommercialStatus,
+                air.TravellerId,
+                air.SegmentId,
+                air.CabinClassId,
+                air.RbdId,
+                air.BookingClass,
+                Baggage(air.CheckedBaggage),
+                Baggage(air.CabinBaggage),
+                air.SoldTerms.Refundable,
+                air.SoldTerms.Changeable,
+                air.SoldTerms.Upgradable),
+            _ => throw ExceptionFactory.UnsupportedCapability($"order service type {service.ServiceType} cannot be projected")
+        };
 
         private static ProjectedBaggage? Baggage(BaggageAllowance? allowance) => allowance is null
             ? null
@@ -143,6 +150,7 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                     line.Component,
                     line.Effect,
                     line.Direction,
+                    line.Role,
                     line.Code,
                     line.Name,
                     line.Reference,
@@ -167,15 +175,15 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                 .ToList();
 
         private static IReadOnlyList<ProjectedComponentTotal> ComponentTotals(Order order)
-            => order.PricingLines
-                .GroupBy(line => (line.Component, line.Effect))
-                .OrderBy(group => group.Key.Component)
-                .ThenBy(group => group.Key.Effect)
-                .Select(group => new ProjectedComponentTotal(
-                    group.Key.Component,
-                    group.Key.Effect,
-                    DecimalRepresentation.Text(group.Where(line => line.Direction == OrderPricingLineDirection.Debit).Sum(line => line.SaleValue.Amount)),
-                    DecimalRepresentation.Text(group.Where(line => line.Direction == OrderPricingLineDirection.Credit).Sum(line => line.SaleValue.Amount))))
+            => order.ComponentTotals
+                .OrderBy(total => total.Component)
+                .ThenBy(total => total.Effect)
+                .Select(total => new ProjectedComponentTotal(
+                    total.Component,
+                    total.Effect,
+                    DecimalRepresentation.Text(total.DebitAmount),
+                    DecimalRepresentation.Text(total.CreditAmount),
+                    total.CurrencyId))
                 .ToList();
 
         private static IReadOnlyList<ProjectedFareConstruction> FareConstructions(Order order)
@@ -183,6 +191,7 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                 .OrderBy(construction => construction.Id)
                 .Select(construction => new ProjectedFareConstruction(
                     construction.Id,
+                    construction.Assurance,
                     construction.Items.Select(item => item.OrderItemId).OrderBy(id => id).ToList(),
                     construction.PricingUnits
                         .OrderBy(unit => unit.Sequence)
@@ -190,6 +199,7 @@ namespace AeroTech.Ordering.Synchronizer.OrderAggregate
                             unit.Id,
                             unit.Sequence,
                             unit.Type,
+                            unit.SourceConstructionType,
                             unit.CoveredBounds
                                 .Select(bound => bound.CoveredBoundOfferId)
                                 .OrderBy(value => value, StringComparer.Ordinal)

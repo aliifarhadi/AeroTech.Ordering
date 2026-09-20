@@ -27,6 +27,9 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
         [InlineData("CK_PricingLines_Direction", "PricingLines")]
         [InlineData("CK_FundingObligations_Version", "FundingObligations")]
         [InlineData("CK_FundingObligations_Amount", "FundingObligations")]
+        [InlineData("CK_FundingObligations_ExactlyOneScope", "FundingObligations")]
+        [InlineData("CK_OrderComponentTotals_Magnitudes", "OrderComponentTotals")]
+        [InlineData("CK_Orders_Root", "Orders")]
         public async Task The_closure_check_constraints_exist_on_sql_server(string constraint, string table)
         {
             await using var harness = await S1Harness.StartAsync(_fixture);
@@ -36,6 +39,39 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                 + $" WHERE [name] = N'{constraint}' AND [parent_object_id] = OBJECT_ID(N'[Order].[{table}]')");
 
             Assert.Equal(1, found);
+        }
+
+        [Fact]
+        public async Task A_funding_obligation_needs_exactly_one_scope_on_sql_server()
+        {
+            await using var harness = await S1Harness.StartAsync(_fixture);
+            var orderId = await AcceptedOrderIdAsync(harness);
+
+            var itemId = await ScalarAsync(harness, $"SELECT TOP 1 [Id] FROM [Order].[OrderItems] WHERE [OrderId] = {orderId}");
+            var serviceId = await ScalarAsync(harness, $"SELECT TOP 1 [Id] FROM [Order].[OrderServices] WHERE [OrderId] = {orderId}");
+
+            await Assert.ThrowsAsync<SqlException>(() => ExecuteAsync(harness,
+                $"UPDATE [Order].[FundingObligations] SET [OrderServiceId] = {serviceId} WHERE [OrderId] = {orderId};"));
+
+            await Assert.ThrowsAsync<SqlException>(() => ExecuteAsync(harness,
+                $"UPDATE [Order].[FundingObligations] SET [OrderItemId] = NULL WHERE [OrderId] = {orderId} AND [OrderItemId] = {itemId};"));
+        }
+
+        [Fact]
+        public async Task A_root_order_identifier_is_positive_but_is_not_pinned_to_the_order_identifier()
+        {
+            await using var harness = await S1Harness.StartAsync(_fixture);
+            var orderId = await AcceptedOrderIdAsync(harness);
+
+            Assert.Equal(orderId, await ScalarAsync(harness, $"SELECT [RootOrderId] FROM [Order].[Orders] WHERE [Id] = {orderId}"));
+
+            await ExecuteAsync(harness, $"UPDATE [Order].[Orders] SET [RootOrderId] = {orderId} + 1 WHERE [Id] = {orderId};");
+            Assert.Equal(orderId + 1, await ScalarAsync(harness, $"SELECT [RootOrderId] FROM [Order].[Orders] WHERE [Id] = {orderId}"));
+
+            await Assert.ThrowsAsync<SqlException>(() => ExecuteAsync(harness,
+                $"UPDATE [Order].[Orders] SET [RootOrderId] = 0 WHERE [Id] = {orderId};"));
+
+            await ExecuteAsync(harness, $"UPDATE [Order].[Orders] SET [RootOrderId] = {orderId} WHERE [Id] = {orderId};");
         }
 
         [Fact]

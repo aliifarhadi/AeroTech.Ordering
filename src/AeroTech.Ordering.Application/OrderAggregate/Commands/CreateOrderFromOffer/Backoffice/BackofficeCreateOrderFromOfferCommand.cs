@@ -1,10 +1,10 @@
-using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer;
+﻿using AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer;
 using MediatR;
 
 namespace AeroTech.Ordering.Application.OrderAggregate.Commands.CreateOrderFromOffer.Backoffice
 {
     public sealed record BackofficeCreateOrderFromOfferCommand(
-        long CustomerId,
+        long FinancialCustomerId,
         long AirlineOfficeId,
         string OfferId,
         IReadOnlyList<CreateOrderTravellerInput> Travellers,

@@ -145,22 +145,23 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
         [InlineData("duplicate")]
         public async Task A_ticket_without_a_usable_traveller_reference_fails_closed_before_any_candidate(string defect)
         {
-            var handler = new AirOfferWireFixtures.StubHandler(() => WithTicketDefect(defect));
+            var offerId = CreateOrderFromOfferTests.UniqueOffer();
+            var handler = new AirOfferWireFixtures.StubHandler(() => WithTicketDefect(defect, offerId));
             await using var harness = await StartAsync(handler);
             var key = S1Commands.NewKey($"traveller-{defect}");
 
             var exception = await Assert.ThrowsAsync<BusinessException>(() =>
-                harness.SendAsync(S1Commands.Backoffice(OfferId, key: key, travellers: S1Commands.Travellers("T1"))));
+                harness.SendAsync(S1Commands.Backoffice(offerId, key: key, travellers: S1Commands.Travellers("T1"))));
 
             Assert.Equal(20272, exception.Code);
             Assert.Contains("traveller reference", exception.Message);
             Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<Domain.CommandReceiptAggregate.CommandReceipt>(harness, receipt => receipt.IdempotencyKey == key));
-            Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<OrderPreparation>(harness, preparation => preparation.SourceOfferId == OfferId));
+            Assert.Equal(0, await CreateOrderFromOfferTests.CountAsync<OrderPreparation>(harness, preparation => preparation.SourceOfferId == offerId));
         }
 
-        private static string WithTicketDefect(string defect)
+        private static string WithTicketDefect(string defect, string offerId)
         {
-            using var document = JsonDocument.Parse(AirOfferWireFixtures.Details(offerId: OfferId));
+            using var document = JsonDocument.Parse(AirOfferWireFixtures.Details(offerId: offerId));
             var data = document.RootElement.GetProperty("data");
             var ticket = data.GetProperty("tickets")[0];
 

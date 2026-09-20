@@ -1,4 +1,6 @@
 ﻿using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Ordering.Persistence;
+using Microsoft.Data.SqlClient;
 using AeroTech.Ordering.Application.OrderAggregate.Commands.RebuildOrderProjection;
 using AeroTech.Ordering.Domain.Tests._Shared;
 using AeroTech.Ordering.Persistence.Tests._Shared;
@@ -30,20 +32,86 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             var order = await CreateOrderFromOfferTests.LoadOrderAsync(harness, orderId);
             var document = await ProjectionAsync(harness, orderId);
 
+            Assert.Equal(4, order.ComponentTotals.Count);
             Assert.Equal(4, document.ComponentTotals.Count);
 
-            foreach (var total in document.ComponentTotals)
+            foreach (var total in order.ComponentTotals)
             {
                 var lines = order.PricingLines.Where(line => line.Component == total.Component && line.Effect == total.Effect).ToList();
 
-                Assert.Equal(lines.Where(line => line.Direction == OrderPricingLineDirection.Debit).Sum(line => line.SaleValue.Amount), Amount(total.DebitAmount));
-                Assert.Equal(lines.Where(line => line.Direction == OrderPricingLineDirection.Credit).Sum(line => line.SaleValue.Amount), Amount(total.CreditAmount));
+                Assert.Equal(lines.Where(line => line.Direction == OrderPricingLineDirection.Debit).Sum(line => line.SaleValue.Amount), total.DebitAmount);
+                Assert.Equal(lines.Where(line => line.Direction == OrderPricingLineDirection.Credit).Sum(line => line.SaleValue.Amount), total.CreditAmount);
+                Assert.Equal(order.CurrencyId, total.CurrencyId);
+
+                var projected = document.ComponentTotals.Single(row => row.Component == total.Component && row.Effect == total.Effect);
+
+                Assert.Equal(total.DebitAmount, Amount(projected.DebitAmount));
+                Assert.Equal(total.CreditAmount, Amount(projected.CreditAmount));
+                Assert.Equal(total.CurrencyId, projected.CurrencyId);
             }
 
             Assert.Equal(order.CurrencyId, document.CustomerTotal.CurrencyId);
             Assert.Equal(
                 order.CustomerTotal.Amount,
-                document.ComponentTotals.Where(total => total.Effect == PricingEffect.CustomerBalance).Sum(total => Amount(total.DebitAmount) - Amount(total.CreditAmount)));
+                order.ComponentTotals.Where(total => total.Effect == PricingEffect.CustomerBalance).Sum(total => total.Net));
+        }
+
+        [Fact]
+        public async Task A_component_total_is_identified_by_order_component_and_effect_on_sql_server()
+        {
+            await using var harness = await S1Harness.StartAsync(_fixture);
+            var orderId = (await harness.SendAsync(S1Commands.Backoffice(await PublishAsync(harness)))).OrderId;
+
+            var keyColumns = await harness.InScopeAsync(async services =>
+            {
+                var context = services.GetRequiredService<OrderingDbContext>();
+                await using var command = context.Database.GetDbConnection().CreateCommand();
+                command.CommandText =
+                    "SELECT STRING_AGG(c.[name], ',') WITHIN GROUP (ORDER BY ic.[key_ordinal])"
+                    + " FROM sys.indexes i"
+                    + " JOIN sys.index_columns ic ON ic.[object_id] = i.[object_id] AND ic.[index_id] = i.[index_id]"
+                    + " JOIN sys.columns c ON c.[object_id] = ic.[object_id] AND c.[column_id] = ic.[column_id]"
+                    + " WHERE i.[object_id] = OBJECT_ID(N'[Order].[OrderComponentTotals]') AND i.[is_primary_key] = 1";
+
+                if (command.Connection!.State != System.Data.ConnectionState.Open)
+                    await command.Connection.OpenAsync();
+
+                return (string)(await command.ExecuteScalarAsync())!;
+            });
+
+            Assert.Equal("OrderId,Component,Effect", keyColumns);
+
+            var duplicate = await harness.InScopeAsync(async services =>
+            {
+                try
+                {
+                    await services.GetRequiredService<OrderingDbContext>().Database.ExecuteSqlRawAsync($@"
+INSERT INTO [Order].[OrderComponentTotals] ([OrderId],[Component],[Effect],[DebitAmount],[CreditAmount],[CurrencyId],[LastUpdateTime])
+SELECT [OrderId], [Component], [Effect], [DebitAmount], [CreditAmount], [CurrencyId], SYSDATETIMEOFFSET()
+FROM [Order].[OrderComponentTotals] WHERE [OrderId] = {orderId};");
+                    return false;
+                }
+                catch (SqlException)
+                {
+                    return true;
+                }
+            });
+
+            Assert.True(duplicate);
+        }
+
+        [Fact]
+        public async Task A_component_total_cannot_hold_a_negative_magnitude_on_sql_server()
+        {
+            await using var harness = await S1Harness.StartAsync(_fixture);
+            var orderId = (await harness.SendAsync(S1Commands.Backoffice(await PublishAsync(harness)))).OrderId;
+
+            await Assert.ThrowsAsync<SqlException>(() => harness.InScopeAsync(async services =>
+            {
+                await services.GetRequiredService<OrderingDbContext>().Database.ExecuteSqlRawAsync($@"
+UPDATE [Order].[OrderComponentTotals] SET [DebitAmount] = -1.00 WHERE [OrderId] = {orderId};");
+                return 0;
+            }));
         }
 
         [Fact]
