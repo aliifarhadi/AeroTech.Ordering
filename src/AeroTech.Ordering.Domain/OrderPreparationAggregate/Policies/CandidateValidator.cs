@@ -64,6 +64,9 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 || context.FinancialCustomerId != scope.FinancialCustomerId
                 || context.Sales != scope.SalesContext)
                 throw Mismatch("candidate sales context differs from the authorized sales scope");
+
+            if (context.Buyer != scope.Buyer)
+                throw Mismatch("candidate buyer differs from the authorized sales scope");
         }
 
         private static void EnsureJourneys(IReadOnlyList<CandidateJourney> journeys)
@@ -163,8 +166,14 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                 if (profile.DocumentAuthority is { } authority && !Enum.IsDefined(authority))
                     throw Mismatch($"service {service.ServiceKey} fulfillment profile document authority is not defined");
 
-                if (profile.Assurance == FulfillmentProfileAssurance.Certified && string.IsNullOrWhiteSpace(profile.ProfileRef))
-                    throw Mismatch($"service {service.ServiceKey} claims a certified fulfillment profile without naming it");
+                var hasProfileRef = !string.IsNullOrWhiteSpace(profile.ProfileRef);
+                var hasProfileVersion = !string.IsNullOrWhiteSpace(profile.ProfileVersion);
+
+                if (hasProfileRef != hasProfileVersion)
+                    throw Mismatch($"service {service.ServiceKey} fulfillment profile identity and version are supplied together or not at all");
+
+                if (profile.Assurance == FulfillmentProfileAssurance.Certified && !hasProfileRef)
+                    throw Mismatch($"service {service.ServiceKey} claims a certified fulfillment profile without naming its identity and version");
 
                 if (profile.CapacityUnits is <= 0)
                     throw Mismatch($"service {service.ServiceKey} fulfillment profile capacity units must be positive when supplied");
@@ -255,6 +264,9 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
             if (total.Amount != candidate.CustomerTotal.Amount)
                 throw Mismatch($"customer total {candidate.CustomerTotal.Amount} differs from the pricing lines {total.Amount}");
 
+            if (candidate.CustomerTotal.IsNegative)
+                throw Mismatch($"original sale customer total {candidate.CustomerTotal.Amount} is negative; an original sale is not a refund");
+
             foreach (var item in candidate.Items)
             {
                 if (!item.AcceptedTotal.SameCurrencyAs(candidate.CustomerTotal))
@@ -268,6 +280,27 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
 
                 if (itemTotal.Amount != item.AcceptedTotal.Amount)
                     throw Mismatch($"item {item.ItemKey} accepted total {item.AcceptedTotal.Amount} differs from its pricing lines {itemTotal.Amount}");
+            }
+
+            EnsureServiceScopedLiability(candidate, currencyId);
+        }
+
+        private static void EnsureServiceScopedLiability(NormalizedCandidate candidate, int currencyId)
+        {
+            var serviceScopes = candidate.PricingLines
+                .Where(line => line.Effect == PricingEffect.CustomerBalance
+                    && line.ItemKey is null
+                    && line.BasisType == PricingBasisType.OrderService)
+                .GroupBy(line => line.BasisKey, StringComparer.Ordinal);
+
+            foreach (var scope in serviceScopes)
+            {
+                var net = PricingArithmetic.CustomerTotal(
+                    scope.Select(line => new PricedAmount(line.Effect, line.Direction, line.SaleValue)),
+                    currencyId);
+
+                if (net.IsNegative)
+                    throw Mismatch($"service {scope.Key} carries a negative original-sale liability {net.Amount}; an original sale is not a refund");
             }
         }
 

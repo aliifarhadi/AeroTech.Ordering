@@ -1,5 +1,6 @@
-using AeroTech.Framework.Core.Domain.Entities;
+﻿using AeroTech.Framework.Core.Domain.Entities;
 using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Ordering.Domain._Shared.Resources;
 using AeroTech.Ordering.Domain._Shared.ValueObjects;
 using AeroTech.Ordering.Domain.OrderAggregate.ValueObjects;
 
@@ -20,6 +21,9 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
             long changeId,
             long priceChangeSetId)
         {
+            if (amount.IsNegative)
+                throw ExceptionFactory.FundingObligationScopeInvalid($"its amount {amount.Amount} is negative");
+
             Id = id;
             OrderId = orderId;
             Version = 1;

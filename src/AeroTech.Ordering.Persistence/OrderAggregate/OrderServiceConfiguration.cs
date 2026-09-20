@@ -1,4 +1,4 @@
-using AeroTech.Messages.Ordering.Enums;
+﻿using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -59,8 +59,14 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.OwnsOne(service => service.CheckedBaggage, baggage => baggage.MapBaggage("CheckedBaggage"));
             builder.OwnsOne(service => service.CabinBaggage, baggage => baggage.MapBaggage("CabinBaggage"));
 
-            builder.HasOne<OrderTraveller>().WithMany().HasForeignKey(service => service.TravellerId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne<OrderSegment>().WithMany().HasForeignKey(service => service.SegmentId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderTraveller>().WithMany()
+                .HasForeignKey(service => new { service.OrderId, service.TravellerId })
+                .HasPrincipalKey(traveller => new { traveller.OrderId, traveller.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderSegment>().WithMany()
+                .HasForeignKey(service => new { service.OrderId, service.SegmentId })
+                .HasPrincipalKey(segment => new { segment.OrderId, segment.Id })
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(service => new { service.OrderId, service.TravellerId, service.SegmentId }).IsUnique();
         }

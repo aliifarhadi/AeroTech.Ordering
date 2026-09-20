@@ -2,17 +2,18 @@
 
 Branch `k8s-stg` · reviewed baseline `0f103a3` · R2 review HEAD `3e43d37` · 2026-09-20
 
-**Status: `S1_DOMAIN_SIMPLIFICATION_NOT_READY`**
+**Status: `S1_DOMAIN_SIMPLIFICATION_READY_FOR_INDEPENDENT_REVIEW`**
 **`S2_NOT_STARTED`**
 
-The status stays `NOT_READY` until independent review closes the matrix. All nine `MISSING_RESTORE_NOW` verdicts the
-R2 review raised are now closed in code and in tests, but the stage is not the agent's to declare ready, and two
-things remain outstanding:
+All nine `MISSING_RESTORE_NOW` verdicts the R2 review raised are closed in code and in tests, and the six enforcement
+defects found by the post-R2 independent closure review are closed as well (see *Post-R2 closure corrections*). The
+stage is not the agent's to declare frozen; it is ready for independent review. Two things remain outstanding:
 
 - `PROPOSED_REBASELINE_AWAITING_OWNER_AUTHORIZATION` — the migration chain is not the end state, and the rebaseline has
   **not** been authorized. The previous revision of these reports claimed it had been; that claim is withdrawn. See
   `MIGRATION-DECISION.md` and the open decision at
-  `reports/00-decisions/S1-MIGRATION-REBASELINE-OPEN-DECISION.md`.
+  `reports/00-decisions/S1-MIGRATION-REBASELINE-OPEN-DECISION.md`. The closure pass added one additive migration for
+  the two new database constraints and deleted nothing.
 - Two verdicts that are not the agent's to resolve: `FundingObligation.CurrentDisposition` is
   `BLOCKED_OWNER_CONTRACT` (no approved vocabulary, so no enum was invented) and `coveredBoundOfferIds` is
   `BLOCKED_REAL_CONTRACT` (the recorded owner payload carries a flight identity under a bound name).
@@ -97,6 +98,46 @@ surfaces, their commands, validators, controllers and the published OpenAPI docu
 to `ComputeDigest`, binding the accepted snapshot to the scope that accepted it. `FIELD-INVENTORY.md`,
 `IDENTITY-NAMESPACE-MATRIX.md` and `DELETED-FIELDS.md` now say that instead of the earlier false claim.
 
+## Post-R2 closure corrections
+
+An independent closure review of this checkpoint found six enforcement defects: the shapes were correct, but nothing
+stopped an invalid state reaching SQL or slipping past validation. All six are closed. No field was added, no
+abstraction introduced and no public contract changed.
+
+**1. Buyer is bound to the authorized sales scope.** `CandidateValidator.EnsureSalesContext` compared owner, customer
+and sales context but not Buyer, so a candidate captured for buyer A could be accepted under a scope naming buyer B.
+It now requires `candidate.SalesContext.Buyer == scope.Buyer` and fails closed. Buyer is still never inferred from the
+financial customer, the seller, the actor or a traveller.
+
+**2. An original-sale funding obligation can never be negative.** An item-less, service-scoped `CustomerBalance` line
+could net negative while the order total stayed positive — item Fare debit 100 plus a service-scoped Discount credit
+10 gave `CustomerTotal` 90 and obligations of +100 and −10, caught only by SQL at `SaveChanges`. The candidate now
+refuses a negative `CustomerTotal` and any negative signed net per service scope, and `FundingObligation`'s
+constructor refuses a negative amount (20295) so a future path that bypasses validation still cannot materialise one.
+`CK_FundingObligations_Amount` remains as the third layer. A negative original-sale liability is **not** reinterpreted
+as a refund.
+
+**3. A fulfillment profile supplies its identity and version together.** Validation required only
+`Certified ⇒ ProfileRef`. It now requires `ProfileRef` and `ProfileVersion` to be both present or both absent, and
+`Certified` to supply both. The unresolved live AirOffer profile — both null, `NotCertified`, `Unresolved` facts —
+remains valid, and no profile identity or registry was invented.
+
+**4. AirTransport scope is confined to its own Order in SQL.** The foreign keys were `TravellerId → OrderTravellers.Id`
+and `SegmentId → OrderSegments.Id`, so a direct SQL mutation could point a service at another Order's traveller or
+segment. `OrderTravellers` and `OrderSegments` now carry alternate keys `(OrderId, Id)`, and the service's foreign
+keys are composite — `(OrderId, TravellerId)` and `(OrderId, SegmentId)` — with `Restrict` delete behaviour. No
+generic relation framework was introduced.
+
+**5. One commercial change carries at most one price change set.** Unique `(OrderId, FinancialSequence)` existed, but
+two sets could still reference the same `ChangeId`. A unique index on `PriceChangeSet.ChangeId` now prevents it, and
+a later different change can still have its own set.
+
+**6. N distinct taxes on one ticket is executable.** One fare plus four tax rows at distinct source occurrence paths,
+three codes (`AT`, `YQ`, `XT`) with `AT` deliberately repeated at two occurrences under two references. The test
+proves no occurrence is merged, all survive acceptance and SQL, the paths stay distinct, `CustomerTotal` is exactly
+123.5, the persisted `Tax` component total of 23.5 equals the sum of the rows, and a rebuild preserves them. No tax
+framework was added.
+
 ## What revision 2 deliberately did not undo
 
 Every simplification the R2 review confirmed stays: typed numeric identities, the validity simplification,
@@ -119,8 +160,8 @@ the same offer with a new intent and key is intentionally allowed to create anot
 | | |
 |---|---|
 | `dotnet build AeroTech.Ordering.sln` | succeeded, 0 errors |
-| Domain tests | 78 / 78 |
-| Persistence tests (`Category!=Live`), including API/OpenAPI, architecture and fresh-migration tests | 153 / 153, 1 m 41 s |
+| Domain tests | 91 / 91 |
+| Persistence tests (`Category!=Live`), including API/OpenAPI, architecture and fresh-migration tests | 159 / 159, 54 s |
 | `has-pending-model-changes` | none, all three contexts |
 | Packages added | none |
 | Commits or pushes | none — the owner has not asked |

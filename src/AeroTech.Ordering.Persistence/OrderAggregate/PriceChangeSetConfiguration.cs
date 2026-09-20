@@ -1,4 +1,4 @@
-using AeroTech.Ordering.Domain.OrderAggregate.Entities;
+﻿using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,6 +15,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.Property(set => set.Id).ValueGeneratedNever();
             builder.HasOne<OrderChange>().WithMany().HasForeignKey(set => set.ChangeId).OnDelete(DeleteBehavior.Restrict);
             builder.HasIndex(set => new { set.OrderId, set.FinancialSequence }).IsUnique();
+            builder.HasIndex(set => set.ChangeId).IsUnique();
         }
     }
 }

@@ -195,7 +195,7 @@ namespace AeroTech.Ordering.Domain.Tests._Shared
 
         public CandidateBuilder Line(
             string occurrencePath,
-            string item,
+            string? item,
             PricingComponentType component,
             decimal amount,
             string basisKey,

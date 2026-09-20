@@ -1,4 +1,4 @@
-using AeroTech.Ordering.Domain.OrderAggregate.Entities;
+﻿using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -26,6 +26,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             });
 
             builder.HasOne<OrderTraveller>().WithMany().HasForeignKey(traveller => traveller.InfantParentTravellerId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasAlternateKey(traveller => new { traveller.OrderId, traveller.Id });
             builder.HasIndex(traveller => new { traveller.OrderId, traveller.SourceTravellerRef }).IsUnique();
             builder.HasIndex(traveller => new { traveller.OrderId, traveller.ClientTravellerRef }).IsUnique();
         }

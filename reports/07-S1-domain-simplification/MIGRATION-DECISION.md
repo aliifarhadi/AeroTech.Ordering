@@ -23,7 +23,15 @@ explicit authorization. The request is written up in
 20260919133032_S1ClosureDomainRepair
 20260919204507_S1DomainSimplification           ← disposable, from revision 1
 20260919222251_S1SimplificationR2Corrections    ← disposable, from this revision
+20260920223736_S1ClosureScopeAndChangeSetConstraints  ← additive, from the post-R2 closure pass
 ```
+
+The last entry was added by the independent closure pass and is **not** part of the disposable scaffolding argument
+below: it carries only the two new database constraints that closure required — alternate keys `(OrderId, Id)` on
+`OrderTravellers` and `OrderSegments`, the composite foreign keys that confine an air service's scope to its own
+Order, and the unique index on `PriceChangeSet.ChangeId`. It contains **no** `CreateTable`, `DropTable`, `AddColumn`,
+`DropColumn`, `AlterColumn` or `RenameColumn`, and no raw SQL — 89 lines of keys, indexes and foreign keys only. It
+folds into the proposed `S1OrderModel` baseline when that is authorized, and nothing was deleted to add it.
 
 Both of the last two are **disposable scaffolding**. They exist so that the corrected model could be proven against a
 real SQL Server database before anything is frozen. Neither should ship.

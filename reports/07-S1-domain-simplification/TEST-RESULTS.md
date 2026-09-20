@@ -9,18 +9,18 @@ Raw output is in `01-runs/`. Nothing here is reconstructed from memory; every fi
 | Command | Result | Evidence |
 |---|---|---|
 | `dotnet build AeroTech.Ordering.sln` | Build succeeded, 0 errors, 2 warnings (both pre-existing `NU1510`) | `01-runs/SOLUTION-BUILD.txt` |
-| `dotnet test tests/AeroTech.Ordering.Domain.Tests` | **Passed — 78 / 78**, 0 failed, 0 skipped, 841 ms | `01-runs/DOMAIN-TESTS.txt` |
-| `dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "Category!=Live"` | **Passed — 153 / 153**, 0 failed, 0 skipped, 1 m 41 s | `01-runs/PERSISTENCE-TESTS.txt` |
+| `dotnet test tests/AeroTech.Ordering.Domain.Tests` | **Passed — 91 / 91**, 0 failed, 0 skipped, 315 ms | `01-runs/DOMAIN-TESTS.txt` |
+| `dotnet test tests/AeroTech.Ordering.Persistence.Tests --filter "Category!=Live"` | **Passed — 159 / 159**, 0 failed, 0 skipped, 54 s | `01-runs/PERSISTENCE-TESTS.txt` |
 | `dotnet ef migrations has-pending-model-changes` (`OrderingDbContext`) | No changes since the last migration | `01-runs/HAS-PENDING-MODEL-CHANGES.txt` |
-| same, `OrderQueryDbContext` and `ReferenceDbContext` | No changes since the last migration | run inline, same output |
+| same, `OrderQueryDbContext` and `ReferenceDbContext` | No changes since the last migration | `01-runs/HAS-PENDING-ALL-CONTEXTS.txt` |
 
 The persistence suite covers the API/OpenAPI tests (`Api/`), the architecture tests (`Architecture/`) and the fresh
-SQL Server migration test (`MigrationUpgradeTests`); they are inside the 153. `Category=Live` tests were not run — they
+SQL Server migration test (`MigrationUpgradeTests`); they are inside the 159. `Category=Live` tests were not run — they
 need `ORDERING_LIVE_AIROFFER_BASEURL` and a currently priced offer id. The recorded live payload is still covered by
 `AirOfferLiveOwnerTests.Recorded_live_owner_response_is_normalized_and_sold`.
 
-The run now takes about 1 m 41 s, up from about 50 s in revision 1, because each test database replays eight
-migrations. That cost disappears with the rebaseline (`MIGRATION-DECISION.md`).
+The run takes about 54 s; each test database replays the nine-migration chain. That cost disappears with the
+rebaseline, which is still awaiting owner authorization (`MIGRATION-DECISION.md`).
 
 ## Tests added for the R2 corrections
 
@@ -132,6 +132,55 @@ to end, with the owner called exactly once.
 `A_settlement_attribution_survives_sql_the_projection_and_a_rebuild` still pass against the single-schema projection.
 `OrderDtoReader` still loads traveller identities and contacts only when the read scope permits protected payloads, and
 the projection JSON still carries no names or contacts — that design was not touched.
+
+## Tests added by the post-R2 closure pass
+
+Six enforcement defects were closed; each has a test that turns red if the rule is removed.
+
+### Buyer bound to the authorized sales scope
+
+| Test | Proves |
+|---|---|
+| `AcceptedScopeAndLiabilityTests.A_candidate_with_no_buyer_is_accepted_under_a_scope_with_no_buyer` | `NotSupplied` on both sides is valid |
+| `…A_candidate_buyer_is_accepted_only_under_the_same_buyer` | the same supplied buyer is valid |
+| `…A_candidate_buyer_cannot_be_sold_under_a_different_buyer` | buyer A captured, scope B is refused (20272) |
+| `…A_candidate_buyer_cannot_be_sold_under_a_scope_that_supplies_none` | supplied candidate, `NotSupplied` scope is refused |
+| `…A_candidate_without_a_buyer_cannot_be_sold_under_a_scope_that_supplies_one` | the reverse is refused |
+| `…A_buyer_is_never_inferred_from_another_role` | the accepted buyer equals none of financial customer, seller, actor or traveller |
+
+### Original-sale liability is never negative
+
+| Test | Proves |
+|---|---|
+| `…A_service_scope_whose_original_sale_net_is_negative_is_rejected_before_any_order` | the exact defect: item fare +100 with an item-less service discount 10, total 90, refused before any Order |
+| `…A_negative_original_sale_customer_total_is_rejected_before_any_order` | a negative overall total is refused at the candidate boundary |
+| `…A_positive_item_less_service_scoped_liability_remains_valid` | a positive service-scoped liability still works and the obligations still sum to `CustomerTotal` |
+| `…A_negative_obligation_can_never_be_materialised_by_the_aggregate` | the constructor guard (20295) as defence in depth |
+| `ClosureConstraintTests.The_closure_check_constraints_exist_on_sql_server("CK_FundingObligations_Amount", …)` | the SQL nonnegative CHECK is still there — unchanged |
+
+### Fulfillment profile identity and version
+
+| Test | Proves |
+|---|---|
+| `…A_fulfillment_profile_supplies_its_identity_and_version_together_or_not_at_all` | certified + ref + version valid; ref-only, version-only, half-supplied non-certified and certified-with-neither all refused |
+| `…A_supplied_fulfillment_profile_pair_round_trips_unchanged` | a supplied pair survives acceptance unchanged |
+| `…The_unresolved_live_profile_stays_unresolved` | the live AirOffer profile stays null/null + `NotCertified` + `Unresolved` |
+
+### Same-current-Order scope and change-set cardinality, on SQL Server
+
+| Test | Proves |
+|---|---|
+| `AcceptedScopeConstraintTests.An_air_service_cannot_be_pointed_at_another_orders_traveller` | the composite FK rejects it with error 547 naming `OrderTravellers` |
+| `…An_air_service_cannot_be_pointed_at_another_orders_segment` | the same for `OrderSegments` |
+| `…A_same_order_traveller_and_segment_reference_remains_valid` | a same-order move is still allowed, so the constraint is not over-tight |
+| `…A_commercial_change_cannot_carry_a_second_price_change_set` | the unique index on `ChangeId` fires |
+| `…A_different_commercial_change_may_carry_its_own_price_change_set` | a second change can still have its own set |
+
+### N distinct taxes on one ticket
+
+| Test | Proves |
+|---|---|
+| `MultipleTaxOccurrenceTests.Every_tax_occurrence_on_one_ticket_survives_acceptance_sql_and_rebuild` | four taxes at distinct occurrence paths, three codes with `AT` repeated under two references, survive normalisation, acceptance and SQL; nothing merges by code; `CustomerTotal` 123.5; persisted `Tax` total 23.5 equals the row sum; a rebuild preserves them |
 
 ## Tests removed, and why
 

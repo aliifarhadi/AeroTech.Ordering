@@ -20,6 +20,10 @@ Test layers: `D` domain, `A` application, `S` SQL, `H` HTTP/API, `M` migration.
 
 ## A. Composition and item boundary
 
+> **Reconciled 2026-09-20 by the post-R2 independent closure pass.** Rows whose subject no longer exists in the S1
+> model (pricing groups, the dynamic detail-schema registry) are now `NOT_APPLICABLE` with the reason, and rows whose
+> gap has since been closed carry their current test. Historical audit text elsewhere in this file is untouched.
+
 | # | Scenario | Industry reason | Required canonical facts | Repr. | Exec. | Closed | Layer | Existing / new test | Primary | Stage |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 1 | Two independently priced `OrderItem`s in one Order | AIDM M1: an Order has many individually priced items | 2 items, disjoint service ownership, 2 accepted totals | yes | yes (reference source) | n/a | D,S | **new** | `UNTESTED` | S1 |
@@ -56,7 +60,7 @@ Test layers: `D` domain, `A` application, `S` SQL, `H` HTTP/API, `M` migration.
 | 22 | Commission + `CustomerBalance` → reject | INV-013 | domain + SQL check | yes | n/a | **yes** | D,S | `Commission_as_settlement_only_is_allowed_…`, `Commission_cannot_be_a_customer_charge`, `CK_PricingLines_CommissionNotCustomer` | `TESTED` | S1 |
 | 23 | `Informational` line never affects `CustomerTotal` | Effect is not a second sign | filter excludes it | yes | yes | n/a | D | **new** (`PricingArithmetic` filters it; no test asserts it) | `UNTESTED` | S1 |
 | 24 | `Other` component only `Informational` | `DOMAIN/03` §15 | matrix rejects other effects | yes | n/a | **yes** | D,S | **new** (rule exists in `PricingLineMatrix` and SQL; untested) | `UNTESTED` | S1 |
-| 25 | Fare + several taxes | every real ticket | N distinct `Tax` lines | yes | yes | n/a | S | `SC_S1_002_…` covers **one** tax; the N-tax case is untested | `UNTESTED` | S1 |
+| 25 | Fare + several taxes | every real ticket | N distinct `Tax` lines | yes | yes | n/a | S | `Every_tax_occurrence_on_one_ticket_survives_acceptance_sql_and_rebuild` — one fare + four taxes, three codes, `AT` repeated at two occurrences under two references; nothing merges by code | `TESTED` | S1 |
 | 26 | Carrier surcharge + fee persisted | YQ/YR plus service fee | categories 2 and 3 mapped | yes | yes | n/a | S | **new** | `UNTESTED` | S1 |
 | 27 | Discount credit persisted | a concession | `Discount` + `Credit` | yes | yes | n/a | S | `PricingArithmeticTests` theory proves the **arithmetic**; persistence is untested | `UNTESTED` | S1 |
 | 28 | Markup persisted | agency or airline uplift | `Markup` + `Debit` | yes | yes | n/a | S | **new** | `UNTESTED` | S1 |
@@ -72,7 +76,7 @@ Test layers: `D` domain, `A` application, `S` SQL, `H` HTTP/API, `M` migration.
 | 38 | **Component-total reconciliation, debit and credit sides kept apart** | `DOMAIN/01` §2 "complete current component totals"; AIDM M5 Price has Base/Total plus component associations | persisted `(Component, Effect, DebitAmount, CreditAmount)` equal the sum of their lines; net is derived, never stored as a signed amount | **NO** — no component totals exist | no | n/a | D,S | **new** | `UNSUPPORTED` | S1 |
 | 39 | Order-level charge | a charge on the package | line with item basis | yes | yes | n/a | S | `Percentage_order_charge_…` | `TESTED` | S1 |
 | 40 | Source total mismatch → reject | never invent a rounding fee | `ContractMismatch`, nothing persisted | n/a | n/a | **yes** | A,S | `SC_S1_015_…` | `TESTED` | S1 |
-| 41 | Group line extended once, not multiplied | INV-012, SC-S1-011 | store 200 not 400; group quantity kept | yes | yes | n/a | D,S | `SC_S1_011_…`, `Extended_group_line_is_stored_once_with_quantity_metadata` | `TESTED` | S1 |
+| 41 | Group line extended once, not multiplied | INV-012, SC-S1-011 | store 200 not 400; group quantity kept | yes | yes | n/a | D,S | — | `NOT_APPLICABLE` | AirOffer supplies no pricing group; `FarePricingGroup` was removed as `SOURCE_NOT_SUPPLIED_DO_NOT_INVENT` in stage 07 |
 
 ## D. Composition and itinerary
 
@@ -87,7 +91,7 @@ Test layers: `D` domain, `A` application, `S` SQL, `H` HTTP/API, `M` migration.
 | 48 | Multi-city — three or more bounds | ≥3 journeys with sequence | yes | yes | n/a | D,S | **new** | `UNTESTED` | S1 |
 | 49 | Technical stop — one segment, many legs | legs never multiply services | yes | yes | n/a | D,S | `SC_S1_007_…`, `Technical_stop_keeps_one_service_and_two_legs` | `TESTED` | S1 |
 | 50 | Same flight number on two distinct dated segments does not collapse | identity is `{BoundId}\|{FlightId}`, not the number | yes | yes | yes — a duplicate segment ref is rejected | D,S | **new** | `UNTESTED` | S1 |
-| 51 | Round trip as one RT unit vs two OW units | source fare construction retained as supplied | yes | yes (reference source) | n/a | D,S | `SC_S1_009_…` | `TESTED` | S1 |
+| 51 | Round trip as one RT unit vs two OW units | source fare construction retained as supplied | yes | yes (reference source) | n/a | D,S | `Every_owner_pricing_unit_kind_maps_to_its_own_construction_type` — the real contract's `OneWay`, `RoundTripFromOneWays` and `RoundTripFare`, without collapsing the two round trips | `TESTED` | S1 |
 | 52 | Opaque fare construction | zero groups, zero coverage rows | yes | yes | yes | D,S | `SC_S1_010_…`, `Opaque_construction_cannot_claim_component_links` | `TESTED` | S1 |
 | 53 | OpenAir structural scenario under a certified reference profile | `SegmentKind.OpenAir`, no dated flight | yes — validator has the rule | yes (reference source) | yes — an open segment carrying a dated flight is rejected | D | **new** | `UNTESTED` | S1 |
 
@@ -98,8 +102,8 @@ Test layers: `D` domain, `A` application, `S` SQL, `H` HTTP/API, `M` migration.
 | 54 | Response `offerId` **missing or blank** | `ContractMismatch`, nothing persisted | **NO** | A | **new** | `UNSUPPORTED` | S1 |
 | 55 | Response `offerId` **mismatched** | `ContractMismatch`, nothing persisted | **NO** | A | **new** | `UNSUPPORTED` | S1 |
 | 56 | Unknown pricing category | `ContractMismatch` | yes | A | `Observed_wire_violations_fail_mapping_instead_of_guessing` | `TESTED` | S1 |
-| 57 | Unknown registered detail schema / version | `UnsupportedCapability` before any Order | yes | D,A | `SC_S1_021_…`, `Unregistered_detail_schema_version_…`, `Unregistered_service_type_…` | `TESTED` | S1 |
-| 58 | Duplicate traveler+segment air service **occurrence** | rejected, never merged | yes | D | `Air_service_with_two_segments_is_rejected` proves the adjacent coverage rule; the duplicate-occurrence case itself is untested | `UNTESTED` | S1 |
+| 57 | Unknown registered detail schema / version | `UnsupportedCapability` before any Order | yes | D,A | — | `NOT_APPLICABLE` | the dynamic detail-schema registry was removed in stage 07; air transport is a typed table, so there is no unregistered schema to reject |
+| 58 | Duplicate traveler+segment air service **occurrence** | rejected, never merged | yes | D,S | `An_air_service_cannot_cover_two_segments` at the candidate boundary, plus the unique index `(OrderId, TravellerId, SegmentId)` on SQL Server | `TESTED` | S1 |
 | 59 | Malformed source hierarchy totals | `ContractMismatch` | yes | A,S | `SC_S1_015_…` | `TESTED` | S1 |
 | 60 | Source currency / value inconsistency | `ContractMismatch` | yes | D | `Two_values_in_one_currency_are_a_contract_mismatch` | `TESTED` | S1 |
 | 61 | Invalid traveler binding | 422 before any Order | yes | D,A,H | `SC_S1_016_…` | `TESTED` | S1 |
