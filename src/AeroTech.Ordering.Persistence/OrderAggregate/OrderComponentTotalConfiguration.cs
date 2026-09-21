@@ -1,3 +1,4 @@
+using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,11 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
         public void Configure(EntityTypeBuilder<OrderComponentTotal> builder)
         {
             builder.ToTable("OrderComponentTotals", PersistenceSchemas.Order, table =>
-                table.HasCheckConstraint("CK_OrderComponentTotals_Magnitudes", "[DebitAmount] >= 0 AND [CreditAmount] >= 0"));
+            {
+                table.HasCheckConstraint("CK_OrderComponentTotals_Magnitudes", "[DebitAmount] >= 0 AND [CreditAmount] >= 0");
+                table.RequiredEnum<PricingComponentType>("OrderComponentTotals", "Component");
+                table.RequiredEnum<PricingEffect>("OrderComponentTotals", "Effect");
+            });
 
             builder.HasKey(total => new { total.OrderId, total.Component, total.Effect });
             builder.Property(total => total.DebitAmount).HasAmountPrecision().IsRequired();

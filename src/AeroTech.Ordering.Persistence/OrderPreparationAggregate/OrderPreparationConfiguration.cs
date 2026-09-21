@@ -1,3 +1,4 @@
+using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,10 @@ namespace AeroTech.Ordering.Persistence.OrderPreparationAggregate
         public void Configure(EntityTypeBuilder<OrderPreparation> builder)
         {
             builder.ToTable("OrderPreparations", PersistenceSchemas.Order, table =>
-                table.HasCheckConstraint("CK_OrderPreparations_Digest", "LEN([SnapshotDigest]) = 64"));
+            {
+                table.HasCheckConstraint("CK_OrderPreparations_Digest", "LEN([SnapshotDigest]) = 64");
+                table.RequiredEnum<AcceptanceAssurance>("OrderPreparations", "AcceptanceAssurance");
+            });
 
             builder.HasKey(preparation => preparation.Id);
             builder.Property(preparation => preparation.Id).ValueGeneratedNever();
@@ -34,6 +38,7 @@ namespace AeroTech.Ordering.Persistence.OrderPreparationAggregate
                 .OnDelete(DeleteBehavior.Restrict);
             builder.Navigation(preparation => preparation.Evidence).UsePropertyAccessMode(PropertyAccessMode.Field);
 
+            builder.HasAlternateKey(preparation => new { preparation.OwnerAirlineId, preparation.Id });
             builder.HasIndex(preparation => new { preparation.OwnerAirlineId, preparation.FinancialCustomerId, preparation.CapturedAt });
         }
     }

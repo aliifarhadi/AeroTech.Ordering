@@ -22,7 +22,9 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
             decimal? conversionRate = null,
             string? offerId = "SYNTHETIC-PRICED-OFFER",
             string? pricingUnitKind = "OneWay",
-            bool withPricingUnits = true)
+            bool withPricingUnits = true,
+            object? flightStop = null,
+            object? legStop = null)
         {
             var couponTotal = couponFare + couponTax;
             var saleFare = lineCurrencyId == 978 ? couponFare : equivalent ?? couponFare;
@@ -72,16 +74,16 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                                     arrivalDateTime = "2026-09-20T12:30:00+03:30",
                                     duration = 270,
                                     aircraftId = 9,
-                                    stop = (object?)null,
+                                    stop = flightStop,
                                     legs = twoLegs
                                         ? new object[]
                                         {
-                                            new { sequence = 1, legId = "81", originAirportId = 11, destinationAirportId = 33, departureDateTime = "2026-09-20T08:00:00+03:30", arrivalDateTime = "2026-09-20T09:30:00+03:30" },
-                                            new { sequence = 2, legId = "82", originAirportId = 33, destinationAirportId = 22, departureDateTime = "2026-09-20T10:30:00+03:30", arrivalDateTime = "2026-09-20T12:30:00+03:30" }
+                                            new { sequence = 1, legId = "81", originAirportId = 11, destinationAirportId = 33, departureDateTime = "2026-09-20T08:00:00+03:30", arrivalDateTime = "2026-09-20T09:30:00+03:30", stop = legStop },
+                                            new { sequence = 2, legId = "82", originAirportId = 33, destinationAirportId = 22, departureDateTime = "2026-09-20T10:30:00+03:30", arrivalDateTime = "2026-09-20T12:30:00+03:30", stop = (object?)null }
                                         }
                                         : new object[]
                                         {
-                                            new { sequence = 1, legId = "81", originAirportId = 11, destinationAirportId = 22, departureDateTime = "2026-09-20T08:00:00+03:30", arrivalDateTime = "2026-09-20T12:30:00+03:30" }
+                                            new { sequence = 1, legId = "81", originAirportId = 11, destinationAirportId = 22, departureDateTime = "2026-09-20T08:00:00+03:30", arrivalDateTime = "2026-09-20T12:30:00+03:30", stop = legStop }
                                         }
                                 }
                             }

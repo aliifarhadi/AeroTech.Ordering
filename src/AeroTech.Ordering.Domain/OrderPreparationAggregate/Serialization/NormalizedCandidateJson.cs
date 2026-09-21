@@ -278,12 +278,12 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Serialization
             return new CandidateSegmentLeg(
                 leg.Identifier("legId"),
                 leg.Integer("sequence"),
-                leg.NullableInteger("originAirportId"),
+                leg.Integer("originAirportId"),
                 leg.NullableInteger("originAirportTerminalId"),
-                leg.NullableInteger("destinationAirportId"),
+                leg.Integer("destinationAirportId"),
                 leg.NullableInteger("destinationAirportTerminalId"),
-                leg.NullableInstant("departureDateTime"),
-                leg.NullableInstant("arrivalDateTime"));
+                leg.Instant("departureDateTime"),
+                leg.Instant("arrivalDateTime"));
         }
 
         private static CandidateItem ReadItem(Node item)

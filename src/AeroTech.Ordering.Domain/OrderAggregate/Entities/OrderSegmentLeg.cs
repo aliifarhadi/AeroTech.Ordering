@@ -29,16 +29,16 @@ namespace AeroTech.Ordering.Domain.OrderAggregate.Entities
 
         public int Sequence { get; private set; }
 
-        public int? OriginAirportId { get; private set; }
+        public int OriginAirportId { get; private set; }
 
         public int? OriginAirportTerminalId { get; private set; }
 
-        public int? DestinationAirportId { get; private set; }
+        public int DestinationAirportId { get; private set; }
 
         public int? DestinationAirportTerminalId { get; private set; }
 
-        public DateTimeOffset? DepartureDateTime { get; private set; }
+        public DateTimeOffset DepartureDateTime { get; private set; }
 
-        public DateTimeOffset? ArrivalDateTime { get; private set; }
+        public DateTimeOffset ArrivalDateTime { get; private set; }
     }
 }

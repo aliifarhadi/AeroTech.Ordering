@@ -1,3 +1,4 @@
+using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,8 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderContact> builder)
         {
-            builder.ToTable("OrderContacts", PersistenceSchemas.Order);
+            builder.ToTable("OrderContacts", PersistenceSchemas.Order, table =>
+                table.RequiredEnum<ContactRole>("OrderContacts", "Role"));
             builder.HasKey(contact => contact.Id);
             builder.Property(contact => contact.Id).ValueGeneratedNever();
             builder.Property(contact => contact.Email).HasMaxLength(PersistenceSchemas.EmailLength);

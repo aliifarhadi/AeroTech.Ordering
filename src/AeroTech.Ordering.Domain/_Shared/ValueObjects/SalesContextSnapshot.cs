@@ -14,6 +14,15 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
             SellingOfficeKind? sellingOfficeKind,
             long? sellingOfficeId)
         {
+            if (!Enum.IsDefined(channel))
+                throw ExceptionFactory.SalesContextIncomplete("a defined sales channel");
+
+            if (sellerContextType is { } seller && !Enum.IsDefined(seller))
+                throw ExceptionFactory.SalesContextIncomplete("a defined seller context type");
+
+            if (sellingOfficeKind is { } officeKind && !Enum.IsDefined(officeKind))
+                throw ExceptionFactory.SalesContextIncomplete("a defined selling office kind");
+
             if (sellerContextType is null != sellerId is null)
                 throw ExceptionFactory.SalesContextIncomplete("seller context type and seller identifier");
 

@@ -2,6 +2,12 @@
 
 Stage: 06-S1-create-order-conformance · **revision 3**, accounting corrected · 2026-09-19 · HEAD `4e48447`
 
+> **SUPERSEDED DISPOSITIONS — 2026-09-21.** The scenario definitions, industry reasoning and audit text in this file
+> remain current. The **Primary** column is stale from this date. The authoritative dispositions are in
+> `reports/08-S1-authoritative-final-closure/SCENARIO-CLOSURE-MATRIX.md`, which closes every `UNTESTED` and
+> `UNSUPPORTED` row (24 -> 56 `TESTED`, 0 `UNTESTED`, 0 `UNSUPPORTED`) and corrects four reliability rows that named
+> tests which no longer exist. Nothing here was deleted.
+
 ## Counting rules (new in revision 3)
 
 Revision 2's totals were internally inconsistent: the table said 9 incorrectly unsupported, the prose said 11, and the prose enumeration listed 12 rows. It also compared "43 → 61" without noting that revision 1's 43 **included** the reliability cases as numbered rows while revision 2's 61 did not. Both are corrected by three rules:

@@ -7,6 +7,9 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
     {
         public BaggageAllowance(int? pieces, decimal? weight, BaggageWeightUnit? weightUnit)
         {
+            if (weightUnit is { } unit && !Enum.IsDefined(unit))
+                throw ExceptionFactory.CandidateContractMismatch("a baggage allowance weight unit is not defined");
+
             if (pieces is < 0)
                 throw ExceptionFactory.CandidateContractMismatch("a baggage allowance cannot have negative pieces");
 

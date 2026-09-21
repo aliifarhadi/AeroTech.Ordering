@@ -7,6 +7,9 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
     {
         public InitiatingActorSnapshot(BusinessContextType contextType, long? actorId)
         {
+            if (!Enum.IsDefined(contextType))
+                throw ExceptionFactory.SalesContextIncomplete("a defined initiating actor context type");
+
             if (actorId is <= 0)
                 throw ExceptionFactory.SalesContextIncomplete("initiating actor identifier");
 

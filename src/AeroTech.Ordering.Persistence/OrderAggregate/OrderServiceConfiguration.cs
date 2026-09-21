@@ -10,7 +10,18 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
     {
         public void Configure(EntityTypeBuilder<OrderService> builder)
         {
-            builder.ToTable("OrderServices", PersistenceSchemas.Order);
+            builder.ToTable("OrderServices", PersistenceSchemas.Order, table =>
+            {
+                table.RequiredEnum<OrderServiceType>("OrderServices", "ServiceType");
+                table.RequiredEnum<OrderServiceCommercialStatus>("OrderServices", "CommercialStatus");
+                table.RequiredEnum<FulfillmentProfileAssurance>("OrderServices", "FulfillmentProfileAssurance");
+                table.RequiredEnum<ReservationRequirement>("OrderServices", "ReservationRequirement");
+                table.RequiredEnum<FulfillmentDocumentKind>("OrderServices", "FulfillmentDocumentKind");
+                table.OptionalEnum<DocumentAuthority>("OrderServices", "DocumentAuthority");
+                table.RequiredEnum<FundingRequirement>("OrderServices", "FundingRequirement");
+                table.OptionalEnum<BaggageWeightUnit>("OrderServices", "CheckedBaggageWeightUnit");
+                table.OptionalEnum<BaggageWeightUnit>("OrderServices", "CabinBaggageWeightUnit");
+            });
             builder.HasKey(service => service.Id);
             builder.Property(service => service.Id).ValueGeneratedNever();
 
@@ -35,8 +46,14 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             });
             builder.Navigation(service => service.FulfillmentProfile).IsRequired();
 
-            builder.HasOne<OrderItem>().WithMany().HasForeignKey(service => service.OrderItemId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne<OrderChange>().WithMany().HasForeignKey(service => service.CreatedByChangeId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderItem>().WithMany()
+                .HasForeignKey(service => new { service.OrderId, service.OrderItemId })
+                .HasPrincipalKey(item => new { item.OrderId, item.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderChange>().WithMany()
+                .HasForeignKey(service => new { service.OrderId, service.CreatedByChangeId })
+                .HasPrincipalKey(change => new { change.OrderId, change.Id })
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(service => new { service.OrderItemId, service.CommercialStatus });
         }

@@ -12,9 +12,18 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.ToTable("OrderItemServiceLinks", PersistenceSchemas.Order);
             builder.HasKey(link => link.Id);
             builder.Property(link => link.Id).ValueGeneratedNever();
-            builder.HasOne<OrderItem>().WithMany().HasForeignKey(link => link.OrderItemId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne<OrderService>().WithMany().HasForeignKey(link => link.OrderServiceId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne<OrderChange>().WithMany().HasForeignKey(link => link.LinkedByChangeId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderItem>().WithMany()
+                .HasForeignKey(link => new { link.OrderIdAtAssociation, link.OrderItemId })
+                .HasPrincipalKey(item => new { item.OrderId, item.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderService>().WithMany()
+                .HasForeignKey(link => new { link.OrderIdAtAssociation, link.OrderServiceId })
+                .HasPrincipalKey(service => new { service.OrderId, service.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderChange>().WithMany()
+                .HasForeignKey(link => new { link.OrderIdAtAssociation, link.LinkedByChangeId })
+                .HasPrincipalKey(change => new { change.OrderId, change.Id })
+                .OnDelete(DeleteBehavior.Restrict);
             builder.HasIndex(link => new { link.OrderItemId, link.OrderServiceId }).IsUnique();
         }
     }

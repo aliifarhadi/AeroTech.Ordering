@@ -12,6 +12,12 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
         {
             builder.ToTable("PricingLines", PersistenceSchemas.Order, table =>
             {
+                table.RequiredEnum<PricingComponentType>("PricingLines", "Component");
+                table.RequiredEnum<PricingEffect>("PricingLines", "Effect");
+                table.RequiredEnum<OrderPricingLineDirection>("PricingLines", "Direction");
+                table.RequiredEnum<PricingLineRole>("PricingLines", "Role");
+                table.RequiredEnum<PricingCalculationKind>("PricingLines", "CalculationKind");
+                table.RequiredEnum<PricingBasisType>("PricingLines", "BasisType");
                 table.HasCheckConstraint("CK_PricingLines_OriginalMagnitude", "[OriginalValueAmount] >= 0");
                 table.HasCheckConstraint("CK_PricingLines_SaleMagnitude", "[SaleValueAmount] >= 0");
                 table.HasCheckConstraint("CK_PricingLines_TaxNotSettlement", $"NOT ([Component] = {(int)PricingComponentType.Tax} AND [Effect] = {(int)PricingEffect.SettlementOnly})");
@@ -38,8 +44,15 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
                 attribution.Property(value => value.PartyRef).HasColumnName("SettlementPartyRef").HasMaxLength(PersistenceSchemas.ReferenceLength);
                 attribution.Property(value => value.CategoryCode).HasColumnName("SettlementCategoryCode").HasMaxLength(PersistenceSchemas.ReferenceLength);
             });
-            builder.HasOne<PriceChangeSet>().WithMany().HasForeignKey(line => line.PriceChangeSetId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne<OrderItem>().WithMany().HasForeignKey(line => line.OrderItemId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasAlternateKey(line => new { line.OrderId, line.Id });
+            builder.HasOne<PriceChangeSet>().WithMany()
+                .HasForeignKey(line => new { line.OrderId, line.PriceChangeSetId })
+                .HasPrincipalKey(set => new { set.OrderId, set.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderItem>().WithMany()
+                .HasForeignKey(line => new { line.OrderId, line.OrderItemId })
+                .HasPrincipalKey(item => new { item.OrderId, item.Id })
+                .OnDelete(DeleteBehavior.Restrict);
             builder.HasIndex(line => new { line.PriceChangeSetId, line.SourceOccurrencePath }).IsUnique();
             builder.HasIndex(line => new { line.OrderId, line.OrderItemId });
         }

@@ -1,4 +1,5 @@
-﻿using AeroTech.Ordering.Domain.OrderAggregate.Entities;
+using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -10,7 +11,10 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
         public void Configure(EntityTypeBuilder<OrderTraveller> builder)
         {
             builder.ToTable("OrderTravellers", PersistenceSchemas.Order, table =>
-                table.HasCheckConstraint("CK_OrderTravellers_Guardian", "[InfantParentTravellerId] IS NULL OR [InfantParentTravellerId] <> [Id]"));
+            {
+                table.HasCheckConstraint("CK_OrderTravellers_Guardian", "[InfantParentTravellerId] IS NULL OR [InfantParentTravellerId] <> [Id]");
+                table.RequiredEnum<PassengerTypeCode>("OrderTravellers", "PassengerTypeCode");
+            });
             builder.HasKey(traveller => traveller.Id);
             builder.Property(traveller => traveller.Id).ValueGeneratedNever();
             builder.Property(traveller => traveller.SourceTravellerRef).HasMaxLength(PersistenceSchemas.ReferenceLength).IsRequired();
@@ -25,7 +29,10 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
                 identity.Property(value => value.DateOfBirth).IsRequired();
             });
 
-            builder.HasOne<OrderTraveller>().WithMany().HasForeignKey(traveller => traveller.InfantParentTravellerId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderTraveller>().WithMany()
+                .HasForeignKey(traveller => new { traveller.OrderId, traveller.InfantParentTravellerId })
+                .HasPrincipalKey(parent => new { parent.OrderId, parent.Id })
+                .OnDelete(DeleteBehavior.Restrict);
             builder.HasAlternateKey(traveller => new { traveller.OrderId, traveller.Id });
             builder.HasIndex(traveller => new { traveller.OrderId, traveller.SourceTravellerRef }).IsUnique();
             builder.HasIndex(traveller => new { traveller.OrderId, traveller.ClientTravellerRef }).IsUnique();

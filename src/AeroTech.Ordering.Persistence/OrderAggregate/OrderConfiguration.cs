@@ -1,4 +1,7 @@
-﻿using AeroTech.Ordering.Domain.OrderAggregate;
+using AeroTech.Messages.Aegis.Enums;
+using AeroTech.Messages.Ordering.Enums;
+using AeroTech.Messages.Shared.Enums;
+using AeroTech.Ordering.Domain.OrderAggregate;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Domain.OrderPreparationAggregate;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
@@ -18,6 +21,13 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             {
                 table.HasCheckConstraint("CK_Orders_Revisions", "[CommercialVersion] >= 1 AND [FinancialSequence] >= 0 AND [OrderRevision] >= 1 AND [LastEventOrdinal] >= 0");
                 table.HasCheckConstraint("CK_Orders_Root", "[RootOrderId] > 0");
+                table.RequiredEnum<CommercialSummary>("Orders", "CommercialSummary");
+                table.RequiredEnum<JourneyType>("Orders", "JourneyType");
+                table.RequiredEnum<SalesChannel>("Orders", "Channel");
+                table.OptionalEnum<BusinessContextType>("Orders", "SellerContextType");
+                table.OptionalEnum<SellingOfficeKind>("Orders", "SellingOfficeKind");
+                table.OptionalEnum<BusinessContextType>("Orders", "BuyerContextType");
+                table.RequiredEnum<BusinessContextType>("Orders", "InitiatingActorContextType");
             });
 
             builder.HasKey(order => order.Id);
@@ -59,9 +69,12 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
 
             builder.OwnsOne(order => order.CustomerTotal, money => money.MapMoney("CustomerTotal"));
 
+            builder.HasAlternateKey(order => new { order.OwnerAirlineId, order.Id });
+
             builder.HasOne<OrderPreparation>()
                 .WithMany()
-                .HasForeignKey(order => order.SourcePreparationId)
+                .HasForeignKey(order => new { order.OwnerAirlineId, order.SourcePreparationId })
+                .HasPrincipalKey(preparation => new { preparation.OwnerAirlineId, preparation.Id })
                 .OnDelete(DeleteBehavior.Restrict);
 
             MapChildren(builder);

@@ -1,0 +1,4 @@
+Test run for C:\Users\al.farhadi\AppData\Local\Temp\ordbuild4\AeroTech.Ordering.Domain.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   135, Skipped:     0, Total:   135, Duration: 405 ms - AeroTech.Ordering.Domain.Tests.dll (net10.0)

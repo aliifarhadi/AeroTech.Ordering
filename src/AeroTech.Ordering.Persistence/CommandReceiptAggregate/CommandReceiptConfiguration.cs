@@ -1,4 +1,5 @@
 using AeroTech.Ordering.Domain.CommandReceiptAggregate;
+using AeroTech.Ordering.Domain.OrderAggregate;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,7 +13,8 @@ namespace AeroTech.Ordering.Persistence.CommandReceiptAggregate
 
         public void Configure(EntityTypeBuilder<CommandReceipt> builder)
         {
-            builder.ToTable(Table, PersistenceSchemas.Operations);
+            builder.ToTable(Table, PersistenceSchemas.Operations, table =>
+                table.RequiredEnum<OrderingCommandKind>(Table, "CommandKind"));
             builder.HasKey(receipt => receipt.Id);
             builder.Property(receipt => receipt.Id).ValueGeneratedNever();
             builder.Property(receipt => receipt.CallerScope).HasMaxLength(PersistenceSchemas.CallerScopeLength).IsRequired();
@@ -24,6 +26,11 @@ namespace AeroTech.Ordering.Persistence.CommandReceiptAggregate
             builder.HasIndex(receipt => new { receipt.OwnerAirlineId, receipt.CallerScope, receipt.CommandKind, receipt.IdempotencyKey })
                 .IsUnique()
                 .HasDatabaseName(ScopeKeyIndex);
+            builder.HasOne<Order>()
+                .WithMany()
+                .HasForeignKey(receipt => new { receipt.OwnerAirlineId, receipt.OrderId })
+                .HasPrincipalKey(order => new { order.OwnerAirlineId, order.Id })
+                .OnDelete(DeleteBehavior.Restrict);
             builder.HasIndex(receipt => new { receipt.OwnerAirlineId, receipt.OrderId });
         }
     }

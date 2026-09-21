@@ -103,22 +103,12 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
             if (segment.OriginAirportId <= 0 || segment.DestinationAirportId <= 0)
                 throw Mismatch($"segment {segment.SegmentKey} requires origin and destination airports");
 
-            var legIds = segment.Legs.Select(leg => leg.LegId).ToList();
-
-            if (legIds.Count != legIds.Distinct().Count())
-                throw Mismatch($"segment {segment.SegmentKey} repeats an operational leg");
-
-            var legSequences = new HashSet<int>();
-
-            foreach (var leg in segment.Legs)
-                if (leg.Sequence < 1 || !legSequences.Add(leg.Sequence))
-                    throw Mismatch($"segment {segment.SegmentKey} leg sequence {leg.Sequence} is not a unique positive sequence");
+            EnsureLegs(segment);
 
             switch (segment.Kind)
             {
                 case SegmentKind.ScheduledAir:
-                    if (segment.SoldDeparture is null || segment.SoldArrival is null || segment.FlightId is null)
-                        throw Mismatch($"scheduled segment {segment.SegmentKey} needs a dated flight");
+                    EnsureScheduledAir(segment);
                     break;
 
                 case SegmentKind.OpenAir:
@@ -126,6 +116,54 @@ namespace AeroTech.Ordering.Domain.OrderPreparationAggregate.Policies
                         throw Mismatch($"open segment {segment.SegmentKey} cannot carry a dated flight");
                     break;
             }
+        }
+
+        private static void EnsureLegs(CandidateSegment segment)
+        {
+            var legIds = new HashSet<long>();
+            var legSequences = new HashSet<int>();
+
+            foreach (var leg in segment.Legs)
+            {
+                if (leg.LegId <= 0 || !legIds.Add(leg.LegId))
+                    throw Mismatch($"segment {segment.SegmentKey} leg identity {leg.LegId} is not a unique positive operational leg");
+
+                if (leg.Sequence < 1 || !legSequences.Add(leg.Sequence))
+                    throw Mismatch($"segment {segment.SegmentKey} leg sequence {leg.Sequence} is not a unique positive sequence");
+
+                if (leg.OriginAirportId <= 0 || leg.DestinationAirportId <= 0)
+                    throw Mismatch($"segment {segment.SegmentKey} leg {leg.LegId} requires origin and destination airports");
+
+                if (leg.ArrivalDateTime < leg.DepartureDateTime)
+                    throw Mismatch($"segment {segment.SegmentKey} leg {leg.LegId} arrives before it departs");
+            }
+        }
+
+        private static void EnsureScheduledAir(CandidateSegment segment)
+        {
+            if (segment.SoldDeparture is not { } departure || segment.SoldArrival is not { } arrival)
+                throw Mismatch($"scheduled segment {segment.SegmentKey} needs a dated flight");
+
+            if (arrival < departure)
+                throw Mismatch($"scheduled segment {segment.SegmentKey} arrives before it departs");
+
+            if (segment.FlightId is not > 0)
+                throw Mismatch($"scheduled segment {segment.SegmentKey} requires the owner flight identity");
+
+            if (segment.FlightVersion is not > 0)
+                throw Mismatch($"scheduled segment {segment.SegmentKey} requires the owner flight version");
+
+            if (segment.MarketingAirlineId is not > 0 || segment.OperatingAirlineId is not > 0)
+                throw Mismatch($"scheduled segment {segment.SegmentKey} requires marketing and operating airline identities");
+
+            if (segment.FlightCapacityId is not > 0)
+                throw Mismatch($"scheduled segment {segment.SegmentKey} requires the owner flight capacity identity");
+
+            if (segment.AircraftId is not > 0)
+                throw Mismatch($"scheduled segment {segment.SegmentKey} requires the aircraft identity");
+
+            if (segment.Duration is not >= 0)
+                throw Mismatch($"scheduled segment {segment.SegmentKey} requires a nonnegative duration");
         }
 
         private static void EnsureServices(

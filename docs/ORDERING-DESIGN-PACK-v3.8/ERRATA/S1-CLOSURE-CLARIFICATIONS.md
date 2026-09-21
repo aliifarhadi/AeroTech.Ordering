@@ -1,0 +1,238 @@
+﻿# ERRATA — S1 Closure Clarifications
+
+Status: clarification record, not a Pack amendment.
+Scope: S1 (Prepare / Create / Get original sale) only.
+Authority: this file records how the S1 implementation reads the Pack where the Pack is silent, ambiguous, or wider
+than S1. It never replaces a Pack statement. Where the Pack and this file disagree, the Pack wins and the disagreement
+is a defect in this file.
+
+Every entry below is one of:
+
+- **DEFERRED** — the Pack requires it for the Ordering domain, but no S1 command or query can produce or consume it.
+  S1 does not materialise it. The stage that first needs it materialises it.
+- **CLARIFIED** — the Pack states the requirement; this entry fixes the reading S1 implemented.
+- **DIVERGENCE** — S1 does not match the Pack statement. Each one names the Pack line and the reason.
+
+---
+
+## 1. Commercial composition and service identity
+
+### 1.1 `ServiceVersion` — DEFERRED
+
+Pack: `DOMAIN/02-COMMERCIAL-COMPOSITION.md` line 19 lists `ServiceVersion` as a field of the service.
+Pack: `DOMAIN/10-ELIGIBILITY-VERSIONS-AND-TIME.md` line 28 — "ServiceVersion starts at 1 and changes for current
+commercial definition/owner/item/coverage binding changes."
+
+S1 accepts an original sale and never mutates a service afterwards. Every service created by S1 would carry the
+constant value 1 for its whole S1 lifetime, and no S1 code path can increment it. Persisting a structurally constant
+column would be evidence of a versioning mechanism that does not exist.
+
+S1 therefore does not persist `ServiceVersion`. The first stage that performs a commercial-definition, owner, item or
+coverage-binding change on an existing service introduces the column together with the increment rule and the
+`OrderChange` that carries it.
+
+### 1.2 `PriceTreatment` — DEFERRED
+
+Pack: `DOMAIN/02-COMMERCIAL-COMPOSITION.md` lines 19 and 21 — `PriceTreatment: SeparatelyPriced, Included,
+Complimentary, SupplierOpaque`.
+
+Every service S1 creates comes from an accepted AirOffer air-transport candidate and is separately priced: the
+candidate pricing lines reconcile to the item total, and `CandidateValidator` rejects a candidate whose priced content
+does not reconcile. `Included`, `Complimentary` and `SupplierOpaque` require ancillary or bundled content that no S1
+command can express.
+
+S1 does not persist `PriceTreatment`. The stage that introduces ancillaries or bundles introduces the enum in
+`Contracts/AeroTech.Messages/Ordering/Enums/` and the column, with the rule from line 21 that included/complimentary
+must not fabricate a synthetic zero fare line.
+
+### 1.3 `ScopeAtAssociation` — DEFERRED (open decision)
+
+Pack: `DOMAIN/02-COMMERCIAL-COMPOSITION.md` line 13 — "Store immutable `OrderItemServiceLink(LinkId,
+OrderIdAtAssociation, OrderItemId, OrderServiceId, ScopeAtAssociation, LinkedByChangeId)`."
+
+This is the only occurrence of `ScopeAtAssociation` in the entire Pack. The Pack names the field but defines neither
+its type nor its semantics, and no other Pack file constrains it.
+
+S1 persists the rest of the tuple — `Id`, `OrderIdAtAssociation`, `OrderItemId`, `OrderServiceId`, `LinkedByChangeId`
+— and enforces `OrderIdAtAssociation` as a real scoping key: all three outbound foreign keys of
+`OrderItemServiceLinks` are composite on `(OrderIdAtAssociation, ...)` against `(OrderId, Id)` alternate keys, so a
+link cannot bind an item, a service or a change belonging to a different Order.
+
+S1 does not invent a type or meaning for `ScopeAtAssociation`. A field whose semantics cannot be derived from the Pack
+is not implemented by guessing. This is recorded as an open decision, not as an implemented field; see
+`reports/00-decisions/`. The stage in which a service can be re-associated to another item is the stage that needs the
+field, and it must carry the owner definition of it.
+
+### 1.4 Service transition history — DEFERRED
+
+Pack: `DOMAIN/02-COMMERCIAL-COMPOSITION.md` line 19 — "... and immutable transition history."
+
+An original sale produces exactly one commercial transition per service: its creation, which is already fully recorded
+by `CreatedByChangeId` pointing at the single `OrderChange` of the sale. A separate history table in S1 would contain
+exactly one derivable row per service.
+
+S1 does not add a service transition table. The stage that introduces a second commercial transition introduces it.
+
+### 1.5 `SupplierPartyRef`, `DeliveryProviderRef`, `ServiceCode`/`ServiceName` — DEFERRED
+
+Pack: `DOMAIN/02-COMMERCIAL-COMPOSITION.md` line 19.
+
+The AirOffer candidate contract (`CONTRACTS/02-AIROFFER.md`) carries no supplier party, no delivery provider and no
+service code/name for air transport; the marketing/operating airline identities and the segment binding are the
+complete supplier facts S1 receives. Persisting empty columns would misrepresent the source.
+
+S1 persists the air-transport facts it actually receives, on `OrderAirTransportService`. The stage that sells
+non-air-transport or third-party-supplied content introduces the supplier and delivery references.
+
+---
+
+## 2. Pricing and fare construction
+
+### 2.1 `SourceDecisionRef` — DEFERRED
+
+Pack: `DOMAIN/03-PRICING-AND-FARE-CONSTRUCTION.md` line 9 — `PriceChangeSet(SetId, OrderId, ChangeId,
+FinancialSequence, Reason, SourceDecisionRef, BaseCommercialVersion, CommittedAt)`.
+
+`SourceDecisionRef` identifies the pricing decision that produced the set. In S1 the only pricing decision is the
+accepted offer itself, and that reference is already persisted at the Order level, immutably and with a stronger
+guarantee: `Order.SourceOfferId`, `Order.SourcePreparationId` and `Order.AcceptedSnapshotDigest` (SHA-256 of the
+canonical normalised candidate). S1 has exactly one `PriceChangeSet` per Order, so a per-set reference would duplicate
+the Order-level reference with no ability to differ from it.
+
+S1 does not persist `SourceDecisionRef` on `PriceChangeSets`. The stage that commits a second monetary mutation — a
+repricing, a revalidation or an exchange — introduces it, because from that stage on different sets have different
+sources.
+
+### 2.2 `BaseCommercialVersion` — DEFERRED
+
+Pack: `DOMAIN/03-PRICING-AND-FARE-CONSTRUCTION.md` line 9.
+
+`BaseCommercialVersion` records the commercial version the set was computed against. In S1 the only set is committed
+inside the creating change, whose `CommercialVersion` is 1 by construction and is enforced unique per Order by
+`IX_OrderChanges_OrderId_CommercialVersion`. The base version is therefore structurally constant and derivable.
+
+S1 does not persist `BaseCommercialVersion`. The stage that prices against an existing Order introduces it, with the
+staleness check that makes it meaningful.
+
+---
+
+## 3. Eligibility, versions and disposition
+
+### 3.1 `CurrentDisposition` — DEFERRED
+
+Pack: `DOMAIN/10-ELIGIBILITY-VERSIONS-AND-TIME.md`, and the eligibility vector it describes.
+
+Disposition is a fulfilment/delivery-side fact — document state, control state, delivery state. S1 creates no document,
+no reservation control and no delivery effect; `AcceptedScopeAndLiabilityTests` and `AcceptedShapePersistenceTests`
+assert that an accepted S1 sale causes no reservation, funding-document or delivery effect at all. A disposition column
+in S1 could only ever hold its initial value.
+
+S1 does not persist a disposition. The fulfilment stage introduces it together with the effects it describes.
+
+### 3.2 Eligibility vector — DEFERRED
+
+Pack: `DOMAIN/10-ELIGIBILITY-VERSIONS-AND-TIME.md` line 50 — the quote/eligibility vector freezing `CommercialVersion`,
+relevant `ServiceVersion`s, document/control versions, obligation versions, source pricing context and dependency scope
+hash.
+
+S1 has no quote-then-dispatch step: `Create` accepts a prepared candidate and commits in one transaction, and the
+staleness protection S1 needs is already carried by `OrderPreparation` validity plus `AcceptedSnapshotDigest`. Every
+other component of the vector is itself deferred above.
+
+S1 does not persist an eligibility vector. The first stage with a dispatch or pivot step introduces it.
+
+---
+
+## 4. `OrderPreparation` semantics — CLARIFIED
+
+Pack: `DOMAIN/01-AGGREGATES.md` and `DOMAIN/13-PERSISTENCE-DATA-DICTIONARY.md` line 12 — "OrderPreparations | ID,
+caller/customer/owner, normalized source/digest, schema/profile, validity/assurance, consumed OrderId, rowversion |
+Unique consumption; digest immutable; index expiry/consumed; no open Order created yet".
+
+S1 reads this as follows.
+
+- **`OrderPreparation` is not an Order and never becomes one.** `Create` reads a preparation and writes a new `Order`
+  in one transaction. There is no state in which a preparation is a partially built Order.
+- **"Unique consumption" is enforced by the database, and the link is stored on the Order side.** The Pack row lists a
+  "consumed OrderId" column on `OrderPreparations`; S1 stores the same relation in the opposite direction, as
+  `Orders.SourcePreparationId`, and guarantees uniqueness with the unique index
+  `UX_Orders_Owner_SourcePreparation (OwnerAirlineId, SourcePreparationId)`. A second Order cannot consume the same
+  preparation. The composite foreign key `(OwnerAirlineId, SourcePreparationId)` ->
+  `OrderPreparations(OwnerAirlineId, Id)` additionally prevents an Order from consuming a preparation of another owner.
+  **This is a DIVERGENCE in direction, not in guarantee:** there is no `ConsumedByOrderId` column on
+  `OrderPreparations`, so "which Order consumed this preparation" is answered by a lookup on `Orders`, not by reading
+  the preparation row. It is recorded here rather than left implicit. Proven by
+  `ReliabilityClosureTests.R3_one_preparation_can_be_consumed_by_at_most_one_order`.
+- **"Digest immutable" is a construction invariant.** The normalised candidate digest is computed once by
+  `NormalizedCandidateJson` (canonical form `ordering-canonical-json-v1`) at preparation time and copied to
+  `Order.AcceptedSnapshotDigest` at acceptance. No S1 command can recompute or overwrite it.
+- **"Validity/assurance"** is the captured-at/expiry window of the preparation plus the assurance of the candidate; S1
+  rejects a preparation outside its window at `Create`.
+- **The authorized sales scope of the preparation binds the Order.** `CandidateValidator.EnsureSalesContext` rejects a
+  candidate whose owner airline, financial customer, sales context or buyer differs from the authorized scope of the
+  preparation. The preparation is the scope contract, not a hint.
+
+This entry is a clarification of an existing Pack row, not a new decision.
+
+---
+
+## 5. Schema naming — DIVERGENCE
+
+Pack: `DOMAIN/13-PERSISTENCE-DATA-DICTIONARY.md` line 5 — "One initial SQL Server database, schema areas
+`Commercial`, `Fulfillment`, `Operations`, `Delivery`, `ReadModel`, `Messaging`, `Groups`, `Reference`."
+
+S1 persists the Order aggregate in schema `Order`, not `Commercial`, and uses `Operations` as the Pack names it.
+
+Reason: the schema name was fixed by the reviewed bootstrap commit and by every migration up to and including
+`S1AuthoritativeFinalShape`. Renaming a schema is explicitly outside what this stage may decide (`CLAUDE.md` — "Never
+download images/tools, delete files, rename schemas or change conventions without approval"), and renaming it now would
+rewrite every applied migration for a name change with no semantic content.
+
+The divergence is cosmetic: it changes no ownership, no invariant and no transaction boundary. It is recorded here so
+that the rename, if the owner wants it, is a deliberate migration rather than silent drift. No Pack rule depends on the
+literal schema name.
+
+---
+
+## 6. PII boundary — DIVERGENCE (scoped, open decision)
+
+Pack: `DOMAIN/04-TRAVELERS-JOURNEYS-AND-PRIVACY.md` line 25 — "Monetary immutability is not permission to retain
+unlimited PII. Store protected payload references for names/passports/guardian/assistance information with access and
+retention policy. History stores non-PII correlation IDs and redacted metadata."
+
+S1 stores traveller identity inline: `OrderTravellerIdentities` holds `GivenName`, `Surname` and `DateOfBirth` as
+ordinary columns of the Ordering database, and `OrderContacts` holds `Email` and `Phone` inline.
+
+What S1 does satisfy:
+
+- Names, date of birth and contact details are the only personal data S1 holds. No passport, document, guardian
+  assistance or special-needs payload is stored, because no S1 command accepts one.
+- Nothing in Ordering history stores personal data. `OrderChange`, `PriceChangeSet`, `PricingLine`,
+  `FundingObligation` and the outbox carry identifiers and money only. Traveller identity is reachable only through the
+  current `OrderTravellers` row.
+- The read side projects the same fields and adds none.
+
+What S1 does not satisfy:
+
+- There is no protected payload reference, no access policy and no retention policy. Erasing the personal data of a
+  traveller today means deleting columns of a row that monetary records point at, which the same Pack line forbids
+  ("Deleting/erasing a payload does not delete original money, operation identity or document-number uniqueness
+  records").
+
+Reason this is not closed in S1: a protected payload store is a service-level capability — a key-managed store, an
+access-control surface and a retention job — not a column shape. Introducing one is a new architectural decision and an
+owner decision about where the store lives and who owns the keys. S1 does not invent it.
+
+Consequence recorded plainly: **S1 is not privacy-complete.** The separation the Pack requires between monetary records
+and erasable personal payloads is designed for but not implemented. The monetary tables already reference travellers by
+identifier only, so the later move of name/DOB/contact behind a payload reference is a localized change to
+`OrderTravellerIdentities` and `OrderContacts` and does not touch money. This is recorded as an open decision in
+`reports/00-decisions/`, not as satisfied.
+
+---
+
+## 7. What this file is not
+
+This file does not relax an invariant, retype a Pack field, rename a Pack concept or authorise a "safe default" for a
+missing one. Every DEFERRED entry states the stage that must implement it. Every DIVERGENCE entry states the Pack line
+it departs from and why. Items 1.3 and 6 are open owner decisions and are also recorded in `reports/00-decisions/`.

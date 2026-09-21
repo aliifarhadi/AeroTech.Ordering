@@ -1,3 +1,4 @@
+using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.ToTable("FundingObligations", PersistenceSchemas.Order, table =>
             {
                 table.HasCheckConstraint("CK_FundingObligations_Version", "[Version] >= 1");
+                table.RequiredEnum<FundingObligationPurpose>("FundingObligations", "Purpose");
                 table.HasCheckConstraint("CK_FundingObligations_Amount", "[AmountAmount] >= 0");
                 table.HasCheckConstraint(
                     ExactlyOneScope,
@@ -24,11 +26,26 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             builder.HasKey(obligation => obligation.Id);
             builder.Property(obligation => obligation.Id).ValueGeneratedNever();
             builder.OwnsOne(obligation => obligation.Amount, money => money.MapMoney("Amount"));
-            builder.HasOne<OrderChange>().WithMany().HasForeignKey(obligation => obligation.ChangeId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne<PriceChangeSet>().WithMany().HasForeignKey(obligation => obligation.PriceChangeSetId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne<OrderItem>().WithMany().HasForeignKey(obligation => obligation.OrderItemId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne<OrderService>().WithMany().HasForeignKey(obligation => obligation.OrderServiceId).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne<PricingLine>().WithMany().HasForeignKey(obligation => obligation.PricingLineId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderChange>().WithMany()
+                .HasForeignKey(obligation => new { obligation.OrderId, obligation.ChangeId })
+                .HasPrincipalKey(change => new { change.OrderId, change.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<PriceChangeSet>().WithMany()
+                .HasForeignKey(obligation => new { obligation.OrderId, obligation.PriceChangeSetId })
+                .HasPrincipalKey(set => new { set.OrderId, set.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderItem>().WithMany()
+                .HasForeignKey(obligation => new { obligation.OrderId, obligation.OrderItemId })
+                .HasPrincipalKey(item => new { item.OrderId, item.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<OrderService>().WithMany()
+                .HasForeignKey(obligation => new { obligation.OrderId, obligation.OrderServiceId })
+                .HasPrincipalKey(service => new { service.OrderId, service.Id })
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<PricingLine>().WithMany()
+                .HasForeignKey(obligation => new { obligation.OrderId, obligation.PricingLineId })
+                .HasPrincipalKey(line => new { line.OrderId, line.Id })
+                .OnDelete(DeleteBehavior.Restrict);
             builder.HasIndex(obligation => new { obligation.OrderId, obligation.Id, obligation.Version }).IsUnique();
         }
     }

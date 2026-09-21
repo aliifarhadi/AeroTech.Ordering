@@ -7,6 +7,9 @@ namespace AeroTech.Ordering.Domain._Shared.ValueObjects
     {
         public BuyerSnapshot(BusinessContextType? contextType, long? buyerId)
         {
+            if (contextType is { } supplied && !Enum.IsDefined(supplied))
+                throw ExceptionFactory.SalesContextIncomplete("a defined buyer context type");
+
             if (contextType is null != buyerId is null)
                 throw ExceptionFactory.SalesContextIncomplete("buyer context type and buyer identifier");
 

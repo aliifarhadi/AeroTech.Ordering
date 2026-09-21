@@ -62,6 +62,7 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 throw new AirOfferUnsupportedException("infant seat/resource requirement is unresolved (BD-002, OD-S1-07)");
 
             EnsureTravellerReferences(details.Tickets);
+            EnsureNoUnsupportedStop(details.AirTransports);
 
             var journeys = new List<CandidateJourney>();
             var segments = new List<CandidateSegment>();
@@ -264,6 +265,27 @@ namespace AeroTech.Ordering.Providers.AirOffer.Services
                 throw new AirOfferContractMismatchException(
                     $"details price offer {respondedOfferId} but offer {requestedOfferId} was requested");
         }
+
+        private static void EnsureNoUnsupportedStop(IReadOnlyList<AirOfferAirTransportWire> bounds)
+        {
+            foreach (var bound in bounds)
+            {
+                foreach (var flight in bound.Flights)
+                {
+                    if (IsSupplied(flight.Stop))
+                        throw new AirOfferUnsupportedException(
+                            $"bound {bound.BoundId} flight {flight.FlightId} supplies a stop payload whose connection semantics are not approved (BD-006)");
+
+                    foreach (var leg in flight.Legs)
+                        if (IsSupplied(leg.Stop))
+                            throw new AirOfferUnsupportedException(
+                                $"bound {bound.BoundId} flight {flight.FlightId} leg {leg.LegId} supplies a stop payload whose connection semantics are not approved (BD-006)");
+                }
+            }
+        }
+
+        private static bool IsSupplied(JsonElement? stop)
+            => stop is { } value && value.ValueKind != JsonValueKind.Null && value.ValueKind != JsonValueKind.Undefined;
 
         private static void EnsureTravellerReferences(IReadOnlyList<AirOfferTicketWire> tickets)
         {

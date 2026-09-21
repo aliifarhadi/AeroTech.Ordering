@@ -1,3 +1,4 @@
+using AeroTech.Messages.Ordering.Enums;
 using AeroTech.Ordering.Domain.OrderAggregate.Entities;
 using AeroTech.Ordering.Persistence._Shared.Mapping;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,11 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
         public void Configure(EntityTypeBuilder<FarePricingUnit> builder)
         {
             builder.ToTable("FarePricingUnits", PersistenceSchemas.Order, table =>
-                table.HasCheckConstraint("CK_FarePricingUnits_Sequence", "[Sequence] >= 1"));
+            {
+                table.HasCheckConstraint("CK_FarePricingUnits_Sequence", "[Sequence] >= 1");
+                table.RequiredEnum<FarePricingUnitType>("FarePricingUnits", "Type");
+                table.RequiredEnum<AirFareConstructionType>("FarePricingUnits", "SourceConstructionType");
+            });
             builder.HasKey(unit => unit.Id);
             builder.Property(unit => unit.Id).ValueGeneratedNever();
             builder.HasMany(unit => unit.CoveredBounds).WithOne().HasForeignKey(bound => bound.PricingUnitId).OnDelete(DeleteBehavior.Restrict);
