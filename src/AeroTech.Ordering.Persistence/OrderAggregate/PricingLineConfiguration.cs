@@ -50,8 +50,7 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
                 .HasPrincipalKey(set => new { set.OrderId, set.Id })
                 .OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<OrderItem>().WithMany()
-                .HasForeignKey(line => new { line.OrderId, line.OrderItemId })
-                .HasPrincipalKey(item => new { item.OrderId, item.Id })
+                .HasForeignKey(line => line.OrderItemId)
                 .OnDelete(DeleteBehavior.Restrict);
             builder.HasIndex(line => new { line.PriceChangeSetId, line.SourceOccurrencePath }).IsUnique();
             builder.HasIndex(line => new { line.OrderId, line.OrderItemId });

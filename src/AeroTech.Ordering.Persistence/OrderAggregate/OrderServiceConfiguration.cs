@@ -46,13 +46,14 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
             });
             builder.Navigation(service => service.FulfillmentProfile).IsRequired();
 
+            builder.HasAlternateKey(service => new { service.OrderId, service.Id });
+
             builder.HasOne<OrderItem>().WithMany()
                 .HasForeignKey(service => new { service.OrderId, service.OrderItemId })
                 .HasPrincipalKey(item => new { item.OrderId, item.Id })
                 .OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<OrderChange>().WithMany()
-                .HasForeignKey(service => new { service.OrderId, service.CreatedByChangeId })
-                .HasPrincipalKey(change => new { change.OrderId, change.Id })
+                .HasForeignKey(service => service.CreatedByChangeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(service => new { service.OrderItemId, service.CommercialStatus });

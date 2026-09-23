@@ -6,8 +6,18 @@ Pack basis: `DOMAIN/01-AGGREGATES.md` (the Order is the consistency boundary), `
 line 13 ("Current service owns exactly one OrderId/OrderItemId"), `DOMAIN/13-PERSISTENCE-DATA-DICTIONARY.md`
 (constraint inspection is stage evidence).
 
-**The rule this matrix enforces.** Inside the Order aggregate, a child row must not be able to reference a row that
-belongs to a different Order, and an Order must not be able to reference a preparation or receipt that belongs to a
+> **CORRECTED BY STAGE 09 — 2026-09-21.** This stage applied one rule to every Order-scoped reference: if both sides
+> carry an `OrderId`, make the foreign key composite on it. That rule is correct for **current containment** and wrong
+> for **immutable historical references**, which `DOMAIN/13` states are "not constrained to current owner" and
+> `DOMAIN/01` line 55 requires to survive a service moving Order during split. Seven relations were over-constrained
+> and are corrected in
+> `reports/09-S1-historical-identity-and-pack-reference/HISTORICAL-IDENTITY-CORRECTION-MATRIX.md`, which is
+> authoritative from this date. The correct rule is: current containment -> same-current-Order composite; immutable
+> historical occurrence -> stable identity plus an explicit occurrence `OrderId`, not current ownership.
+
+
+**The rule this matrix enforced (over-broad — see the correction note above).** Inside the Order aggregate, a child
+row must not be able to reference a row that belongs to a different Order, and an Order must not be able to reference a preparation or receipt that belongs to a
 different owner airline. Before this stage most of these relations were single-column foreign keys — `CreatedByChangeId`
 pointed at *some* `OrderChange`, not necessarily at a change of the same Order — so the aggregate boundary was an
 application convention, not a database fact.

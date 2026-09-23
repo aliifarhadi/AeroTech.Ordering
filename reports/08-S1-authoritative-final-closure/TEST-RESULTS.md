@@ -4,6 +4,11 @@ Stage: 08-S1-authoritative-final-closure · 2026-09-21 · branch `k8s-stg` · ba
 
 Raw output: `01-runs/`.
 
+> **CORRECTED BY STAGE 09.** Four theory rows of `CurrentOwnershipConstraintTests` asserted historical references as
+> current ownership and were removed; the matrix test was split into a current-containment test and a
+> historical-reference test. Counts below are the Stage 08 state. See
+> `reports/09-S1-historical-identity-and-pack-reference/TEST-RESULTS.md`.
+
 ## 1. Final state
 
 | Run | Command | Result |

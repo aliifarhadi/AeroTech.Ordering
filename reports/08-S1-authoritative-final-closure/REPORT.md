@@ -2,6 +2,11 @@
 
 Stage: 08-S1-authoritative-final-closure · 2026-09-21 · branch `k8s-stg` · base HEAD `e9fe97a`
 
+> **CORRECTED BY STAGE 09 — 2026-09-21.** This stage over-applied current-owner composite foreign keys to seven
+> immutable historical references, which would have made the Pack-mandated split (`DOMAIN/12`) impossible in SQL.
+> Corrected in `reports/09-S1-historical-identity-and-pack-reference/`. The status line below is superseded by
+> `S1_HISTORICAL_IDENTITY_CORRECTED_PACK_REFERENCE_READY_FOR_ARCHITECT_REVIEW`.
+
 **Status: `S1_FINAL_SHAPE_READY_FOR_ARCHITECT_REVIEW`**
 **`S2_NOT_STARTED`**
 
@@ -18,7 +23,7 @@ accepting facts the owner contract calls required, and closed the scenario matri
 
 | Area | Before | After |
 |---|---|---|
-| Order-scope enforcement | 18 single-column foreign keys — a child could reference a row of another Order | **21 composite foreign keys** on `(OrderId, …)` / `(OwnerAirlineId, …)` |
+| Order-scope enforcement | 18 single-column foreign keys — a child could reference a row of another Order | 21 composite foreign keys — **corrected by stage 09 to 14 current-containment composites + 7 stable-identity historical references** |
 | Closed-vocabulary enforcement | an enum column accepted any `int` | **39 `CHECK` constraints**, generated from `Enum.GetValues`, one per persisted enum column |
 | `CommercialVersion` uniqueness | non-unique index | **unique** per Order |
 | Leg required facts | nullable columns the validator already refused to leave null | **non-null** |
@@ -136,10 +141,12 @@ Also written outside this folder:
 
 ## 8. Open for the owner
 
-1. **`OD-S1-08` — `ScopeAtAssociation`.** Which of the three Pack readings of "scope" is it, and what is its persisted
-   type?
-2. **`OD-S1-09` — protected personal-data payload store.** Where does it live, who owns the keys, what is the
-   retention policy for traveller name / date of birth / contact details?
+1. ~~**`OD-S1-08` — `ScopeAtAssociation`.**~~ **CLOSED by the owner in stage 09:** immutable beneficiary/coverage
+   snapshot at association; `{TravellerId, SegmentId}` for AirTransport; persistence deferred to the first
+   re-association or split.
+2. **`OD-S1-09` — protected personal-data payload store.** **Refined in stage 09:** the Domain requirement and the
+   payload-reference abstraction are settled; only the physical store, key ownership and retention schedule remain
+   open, as an architecture gate before the privacy lifecycle slice.
 3. **`OrderingCommandKind` placement.** Move it to `Contracts/AeroTech.Messages/Ordering/Enums/` with `[Display]`
    per the repository convention, or keep it internal to Domain and record the exception?
 4. **Schema name.** Keep `Order`, or plan a rename to `Commercial` as a deliberate migration?

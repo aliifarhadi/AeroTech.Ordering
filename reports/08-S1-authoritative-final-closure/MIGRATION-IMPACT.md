@@ -5,6 +5,11 @@ Stage: 08-S1-authoritative-final-closure · 2026-09-21 · branch `k8s-stg`
 File: `src/AeroTech.Ordering.Persistence/Migrations/20260921000413_S1AuthoritativeFinalShape.cs`
 Context: `OrderingDbContext`.
 
+> **SUPERSEDED IN PART BY STAGE 09.** Seven of the foreign keys this migration added were over-constrained and are
+> replaced by `20260921194857_S1HistoricalIdentityCorrection`, an FK/index-only correction with no data operation and
+> no column change. The chain is still not rebaselined. See
+> `reports/09-S1-historical-identity-and-pack-reference/MIGRATION-IMPACT.md`.
+
 ## 1. Decision: one additive migration, no rebaseline
 
 The migration chain is unchanged and complete. No existing migration was edited, removed or squashed:

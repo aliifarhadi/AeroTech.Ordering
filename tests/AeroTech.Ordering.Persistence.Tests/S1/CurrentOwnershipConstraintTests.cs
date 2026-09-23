@@ -13,29 +13,33 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
     {
         private const int ForeignKeyViolation = 547;
 
-        private static readonly (string Table, string[] Columns, string PrincipalTable)[] OwnerScopedRelations =
+        private static readonly (string Table, string[] Columns, string PrincipalTable)[] CurrentContainmentRelations =
         [
             ("Orders", ["OwnerAirlineId", "SourcePreparationId"], "OrderPreparations"),
             ("CommandReceipts", ["OwnerAirlineId", "OrderId"], "Orders"),
             ("OrderItems", ["OrderId", "CreatedByChangeId"], "OrderChanges"),
             ("OrderServices", ["OrderId", "OrderItemId"], "OrderItems"),
-            ("OrderServices", ["OrderId", "CreatedByChangeId"], "OrderChanges"),
             ("OrderServices", ["OrderId", "TravellerId"], "OrderTravellers"),
             ("OrderServices", ["OrderId", "SegmentId"], "OrderSegments"),
             ("OrderSegments", ["OrderId", "JourneyId"], "OrderJourneys"),
             ("OrderTravellers", ["OrderId", "InfantParentTravellerId"], "OrderTravellers"),
-            ("OrderItemServiceLinks", ["OrderIdAtAssociation", "OrderItemId"], "OrderItems"),
-            ("OrderItemServiceLinks", ["OrderIdAtAssociation", "OrderServiceId"], "OrderServices"),
             ("OrderItemServiceLinks", ["OrderIdAtAssociation", "LinkedByChangeId"], "OrderChanges"),
             ("PriceChangeSets", ["OrderId", "ChangeId"], "OrderChanges"),
             ("PricingLines", ["OrderId", "PriceChangeSetId"], "PriceChangeSets"),
-            ("PricingLines", ["OrderId", "OrderItemId"], "OrderItems"),
             ("FareConstructions", ["OrderId", "CreatedByChangeId"], "OrderChanges"),
             ("FundingObligations", ["OrderId", "ChangeId"], "OrderChanges"),
-            ("FundingObligations", ["OrderId", "PriceChangeSetId"], "PriceChangeSets"),
-            ("FundingObligations", ["OrderId", "OrderItemId"], "OrderItems"),
-            ("FundingObligations", ["OrderId", "OrderServiceId"], "OrderServices"),
-            ("FundingObligations", ["OrderId", "PricingLineId"], "PricingLines")
+            ("FundingObligations", ["OrderId", "PriceChangeSetId"], "PriceChangeSets")
+        ];
+
+        private static readonly (string Table, string Column, string PrincipalTable)[] HistoricalReferences =
+        [
+            ("OrderServices", "CreatedByChangeId", "OrderChanges"),
+            ("OrderItemServiceLinks", "OrderItemId", "OrderItems"),
+            ("OrderItemServiceLinks", "OrderServiceId", "OrderServices"),
+            ("PricingLines", "OrderItemId", "OrderItems"),
+            ("FundingObligations", "OrderItemId", "OrderItems"),
+            ("FundingObligations", "OrderServiceId", "OrderServices"),
+            ("FundingObligations", "PricingLineId", "PricingLines")
         ];
 
         private readonly OrderingDatabaseFixture _fixture;
@@ -46,12 +50,12 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
         }
 
         [Fact]
-        public async Task Every_scoped_relation_in_the_matrix_is_a_live_composite_foreign_key()
+        public async Task Every_current_containment_relation_is_a_live_composite_foreign_key()
         {
             await using var harness = await S1Harness.StartAsync(_fixture);
             var live = await ForeignKeyColumnsAsync(harness);
 
-            var missing = OwnerScopedRelations
+            var missing = CurrentContainmentRelations
                 .Where(relation => !live.Any(candidate =>
                     candidate.Table == relation.Table
                     && candidate.PrincipalTable == relation.PrincipalTable
@@ -60,23 +64,55 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
                 .ToList();
 
             Assert.Empty(missing);
-            Assert.Equal(21, OwnerScopedRelations.Length);
+            Assert.Equal(14, CurrentContainmentRelations.Length);
         }
 
         [Fact]
-        public async Task No_order_scoped_table_keeps_a_single_column_foreign_key_to_another_order_scoped_table()
+        public async Task Every_historical_reference_is_a_stable_identity_foreign_key_and_not_current_owner_scoped()
         {
             await using var harness = await S1Harness.StartAsync(_fixture);
             var live = await ForeignKeyColumnsAsync(harness);
 
-            var scopedTables = OwnerScopedRelations.Select(relation => relation.Table)
-                .Concat(OwnerScopedRelations.Select(relation => relation.PrincipalTable))
+            var wrong = new List<string>();
+
+            foreach (var reference in HistoricalReferences)
+            {
+                var matches = live
+                    .Where(candidate => candidate.Table == reference.Table
+                        && candidate.PrincipalTable == reference.PrincipalTable
+                        && candidate.Columns.Contains(reference.Column))
+                    .ToList();
+
+                if (matches.Count != 1)
+                {
+                    wrong.Add($"{reference.Table}({reference.Column}) -> {reference.PrincipalTable}: {matches.Count} foreign keys");
+                    continue;
+                }
+
+                if (matches[0].Columns.Length != 1)
+                    wrong.Add($"{reference.Table}({reference.Column}) -> {reference.PrincipalTable} is still scoped by [{string.Join(", ", matches[0].Columns)}]");
+            }
+
+            Assert.Empty(wrong);
+            Assert.Equal(7, HistoricalReferences.Length);
+        }
+
+        [Fact]
+        public async Task No_current_containment_reference_is_left_as_a_single_column_foreign_key()
+        {
+            await using var harness = await S1Harness.StartAsync(_fixture);
+            var live = await ForeignKeyColumnsAsync(harness);
+
+            var scopedTables = CurrentContainmentRelations.Select(relation => relation.Table)
+                .Concat(CurrentContainmentRelations.Select(relation => relation.PrincipalTable))
                 .ToHashSet();
 
             var unscoped = live
                 .Where(relation => relation.Columns.Length == 1)
                 .Where(relation => scopedTables.Contains(relation.Table) && scopedTables.Contains(relation.PrincipalTable))
                 .Where(relation => relation.Columns[0] is not ("OrderId" or "OwnerAirlineId" or "OrderIdAtAssociation"))
+                .Where(relation => !HistoricalReferences.Any(historical =>
+                    historical.Table == relation.Table && historical.Column == relation.Columns[0]))
                 .Select(relation => $"{relation.Table}({relation.Columns[0]}) -> {relation.PrincipalTable}")
                 .ToList();
 
@@ -112,9 +148,7 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
 
         [Theory]
         [InlineData("OrderItems", "CreatedByChangeId", "OrderChanges", "FK_OrderItems_OrderChanges_OrderId_CreatedByChangeId")]
-        [InlineData("OrderServices", "CreatedByChangeId", "OrderChanges", "FK_OrderServices_OrderChanges_OrderId_CreatedByChangeId")]
         [InlineData("OrderServices", "OrderItemId", "OrderItems", "FK_OrderServices_OrderItems_OrderId_OrderItemId")]
-        [InlineData("PricingLines", "OrderItemId", "OrderItems", "FK_PricingLines_OrderItems_OrderId_OrderItemId")]
         public async Task A_child_row_cannot_be_pointed_at_a_parent_of_another_order(
             string table,
             string column,
@@ -136,10 +170,8 @@ namespace AeroTech.Ordering.Persistence.Tests.S1
         }
 
         [Theory]
-        [InlineData("OrderItemId", "OrderItems", "FK_OrderItemServiceLinks_OrderItems_OrderIdAtAssociation_OrderItemId")]
-        [InlineData("OrderServiceId", "OrderServices", "FK_OrderItemServiceLinks_OrderServices_OrderIdAtAssociation_OrderServiceId")]
         [InlineData("LinkedByChangeId", "OrderChanges", "FK_OrderItemServiceLinks_OrderChanges_OrderIdAtAssociation_LinkedByChangeId")]
-        public async Task An_item_service_link_cannot_bind_a_row_of_another_order(string column, string principalTable, string constraint)
+        public async Task An_item_service_link_change_reference_stays_inside_its_occurrence_order(string column, string principalTable, string constraint)
         {
             await using var harness = await S1Harness.StartAsync(_fixture);
             var first = await AcceptedOrderIdAsync(harness);

@@ -1,0 +1,185 @@
+  Determining projects to restore...
+E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj : warning NU1510: PackageReference Microsoft.Extensions.Hosting.Abstractions will not be pruned. This package is automatically available and does not need to be referenced explicitly. Remove the PackageReference item. [E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj]
+  All projects are up-to-date for restore.
+  AeroTech.Messages -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Messages.dll
+E:\Projects\DotAir\AeroTech.Ordering\Framework\AeroTech.Framework.Infrastructure\AeroTech.Framework.Infrastructure.csproj : warning NU1510: PackageReference Microsoft.Extensions.Hosting.Abstractions will not be pruned. This package is automatically available and does not need to be referenced explicitly. Remove the PackageReference item.
+  AeroTech.Framework.Core -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Framework.Core.dll
+  AeroTech.Ordering.ReferenceData -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.ReferenceData.dll
+  AeroTech.Ordering.Domain -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Domain.dll
+E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\OrderAggregate\Commands\RebuildOrderProjection\RebuildOrderProjectionCommandHandler.cs(89,92): warning CA2200: Re-throwing caught exception changes stack information (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2200) [E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\AeroTech.Ordering.Application.csproj]
+E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\OrderAggregate\Commands\CreateOrderFromOffer\CreateOrderFromOfferService.cs(92,90): warning CA2200: Re-throwing caught exception changes stack information (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2200) [E:\Projects\DotAir\AeroTech.Ordering\src\AeroTech.Ordering.Application\AeroTech.Ordering.Application.csproj]
+  AeroTech.Ordering.Providers -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Providers.dll
+  AeroTech.Ordering.Application -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Application.dll
+  AeroTech.Framework.Infrastructure -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Framework.Infrastructure.dll
+  AeroTech.Ordering.Providers.Deterministic -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Providers.Deterministic.dll
+  AeroTech.Ordering.Domain.Tests -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Domain.Tests.dll
+  AeroTech.Ordering.Query -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Query.dll
+  AeroTech.Framework.Presentation -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Framework.Presentation.dll
+  AeroTech.Ordering.Persistence -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Persistence.dll
+  AeroTech.Ordering.Synchronizer -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Synchronizer.dll
+  AeroTech.Ordering.Consumers -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Consumers.dll
+  AeroTech.Ordering.RestApi -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.RestApi.dll
+  AeroTech.Ordering.ServiceHost -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.ServiceHost.dll
+E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\AirOfferLiveCandidateBridgeTests.cs(48,29): warning CS8602: Dereference of a possibly null reference. [E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj]
+E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\ComponentTotalPersistenceTests.cs(111,81): warning EF1002: Method 'ExecuteSqlRawAsync' inserts interpolated strings directly into the SQL, without any protection against SQL injection. Consider using 'ExecuteSqlAsync' instead, which protects against SQL injection, or make sure that the value is sanitized and suppress the warning. [E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj]
+E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\ComponentTotalPersistenceTests.cs(88,85): warning EF1002: Method 'ExecuteSqlRawAsync' inserts interpolated strings directly into the SQL, without any protection against SQL injection. Consider using 'ExecuteSqlAsync' instead, which protects against SQL injection, or make sure that the value is sanitized and suppress the warning. [E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj]
+E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\InformationPreservationTests.cs(92,13): warning xUnit2002: Do not use Assert.NotNull() on value type 'DateTimeOffset'. Remove this assert. (https://xunit.net/xunit.analyzers/rules/xUnit2002) [E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj]
+E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\InformationPreservationTests.cs(93,13): warning xUnit2002: Do not use Assert.NotNull() on value type 'DateTimeOffset'. Remove this assert. (https://xunit.net/xunit.analyzers/rules/xUnit2002) [E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj]
+E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\ReliabilityClosureTests.cs(39,81): warning EF1002: Method 'ExecuteSqlRawAsync' inserts interpolated strings directly into the SQL, without any protection against SQL injection. Consider using 'ExecuteSqlAsync' instead, which protects against SQL injection, or make sure that the value is sanitized and suppress the warning. [E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj]
+E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\ReliabilityClosureTests.cs(159,83): warning EF1002: Method 'ExecuteSqlRawAsync' inserts interpolated strings directly into the SQL, without any protection against SQL injection. Consider using 'ExecuteSqlAsync' instead, which protects against SQL injection, or make sure that the value is sanitized and suppress the warning. [E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\AeroTech.Ordering.Persistence.Tests.csproj]
+  AeroTech.Ordering.Persistence.Tests -> C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Persistence.Tests.dll
+Test run for C:\Users\al.farhadi\AppData\Local\Temp\ordredf\AeroTech.Ordering.Persistence.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:40.86]     AeroTech.Ordering.Persistence.Tests.S1.CurrentOwnershipConstraintTests.Every_historical_reference_is_a_stable_identity_foreign_key_and_not_current_owner_scoped [FAIL]
+  Failed AeroTech.Ordering.Persistence.Tests.S1.CurrentOwnershipConstraintTests.Every_historical_reference_is_a_stable_identity_foreign_key_and_not_current_owner_scoped [475 ms]
+  Error Message:
+   Assert.Empty() Failure: Collection was not empty
+Collection: ["OrderServices(CreatedByChangeId) -> OrderChanges i"···, "OrderItemServiceLinks(OrderItemId) -> OrderItems i"···, "OrderItemServiceLinks(OrderServiceId) -> OrderServ"···, "PricingLines(OrderItemId) -> OrderItems is still s"···, "FundingObligations(OrderItemId) -> OrderItems is s"···, ···]
+  Stack Trace:
+     at AeroTech.Ordering.Persistence.Tests.S1.CurrentOwnershipConstraintTests.Every_historical_reference_is_a_stable_identity_foreign_key_and_not_current_owner_scoped() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\CurrentOwnershipConstraintTests.cs:line 96
+   at AeroTech.Ordering.Persistence.Tests.S1.CurrentOwnershipConstraintTests.Every_historical_reference_is_a_stable_identity_foreign_key_and_not_current_owner_scoped() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\CurrentOwnershipConstraintTests.cs:line 97
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:45.32]     AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.The_item_service_link_keeps_its_occurrence_order_after_the_service_moves [FAIL]
+[xUnit.net 00:00:45.99]     AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_funding_obligation_scoped_to_the_moved_service_stays_valid_and_keeps_its_occurrence_order [FAIL]
+  Failed AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.The_item_service_link_keeps_its_occurrence_order_after_the_service_moves [633 ms]
+  Error Message:
+   Microsoft.Data.SqlClient.SqlException : The UPDATE statement conflicted with the REFERENCE constraint "FK_OrderItemServiceLinks_OrderServices_OrderIdAtAssociation_OrderServiceId". The conflict occurred in database "OrderingS1_20260921200132_a0edaeba", table "Order.OrderItemServiceLinks".
+The statement has been terminated.
+  Stack Trace:
+     at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlCommand.InternalEndExecuteNonQuery(IAsyncResult asyncResult, Boolean isInternal, String endMethod)
+   at Microsoft.Data.SqlClient.SqlCommand.EndExecuteNonQueryInternal(IAsyncResult asyncResult)
+   at Microsoft.Data.SqlClient.SqlCommand.EndExecuteNonQueryAsync(IAsyncResult asyncResult)
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<InternalExecuteNonQueryAsync>b__193_1(IAsyncResult asyncResult)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(DatabaseFacade databaseFacade, String sql, IEnumerable`1 parameters, CancellationToken cancellationToken)
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.<>c__DisplayClass15_0.<<ExecuteAsync>b__0>d.MoveNext() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 225
+--- End of stack trace from previous location ---
+   at AeroTech.Ordering.Persistence.Tests._Shared.S1Harness.InScopeAsync[TResult](Func`2 action) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\_Shared\S1Harness.cs:line 134
+   at AeroTech.Ordering.Persistence.Tests._Shared.S1Harness.InScopeAsync[TResult](Func`2 action) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\_Shared\S1Harness.cs:line 134
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.MoveServiceAsync(S1Harness harness, Int64 serviceId, Int64 child) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 162
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.The_item_service_link_keeps_its_occurrence_order_after_the_service_moves() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 54
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.The_item_service_link_keeps_its_occurrence_order_after_the_service_moves() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 58
+--- End of stack trace from previous location ---
+  Failed AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_funding_obligation_scoped_to_the_moved_service_stays_valid_and_keeps_its_occurrence_order [673 ms]
+  Error Message:
+   Microsoft.Data.SqlClient.SqlException : The UPDATE statement conflicted with the REFERENCE constraint "FK_FundingObligations_OrderServices_OrderId_OrderServiceId". The conflict occurred in database "OrderingS1_20260921200132_a0edaeba", table "Order.FundingObligations".
+The statement has been terminated.
+  Stack Trace:
+     at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlCommand.InternalEndExecuteNonQuery(IAsyncResult asyncResult, Boolean isInternal, String endMethod)
+   at Microsoft.Data.SqlClient.SqlCommand.EndExecuteNonQueryInternal(IAsyncResult asyncResult)
+   at Microsoft.Data.SqlClient.SqlCommand.EndExecuteNonQueryAsync(IAsyncResult asyncResult)
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<InternalExecuteNonQueryAsync>b__193_1(IAsyncResult asyncResult)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(DatabaseFacade databaseFacade, String sql, IEnumerable`1 parameters, CancellationToken cancellationToken)
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.<>c__DisplayClass15_0.<<ExecuteAsync>b__0>d.MoveNext() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 225
+--- End of stack trace from previous location ---
+   at AeroTech.Ordering.Persistence.Tests._Shared.S1Harness.InScopeAsync[TResult](Func`2 action) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\_Shared\S1Harness.cs:line 134
+   at AeroTech.Ordering.Persistence.Tests._Shared.S1Harness.InScopeAsync[TResult](Func`2 action) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\_Shared\S1Harness.cs:line 134
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.MoveServiceAsync(S1Harness harness, Int64 serviceId, Int64 child) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 162
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_funding_obligation_scoped_to_the_moved_service_stays_valid_and_keeps_its_occurrence_order() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 94
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_funding_obligation_scoped_to_the_moved_service_stays_valid_and_keeps_its_occurrence_order() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 98
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:46.62]     AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_service_can_move_to_another_order_of_the_same_owner_without_touching_its_history [FAIL]
+[xUnit.net 00:00:47.15]     AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(column: "SegmentId", principalTable: "OrderSegments", constraint: "FK_OrderServices_OrderSegments_OrderId_SegmentId") [FAIL]
+[xUnit.net 00:00:47.71]     AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(column: "TravellerId", principalTable: "OrderTravellers", constraint: "FK_OrderServices_OrderTravellers_OrderId_Traveller"···) [FAIL]
+  Failed AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_service_can_move_to_another_order_of_the_same_owner_without_touching_its_history [622 ms]
+  Error Message:
+   Microsoft.Data.SqlClient.SqlException : The UPDATE statement conflicted with the REFERENCE constraint "FK_FundingObligations_OrderServices_OrderId_OrderServiceId". The conflict occurred in database "OrderingS1_20260921200132_a0edaeba", table "Order.FundingObligations".
+The statement has been terminated.
+  Stack Trace:
+     at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlCommand.InternalEndExecuteNonQuery(IAsyncResult asyncResult, Boolean isInternal, String endMethod)
+   at Microsoft.Data.SqlClient.SqlCommand.EndExecuteNonQueryInternal(IAsyncResult asyncResult)
+   at Microsoft.Data.SqlClient.SqlCommand.EndExecuteNonQueryAsync(IAsyncResult asyncResult)
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<InternalExecuteNonQueryAsync>b__193_1(IAsyncResult asyncResult)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(DatabaseFacade databaseFacade, String sql, IEnumerable`1 parameters, CancellationToken cancellationToken)
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.<>c__DisplayClass15_0.<<ExecuteAsync>b__0>d.MoveNext() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 225
+--- End of stack trace from previous location ---
+   at AeroTech.Ordering.Persistence.Tests._Shared.S1Harness.InScopeAsync[TResult](Func`2 action) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\_Shared\S1Harness.cs:line 134
+   at AeroTech.Ordering.Persistence.Tests._Shared.S1Harness.InScopeAsync[TResult](Func`2 action) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\_Shared\S1Harness.cs:line 134
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.MoveServiceAsync(S1Harness harness, Int64 serviceId, Int64 child) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 162
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_service_can_move_to_another_order_of_the_same_owner_without_touching_its_history() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 37
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_service_can_move_to_another_order_of_the_same_owner_without_touching_its_history() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 43
+--- End of stack trace from previous location ---
+  Failed AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(column: "SegmentId", principalTable: "OrderSegments", constraint: "FK_OrderServices_OrderSegments_OrderId_SegmentId") [527 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "The UPDATE statement conflicted with the "···
+Not found: "FK_OrderServices_OrderSegments_OrderId_Se"···
+  Stack Trace:
+     at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(String column, String principalTable, String constraint) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 153
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(String column, String principalTable, String constraint) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 153
+--- End of stack trace from previous location ---
+  Failed AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(column: "TravellerId", principalTable: "OrderTravellers", constraint: "FK_OrderServices_OrderTravellers_OrderId_Traveller"···) [560 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "The UPDATE statement conflicted with the "···
+Not found: "FK_OrderServices_OrderTravellers_OrderId_"···
+  Stack Trace:
+     at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(String column, String principalTable, String constraint) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 153
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(String column, String principalTable, String constraint) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 153
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:48.42]     AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(column: "OrderItemId", principalTable: "OrderItems", constraint: "FK_OrderServices_OrderItems_OrderId_OrderItemId") [FAIL]
+[xUnit.net 00:00:49.06]     AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_pricing_line_keeps_its_occurrence_order_and_item_after_the_service_moves [FAIL]
+  Failed AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(column: "OrderItemId", principalTable: "OrderItems", constraint: "FK_OrderServices_OrderItems_OrderId_OrderItemId") [686 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "The UPDATE statement conflicted with the "···
+Not found: "FK_OrderServices_OrderItems_OrderId_Order"···
+  Stack Trace:
+     at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(String column, String principalTable, String constraint) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 153
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_moved_service_cannot_keep_a_containment_reference_to_its_previous_order(String column, String principalTable, String constraint) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 153
+--- End of stack trace from previous location ---
+  Failed AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_pricing_line_keeps_its_occurrence_order_and_item_after_the_service_moves [637 ms]
+  Error Message:
+   Microsoft.Data.SqlClient.SqlException : The UPDATE statement conflicted with the REFERENCE constraint "FK_OrderItemServiceLinks_OrderServices_OrderIdAtAssociation_OrderServiceId". The conflict occurred in database "OrderingS1_20260921200132_a0edaeba", table "Order.OrderItemServiceLinks".
+The statement has been terminated.
+  Stack Trace:
+     at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlCommand.InternalEndExecuteNonQuery(IAsyncResult asyncResult, Boolean isInternal, String endMethod)
+   at Microsoft.Data.SqlClient.SqlCommand.EndExecuteNonQueryInternal(IAsyncResult asyncResult)
+   at Microsoft.Data.SqlClient.SqlCommand.EndExecuteNonQueryAsync(IAsyncResult asyncResult)
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<InternalExecuteNonQueryAsync>b__193_1(IAsyncResult asyncResult)
+   at System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteNonQueryAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(DatabaseFacade databaseFacade, String sql, IEnumerable`1 parameters, CancellationToken cancellationToken)
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.<>c__DisplayClass15_0.<<ExecuteAsync>b__0>d.MoveNext() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 225
+--- End of stack trace from previous location ---
+   at AeroTech.Ordering.Persistence.Tests._Shared.S1Harness.InScopeAsync[TResult](Func`2 action) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\_Shared\S1Harness.cs:line 134
+   at AeroTech.Ordering.Persistence.Tests._Shared.S1Harness.InScopeAsync[TResult](Func`2 action) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\_Shared\S1Harness.cs:line 134
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.MoveServiceAsync(S1Harness harness, Int64 serviceId, Int64 child) in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 162
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_pricing_line_keeps_its_occurrence_order_and_item_after_the_service_moves() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 74
+   at AeroTech.Ordering.Persistence.Tests.S1.HistoricalIdentityMobilityTests.A_pricing_line_keeps_its_occurrence_order_and_item_after_the_service_moves() in E:\Projects\DotAir\AeroTech.Ordering\tests\AeroTech.Ordering.Persistence.Tests\S1\HistoricalIdentityMobilityTests.cs:line 78
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     8, Passed:    14, Skipped:     0, Total:    22, Duration: 29 s - AeroTech.Ordering.Persistence.Tests.dll (net10.0)

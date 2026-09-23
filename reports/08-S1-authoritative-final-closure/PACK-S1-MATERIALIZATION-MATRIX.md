@@ -9,6 +9,13 @@ invention and has to justify itself.
 Every Pack concept below is in exactly one state: `MATERIALIZED`, `DEFERRED` (with the owning stage named in the
 ERRATA), or `DIVERGENCE` (with the gap recorded).
 
+> **CORRECTED BY STAGE 09.** Rows that cite "21 composite foreign keys" or `CURRENT-OWNERSHIP-FK-MATRIX.md` now read
+> 14 current-containment composites plus 7 stable-identity historical references. `ScopeAtAssociation` is no longer
+> an open decision: its semantics were closed by the owner (beneficiary/coverage snapshot; `{TravellerId, SegmentId}`
+> for AirTransport) and only its persistence is deferred to the first re-association or split. `OD-S1-09` is refined
+> to one remaining infrastructure gate. See `reports/09-S1-historical-identity-and-pack-reference/`.
+
+
 ---
 
 ## 1. Forward — `DOMAIN/01-AGGREGATES.md`
@@ -27,8 +34,8 @@ ERRATA), or `DIVERGENCE` (with the gap recorded).
 | Pack concept | State | Where | Enforced by |
 |---|---|---|---|
 | Immutable `OrderItemServiceLink` membership history | `MATERIALIZED` | `OrderItemServiceLink` | FK matrix rows 10–12 |
-| `OrderIdAtAssociation` | `MATERIALIZED` | column + all three outbound FKs composite on it | `An_item_service_link_cannot_bind_a_row_of_another_order` (3 cases) |
-| `ScopeAtAssociation` | `DEFERRED` | — | ERRATA §1.3, `OD-S1-08` — the Pack names it once with no type |
+| `OrderIdAtAssociation` | `MATERIALIZED` | column retained as the occurrence fact; the change reference stays composite on it, the item and service references are stable-identity (stage 09) | `HistoricalIdentityMobilityTests.The_item_service_link_keeps_its_occurrence_order_after_the_service_moves` |
+| `ScopeAtAssociation` | `DEFERRED` (semantics **CLOSED**) | — | Owner definition: immutable beneficiary/coverage snapshot at association; `{TravellerId, SegmentId}` for AirTransport. Persistence deferred to first re-association or split. ERRATA §1.3, `OD-S1-08` closed |
 | Current service owns exactly one OrderId/OrderItemId | `MATERIALIZED` | `OrderService.OrderId`, `.OrderItemId` | FK matrix row 4 |
 | `ServiceType`, `CommercialStatus`, `FulfillmentProfileSnapshot`, `CreatedByChangeId` | `MATERIALIZED` | `OrderService` / `OrderAirTransportService` | 7 enum CHECKs; FK matrix row 5 |
 | `ServiceVersion` | `DEFERRED` | — | ERRATA §1.1 |

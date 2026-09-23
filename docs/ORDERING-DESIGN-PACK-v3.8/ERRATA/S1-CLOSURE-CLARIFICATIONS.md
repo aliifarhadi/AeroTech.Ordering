@@ -45,23 +45,41 @@ S1 does not persist `PriceTreatment`. The stage that introduces ancillaries or b
 `Contracts/AeroTech.Messages/Ordering/Enums/` and the column, with the rule from line 21 that included/complimentary
 must not fabricate a synthetic zero fare line.
 
-### 1.3 `ScopeAtAssociation` — DEFERRED (open decision)
+### 1.3 `ScopeAtAssociation` — DEFERRED (semantics CLOSED, persistence deferred)
 
 Pack: `DOMAIN/02-COMMERCIAL-COMPOSITION.md` line 13 — "Store immutable `OrderItemServiceLink(LinkId,
 OrderIdAtAssociation, OrderItemId, OrderServiceId, ScopeAtAssociation, LinkedByChangeId)`."
+Pack: `DOMAIN/13-PERSISTENCE-DATA-DICTIONARY.md`, `ItemServiceLinks/ServiceLineage/ItemLineage` row — persisted
+fields are "occurrence OrderId, old/new refs/change, **scope snapshot**".
 
-This is the only occurrence of `ScopeAtAssociation` in the entire Pack. The Pack names the field but defines neither
-its type nor its semantics, and no other Pack file constrains it.
+**Semantics — settled by the owner (stage 09, closes `OD-S1-08`).**
 
-S1 persists the rest of the tuple — `Id`, `OrderIdAtAssociation`, `OrderItemId`, `OrderServiceId`, `LinkedByChangeId`
-— and enforces `OrderIdAtAssociation` as a real scoping key: all three outbound foreign keys of
-`OrderItemServiceLinks` are composite on `(OrderIdAtAssociation, ...)` against `(OrderId, Id)` alternate keys, so a
-link cannot bind an item, a service or a change belonging to a different Order.
+`ScopeAtAssociation` is the immutable snapshot of the Service's commercial **beneficiary/coverage** scope at the time
+Item-Service membership was established. It is **not** sales scope and **not** funding scope.
 
-S1 does not invent a type or meaning for `ScopeAtAssociation`. A field whose semantics cannot be derived from the Pack
-is not implemented by guessing. This is recorded as an open decision, not as an implemented field; see
-`reports/00-decisions/`. The stage in which a service can be re-associated to another item is the stage that needs the
-field, and it must carry the owner definition of it.
+| Service type | Scope |
+|---|---|
+| `AirTransportation` | `{ TravellerId, SegmentId }` |
+| future typed shared services | the complete typed beneficiary/coverage set for that service type |
+
+Stage 08 recorded this field as ambiguous because the Pack names it once with no type; the owner answer above removes
+the ambiguity and is recorded in `reports/00-decisions/S1-FINAL-SHAPE-OPEN-DECISIONS.md`.
+
+**Persistence — `DEFER_UNTIL_FIRST_REASSOCIATION_OR_SPLIT`.**
+
+S1 does not persist a column. In S1 a service is created once, associated once and never re-associated, so the
+snapshot would equal the service's current `{TravellerId, SegmentId}` for every row's whole S1 lifetime — and those
+two columns are already persisted on `OrderAirTransportService` under composite foreign keys to the current traveller
+and the current segment. The snapshot first differs from the current values at the first re-association or split,
+which is the slice that materialises it, as the typed beneficiary/coverage set for the service type.
+
+**No generic JSON scope column in S1.** An untyped payload would make the eventual typed shape harder rather than
+easier and would settle a persistence-identity question before the owner needs it.
+
+What S1 does persist and enforce: `Id`, `OrderIdAtAssociation`, `OrderItemId`, `OrderServiceId`, `LinkedByChangeId`.
+Stage 09 corrected `OrderItemId` and `OrderServiceId` to stable-identity foreign keys so that a future service move
+cannot invalidate the historical link, while `LinkedByChangeId` stays scoped by `OrderIdAtAssociation` because both
+are immutable occurrence facts. See §8.
 
 ### 1.4 Service transition history — DEFERRED
 
@@ -223,11 +241,17 @@ Reason this is not closed in S1: a protected payload store is a service-level ca
 access-control surface and a retention job — not a column shape. Introducing one is a new architectural decision and an
 owner decision about where the store lives and who owns the keys. S1 does not invent it.
 
-Consequence recorded plainly: **S1 is not privacy-complete.** The separation the Pack requires between monetary records
+Consequence stated plainly: **S1 is not privacy-complete.** The separation the Pack requires between monetary records
 and erasable personal payloads is designed for but not implemented. The monetary tables already reference travellers by
 identifier only, so the later move of name/DOB/contact behind a payload reference is a localized change to
-`OrderTravellerIdentities` and `OrderContacts` and does not touch money. This is recorded as an open decision in
-`reports/00-decisions/`, not as satisfied.
+`OrderTravellerIdentities` and `OrderContacts` and does not touch money.
+
+**Refined by the owner in stage 09 (`OD-S1-09`).** The single gap is now separated into three parts. The canonical
+Domain requirement — stable Traveller/Contact identity must not require perpetual PII retention — is **settled**, and
+S1 already satisfies its structural half. A **protected payload reference boundary** is an **approved** internal
+abstraction, so introducing it later is not a new architectural decision. What remains open is infrastructure only:
+the physical store, key ownership and the retention schedule. That is an architecture gate before the privacy
+lifecycle slice, **not an S1 blocker**. See `reports/00-decisions/S1-FINAL-SHAPE-OPEN-DECISIONS.md`.
 
 ---
 
@@ -235,4 +259,34 @@ identifier only, so the later move of name/DOB/contact behind a payload referenc
 
 This file does not relax an invariant, retype a Pack field, rename a Pack concept or authorise a "safe default" for a
 missing one. Every DEFERRED entry states the stage that must implement it. Every DIVERGENCE entry states the Pack line
-it departs from and why. Items 1.3 and 6 are open owner decisions and are also recorded in `reports/00-decisions/`.
+it departs from and why. §1.3 is now closed on semantics and deferred on persistence; §6 is refined to one remaining
+infrastructure gate. Both are tracked in `reports/00-decisions/S1-FINAL-SHAPE-OPEN-DECISIONS.md`.
+
+---
+
+## 8. Current containment versus historical reference — CLARIFIED (stage 09)
+
+Pack: `DOMAIN/13-PERSISTENCE-DATA-DICTIONARY.md`, `ItemServiceLinks/ServiceLineage/ItemLineage` row — "Append-only,
+explicit many-to-many; **historical refs not constrained to current owner**".
+Pack: `DOMAIN/01-AGGREGATES.md` line 55 — "**Current service ownership can move through split without changing
+ServiceId.** History retains OrderIdAtOccurrence/Association."
+Pack: `DOMAIN/12-SPLIT-GROUPS-AND-RELATED-ORDERS.md` step 3 — "move current traveler/service ownership … **Preserve
+all historical OrderIdAtOccurrence** and issued facts."
+
+Stage 08 treated every Order-scoped reference as current containment and made all of them composite on the current
+`OrderId`. That was wrong for the historical half, and stage 09 corrected it. The rule the schema now follows:
+
+| Kind | Rule | Example |
+|---|---|---|
+| **Current containment** — the dependent and the principal must be in the same Order *right now*, and they move together | composite foreign key on the current scoping column | `OrderService(OrderId, OrderItemId)`, `OrderAirTransportService(OrderId, TravellerId)` |
+| **Immutable historical occurrence** — the reference records what was true when it happened, and the dependent identity may later move to another Order | stable-identity foreign key, plus an explicit occurrence `OrderId` column that is a recorded fact, not a foreign-key scope | `OrderItemServiceLink.OrderServiceId` with `OrderIdAtAssociation`, `PricingLine.OrderItemId` with `OrderId` |
+
+The occurrence `OrderId` columns (`OrderItemServiceLink.OrderIdAtAssociation`, `PricingLine.OrderId`,
+`FundingObligation.OrderId`) are **not** deleted and **not** weakened — they are the Pack's `OrderIdAtOccurrence`
+facts. What changed is that they no longer act as a current-owner scope on the referenced row.
+
+A composite key that spans an immutable occurrence pair is still correct, because neither side can move:
+`OrderItemServiceLink(OrderIdAtAssociation, LinkedByChangeId)`, `PriceChangeSet(OrderId, ChangeId)`,
+`FundingObligation(OrderId, ChangeId)`.
+
+Full matrix and proof: `reports/09-S1-historical-identity-and-pack-reference/HISTORICAL-IDENTITY-CORRECTION-MATRIX.md`.

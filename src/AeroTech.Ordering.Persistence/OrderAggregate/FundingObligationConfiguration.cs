@@ -35,16 +35,13 @@ namespace AeroTech.Ordering.Persistence.OrderAggregate
                 .HasPrincipalKey(set => new { set.OrderId, set.Id })
                 .OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<OrderItem>().WithMany()
-                .HasForeignKey(obligation => new { obligation.OrderId, obligation.OrderItemId })
-                .HasPrincipalKey(item => new { item.OrderId, item.Id })
+                .HasForeignKey(obligation => obligation.OrderItemId)
                 .OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<OrderService>().WithMany()
-                .HasForeignKey(obligation => new { obligation.OrderId, obligation.OrderServiceId })
-                .HasPrincipalKey(service => new { service.OrderId, service.Id })
+                .HasForeignKey(obligation => obligation.OrderServiceId)
                 .OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<PricingLine>().WithMany()
-                .HasForeignKey(obligation => new { obligation.OrderId, obligation.PricingLineId })
-                .HasPrincipalKey(line => new { line.OrderId, line.Id })
+                .HasForeignKey(obligation => obligation.PricingLineId)
                 .OnDelete(DeleteBehavior.Restrict);
             builder.HasIndex(obligation => new { obligation.OrderId, obligation.Id, obligation.Version }).IsUnique();
         }
